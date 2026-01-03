@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 1student.gs - V01.13
+PBE CONTROL - 1student.gs - V01.15
 Sistema de Gestión Académica
-03/01/2026 - 19:00
+03/01/2026 - 23:30
 ******************************************
 
 CONTENIDO:
@@ -25,8 +25,15 @@ IMPORTANTE:
 - NUNCA acceder a SHEET directamente
 - SIEMPRE usar DB para operaciones de datos
 - Retorna siempre { success, data/error }
+- VALIDACIONES: Un alumno NO puede tener registros duplicados
 
-🔑 PATRÓN: "Student.obtener*() → DB.obtenerPorAlumno() → return {success, data}"
+🔑 REGLAS DE UNICIDAD:
+• Curso: Nombre corto único por alumno
+• Repaso: Curso+Tema único por alumno
+• Evaluación: Curso+NomEval único por alumno
+• Tarea: Curso+Tarea único por alumno
+• Lectura: Curso+Lectura único por alumno
+
 ******************************************
 */
 
@@ -55,9 +62,32 @@ var Student = (function() {
   
   /**
    * Agregar un curso nuevo
+   * 
+   * ⚠️ VALIDACIÓN: Curso NO puede duplicarse para un alumno
    */
   function agregarCurso(params) {
     try {
+      // ==========================================
+      // VALIDACIÓN: Unicidad de Curso
+      // ==========================================
+      
+      var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
+      
+      if (existentes.success) {
+        for (var i = 0; i < existentes.data.length; i++) {
+          if (existentes.data[i].Curso === params.curso) {
+            return {
+              success: false,
+              error: 'El curso ' + params.curso + ' ya existe. Usa otro nombre corto'
+            };
+          }
+        }
+      }
+      
+      // ==========================================
+      // Agregar curso
+      // ==========================================
+      
       var curso = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
@@ -128,9 +158,33 @@ var Student = (function() {
   
   /**
    * Agregar un repaso nuevo
+   * 
+   * ⚠️ VALIDACIÓN: Curso+Tema NO puede duplicarse
    */
   function agregarRepaso(params) {
     try {
+      // ==========================================
+      // VALIDACIÓN: Unicidad de Curso+Tema
+      // ==========================================
+      
+      var existentes = DB.obtenerPorAlumno('Repasos', params.codeAlum);
+      
+      if (existentes.success) {
+        for (var i = 0; i < existentes.data.length; i++) {
+          if (existentes.data[i].Curso === params.curso && 
+              existentes.data[i].Tema === params.tema) {
+            return {
+              success: false,
+              error: 'El tema "' + params.tema + '" ya existe en ' + params.curso
+            };
+          }
+        }
+      }
+      
+      // ==========================================
+      // Agregar repaso
+      // ==========================================
+      
       var repaso = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
@@ -206,9 +260,33 @@ var Student = (function() {
   
   /**
    * Agregar una evaluación nueva
+   * 
+   * ⚠️ VALIDACIÓN: Curso+NomEval NO puede duplicarse
    */
   function agregarEvaluacion(params) {
     try {
+      // ==========================================
+      // VALIDACIÓN: Unicidad de Curso+NomEval
+      // ==========================================
+      
+      var existentes = DB.obtenerPorAlumno('Eval', params.codeAlum);
+      
+      if (existentes.success) {
+        for (var i = 0; i < existentes.data.length; i++) {
+          if (existentes.data[i].Curso === params.curso && 
+              existentes.data[i].NomEval === params.nomEval) {
+            return {
+              success: false,
+              error: 'La evaluación "' + params.nomEval + '" ya existe en ' + params.curso
+            };
+          }
+        }
+      }
+      
+      // ==========================================
+      // Agregar evaluación
+      // ==========================================
+      
       var evaluacion = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
@@ -282,9 +360,33 @@ var Student = (function() {
   
   /**
    * Agregar una tarea nueva
+   * 
+   * ⚠️ VALIDACIÓN: Curso+Tarea NO puede duplicarse
    */
   function agregarTarea(params) {
     try {
+      // ==========================================
+      // VALIDACIÓN: Unicidad de Curso+Tarea
+      // ==========================================
+      
+      var existentes = DB.obtenerPorAlumno('Tareas', params.codeAlum);
+      
+      if (existentes.success) {
+        for (var i = 0; i < existentes.data.length; i++) {
+          if (existentes.data[i].Curso === params.curso && 
+              existentes.data[i].Tarea === params.tarea) {
+            return {
+              success: false,
+              error: 'La tarea "' + params.tarea + '" ya existe en ' + params.curso
+            };
+          }
+        }
+      }
+      
+      // ==========================================
+      // Agregar tarea
+      // ==========================================
+      
       var tarea = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
@@ -360,9 +462,33 @@ var Student = (function() {
   
   /**
    * Agregar una lectura nueva
+   * 
+   * ⚠️ VALIDACIÓN: Curso+Lectura NO puede duplicarse
    */
   function agregarLectura(params) {
     try {
+      // ==========================================
+      // VALIDACIÓN: Unicidad de Curso+Lectura
+      // ==========================================
+      
+      var existentes = DB.obtenerPorAlumno('Lecturas', params.codeAlum);
+      
+      if (existentes.success) {
+        for (var i = 0; i < existentes.data.length; i++) {
+          if (existentes.data[i].Curso === params.curso && 
+              existentes.data[i].Lectura === params.lectura) {
+            return {
+              success: false,
+              error: 'La lectura "' + params.lectura + '" ya existe en ' + params.curso
+            };
+          }
+        }
+      }
+      
+      // ==========================================
+      // Agregar lectura
+      // ==========================================
+      
       var lectura = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
@@ -462,6 +588,8 @@ var Student = (function() {
   
   /**
    * Agregar una clase al horario
+   * 
+   * ⚠️ FLEXIBILIDAD: Acepta horaIni (frontend) o horaInicio (tests)
    */
   function agregarHorarioClase(params) {
     try {
@@ -469,7 +597,7 @@ var Student = (function() {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: params.codeAlum,
         Curso: params.curso,
-        HoraInicio: params.horaIni, // ← Frontend envía horaIni, guardamos como HoraInicio
+        HoraInicio: params.horaIni || params.horaInicio, // ← Acepta ambos
         HoraFin: params.horaFin,
         Detalle: params.detalle || ''
       };
@@ -493,7 +621,7 @@ var Student = (function() {
       
       var clase = result.data;
       clase.Curso = params.curso || clase.Curso;
-      clase.HoraInicio = params.horaIni || clase.HoraInicio;
+      clase.HoraInicio = params.horaIni || params.horaInicio || clase.HoraInicio;
       clase.HoraFin = params.horaFin || clase.HoraFin;
       clase.Detalle = params.detalle || clase.Detalle;
       
@@ -826,9 +954,17 @@ var Student = (function() {
 })();
 
 // ==========================================
-// FIN DE 1student.gs
+// FIN DE 1student.gs - V01.15
 // Total: 31 funciones públicas
 // - Cursos (4), Repasos (4), Evaluaciones (4)
 // - Tareas (4), Lecturas (4), HorarioClases (4)
 // - HorarioSem (3), Notas (2), Deberes (2)
+//
+// CAMBIOS EN V01.15:
+// ✅ Validación de unicidad en agregarCurso()
+// ✅ Validación de unicidad en agregarRepaso()
+// ✅ Validación de unicidad en agregarEvaluacion()
+// ✅ Validación de unicidad en agregarTarea()
+// ✅ Validación de unicidad en agregarLectura()
+// ✅ Flexibilidad horaIni/horaInicio en agregarHorarioClase()
 // ==========================================
