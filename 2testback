@@ -1,0 +1,785 @@
+/*
+******************************************
+PBE CONTROL - 2testback.gs - V01.13
+Sistema de Gestión Académica
+03/01/2026 - 19:00
+******************************************
+
+CONTENIDO:
+- PARTE 1: Limpieza de datos de prueba
+- PARTE 2: Batería de 10 casos de prueba
+- PARTE 3: Función principal ejecutarTodasLasPruebas()
+
+IMPORTANTE:
+- Ejecutar ANTES Y DESPUÉS de cada cambio de código
+- Si un test pasa HOY, debe pasar SIEMPRE
+- Romper un test = bug crítico
+- Resultados se muestran en 2testui.html
+
+🔑 PRINCIPIO: "Si un test pasa HOY, debe pasar SIEMPRE"
+******************************************
+*/
+
+// ==========================================
+// CONFIGURACIÓN
+// ==========================================
+
+// SS y SHEET ya están definidos en 1db.gs
+// No redefinir para evitar conflictos
+
+// ==========================================
+// PARTE 1: LIMPIEZA DE DATOS DE PRUEBA
+// ==========================================
+
+/**
+ * Limpiar TODOS los registros TEST* antes de ejecutar tests
+ * 
+ * ⚠️ CRÍTICO: Eliminar de abajo hacia arriba para no desplazar índices
+ * 
+ * @return {Object} - { success, passed, nombre, mensaje }
+ */
+function limpiarDatosPrueba() {
+  try {
+    var hojas = [
+      'Alumnos', 'Clientes', 'Cursos', 'Repasos',
+      'Eval', 'Tareas', 'Lecturas', 'HorarioClases', 'HorarioSem'
+    ];
+    
+    var totalEliminados = 0;
+    
+    hojas.forEach(function(nombreHoja) {
+      var sheet = SHEET[nombreHoja];
+      if (!sheet) {
+        return; // Skip si la hoja no existe
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      
+      // Eliminar de abajo hacia arriba para no desplazar índices
+      for (var i = data.length - 1; i >= 1; i--) {
+        var codeAlum = String(data[i][1]); // Columna B = CodeAlum
+        
+        // Si comienza con "TEST", eliminar
+        if (codeAlum.indexOf('TEST') === 0) {
+          sheet.deleteRow(i + 1);
+          totalEliminados++;
+        }
+      }
+    });
+    
+    return {
+      success: true,
+      passed: true,
+      nombre: '🧹 Limpieza de datos',
+      mensaje: totalEliminados + ' registros TEST eliminados correctamente'
+    };
+    
+  } catch(error) {
+    Logger.log('Error en limpiarDatosPrueba(): ' + error.toString());
+    return {
+      success: false,
+      passed: false,
+      nombre: '🧹 Limpieza de datos',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+// ==========================================
+// PARTE 2: BATERÍA DE 10 TESTS
+// ==========================================
+
+/**
+ * TEST 01: Crear 5 alumnos TEST01-TEST05
+ * 
+ * ⚠️ CRÍTICO: Cada alumno DEBE tener clave ÚNICA (test1, test2, test3, test4, test5)
+ */
+function test01_CrearAlumnos() {
+  try {
+    var alumnos = [
+      {
+        codeAlum: 'TEST01',
+        clave: 'test1',
+        apellidos: 'Test Uno',
+        nombres: 'Alumno',
+        dni: '11111111',
+        email: 'test1@pbe.com',
+        tipoInsti: 'Universidad',
+        nomInsti: 'Test University',
+        ciclo: '1'
+      },
+      {
+        codeAlum: 'TEST02',
+        clave: 'test2',
+        apellidos: 'Test Dos',
+        nombres: 'Alumno',
+        dni: '22222222',
+        email: 'test2@pbe.com',
+        tipoInsti: 'Universidad',
+        nomInsti: 'Test University',
+        ciclo: '2'
+      },
+      {
+        codeAlum: 'TEST03',
+        clave: 'test3',
+        apellidos: 'Test Tres',
+        nombres: 'Alumno',
+        dni: '33333333',
+        email: 'test3@pbe.com',
+        tipoInsti: 'Colegio',
+        nomInsti: 'Test School',
+        ciclo: '3'
+      },
+      {
+        codeAlum: 'TEST04',
+        clave: 'test4',
+        apellidos: 'Test Cuatro',
+        nombres: 'Alumno',
+        dni: '44444444',
+        email: 'test4@pbe.com',
+        tipoInsti: 'Instituto',
+        nomInsti: 'Test Institute',
+        ciclo: '4'
+      },
+      {
+        codeAlum: 'TEST05',
+        clave: 'test5',
+        apellidos: 'Test Cinco',
+        nombres: 'Alumno',
+        dni: '55555555',
+        email: 'test5@pbe.com',
+        tipoInsti: 'Academia',
+        nomInsti: 'Test Academy',
+        ciclo: '5'
+      }
+    ];
+    
+    var creados = 0;
+    
+    for (var i = 0; i < alumnos.length; i++) {
+      var result = Admin.crearAlumno(alumnos[i]);
+      if (result.success) {
+        creados++;
+      }
+    }
+    
+    if (creados === 5) {
+      return {
+        passed: true,
+        nombre: 'TEST 01: Crear 5 alumnos',
+        mensaje: '✓ 5 alumnos creados correctamente (TEST01-TEST05)'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 01: Crear 5 alumnos',
+        mensaje: 'FALLÓ: Solo se crearon ' + creados + ' de 5 alumnos'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test01_CrearAlumnos(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 01: Crear 5 alumnos',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 02: Validar unicidad de CodeAlum
+ * 
+ * Sistema DEBE rechazar CodeAlum duplicado
+ */
+function test02_ValidarUnicidadCodeAlum() {
+  try {
+    var duplicado = {
+      codeAlum: 'TEST01', // ← Ya existe
+      clave: 'test999',
+      apellidos: 'Duplicado',
+      nombres: 'Test',
+      dni: '99999999',
+      email: 'duplicado@pbe.com'
+    };
+    
+    var result = Admin.crearAlumno(duplicado);
+    
+    // DEBE fallar porque CodeAlum ya existe
+    if (!result.success && result.error.indexOf('CodeAlum ya existe') !== -1) {
+      return {
+        passed: true,
+        nombre: 'TEST 02: Unicidad de CodeAlum',
+        mensaje: '✓ Sistema rechazó CodeAlum duplicado correctamente'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 02: Unicidad de CodeAlum',
+        mensaje: 'FALLÓ: Sistema permitió CodeAlum duplicado'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test02_ValidarUnicidadCodeAlum(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 02: Unicidad de CodeAlum',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 03: Validar unicidad de Clave
+ * 
+ * Sistema DEBE rechazar Clave duplicada
+ */
+function test03_ValidarUnicidadClave() {
+  try {
+    var duplicado = {
+      codeAlum: 'TEST99',
+      clave: 'test1', // ← Ya existe (TEST01 usa test1)
+      apellidos: 'Duplicado Clave',
+      nombres: 'Test',
+      dni: '88888888',
+      email: 'dupclave@pbe.com'
+    };
+    
+    var result = Admin.crearAlumno(duplicado);
+    
+    // DEBE fallar porque Clave ya existe
+    if (!result.success && result.error.indexOf('Clave ya existe') !== -1) {
+      return {
+        passed: true,
+        nombre: 'TEST 03: Unicidad de Clave',
+        mensaje: '✓ Sistema rechazó Clave duplicada correctamente'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 03: Unicidad de Clave',
+        mensaje: 'FALLÓ: Sistema permitió Clave duplicada'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test03_ValidarUnicidadClave(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 03: Unicidad de Clave',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 04: Agregar 6 cursos a TEST05
+ * 
+ * Cursos: MATE, FIS, QUIM, BIOL, HIST, ING
+ */
+function test04_AgregarCursos() {
+  try {
+    var cursos = [
+      { curso: 'MATE', completo: 'Matemáticas', color: '#FF5733' },
+      { curso: 'FIS', completo: 'Física', color: '#3498DB' },
+      { curso: 'QUIM', completo: 'Química', color: '#2ECC71' },
+      { curso: 'BIOL', completo: 'Biología', color: '#F1C40F' },
+      { curso: 'HIST', completo: 'Historia', color: '#9B59B6' },
+      { curso: 'ING', completo: 'Inglés', color: '#E67E22' }
+    ];
+    
+    var agregados = 0;
+    
+    for (var i = 0; i < cursos.length; i++) {
+      var params = {
+        codeAlum: 'TEST05',
+        curso: cursos[i].curso,
+        completo: cursos[i].completo,
+        color: cursos[i].color
+      };
+      
+      var result = Student.agregarCurso(params);
+      if (result.success) {
+        agregados++;
+      }
+    }
+    
+    if (agregados === 6) {
+      return {
+        passed: true,
+        nombre: 'TEST 04: Agregar 6 cursos',
+        mensaje: '✓ 6 cursos agregados a TEST05 (MATE, FIS, QUIM, BIOL, HIST, ING)'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 04: Agregar 6 cursos',
+        mensaje: 'FALLÓ: Solo se agregaron ' + agregados + ' de 6 cursos'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test04_AgregarCursos(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 04: Agregar 6 cursos',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 05: Agregar 8 repasos
+ * 
+ * 4 con EstadoRep=OK, 4 con EstadoRep=Falta
+ */
+function test05_AgregarRepasos() {
+  try {
+    var repasos = [
+      { curso: 'MATE', tema: 'Derivadas', estadoRep: 'OK', evaluado: 'Si' },
+      { curso: 'MATE', tema: 'Integrales', estadoRep: 'OK', evaluado: '' },
+      { curso: 'FIS', tema: 'Cinemática', estadoRep: 'OK', evaluado: '' },
+      { curso: 'QUIM', tema: 'Estequiometría', estadoRep: 'OK', evaluado: 'Si' },
+      { curso: 'BIOL', tema: 'Genética', estadoRep: 'Falta', evaluado: '' },
+      { curso: 'HIST', tema: 'Revolución Francesa', estadoRep: 'Falta', evaluado: '' },
+      { curso: 'ING', tema: 'Present Perfect', estadoRep: 'Falta', evaluado: '' },
+      { curso: 'MATE', tema: 'Límites', estadoRep: 'Falta', evaluado: '' }
+    ];
+    
+    var agregados = 0;
+    
+    for (var i = 0; i < repasos.length; i++) {
+      var params = {
+        codeAlum: 'TEST05',
+        curso: repasos[i].curso,
+        tema: repasos[i].tema,
+        fechaClase: '01/01/2026',
+        fechaRep: '02/01/2026',
+        estadoRep: repasos[i].estadoRep,
+        detalle: 'Repaso de prueba',
+        evaluado: repasos[i].evaluado
+      };
+      
+      var result = Student.agregarRepaso(params);
+      if (result.success) {
+        agregados++;
+      }
+    }
+    
+    if (agregados === 8) {
+      return {
+        passed: true,
+        nombre: 'TEST 05: Agregar 8 repasos',
+        mensaje: '✓ 8 repasos agregados (4 OK, 4 Falta, 2 evaluados)'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 05: Agregar 8 repasos',
+        mensaje: 'FALLÓ: Solo se agregaron ' + agregados + ' de 8 repasos'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test05_AgregarRepasos(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 05: Agregar 8 repasos',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 06: Agregar 5 evaluaciones
+ * 
+ * Con notas y pesos variados
+ */
+function test06_AgregarEvaluaciones() {
+  try {
+    var evaluaciones = [
+      { curso: 'MATE', nomEval: 'Parcial 1', nota: 18, peso: 30 },
+      { curso: 'FIS', nomEval: 'Práctica 1', nota: 16, peso: 20 },
+      { curso: 'QUIM', nomEval: 'Examen Final', nota: 15, peso: 40 },
+      { curso: 'BIOL', nomEval: 'Trabajo Grupal', nota: 17, peso: 25 },
+      { curso: 'HIST', nomEval: 'Exposición', nota: 19, peso: 35 }
+    ];
+    
+    var agregados = 0;
+    
+    for (var i = 0; i < evaluaciones.length; i++) {
+      var params = {
+        codeAlum: 'TEST05',
+        curso: evaluaciones[i].curso,
+        nomEval: evaluaciones[i].nomEval,
+        fechaEval: '15/01/2026',
+        nota: evaluaciones[i].nota,
+        peso: evaluaciones[i].peso,
+        sem: 1
+      };
+      
+      var result = Student.agregarEvaluacion(params);
+      if (result.success) {
+        agregados++;
+      }
+    }
+    
+    if (agregados === 5) {
+      return {
+        passed: true,
+        nombre: 'TEST 06: Agregar 5 evaluaciones',
+        mensaje: '✓ 5 evaluaciones agregadas con notas entre 15-19'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 06: Agregar 5 evaluaciones',
+        mensaje: 'FALLÓ: Solo se agregaron ' + agregados + ' de 5 evaluaciones'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test06_AgregarEvaluaciones(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 06: Agregar 5 evaluaciones',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 07: Agregar 3 tareas
+ * 
+ * Con fechas de entrega distintas
+ */
+function test07_AgregarTareas() {
+  try {
+    var tareas = [
+      { curso: 'MATE', tarea: 'Tarea 1: Ejercicios Cap 3', fechaEntrega: '10/01/2026', nota: 17, peso: 10 },
+      { curso: 'FIS', tarea: 'Tarea 2: Problemas de Cinemática', fechaEntrega: '12/01/2026', nota: 16, peso: 15 },
+      { curso: 'QUIM', tarea: 'Tarea 3: Laboratorio Virtual', fechaEntrega: '14/01/2026', nota: 18, peso: 12 }
+    ];
+    
+    var agregados = 0;
+    
+    for (var i = 0; i < tareas.length; i++) {
+      var params = {
+        codeAlum: 'TEST05',
+        curso: tareas[i].curso,
+        tarea: tareas[i].tarea,
+        fechaEntrega: tareas[i].fechaEntrega,
+        fechaAccion: '03/01/2026',
+        nota: tareas[i].nota,
+        peso: tareas[i].peso,
+        sem: 1
+      };
+      
+      var result = Student.agregarTarea(params);
+      if (result.success) {
+        agregados++;
+      }
+    }
+    
+    if (agregados === 3) {
+      return {
+        passed: true,
+        nombre: 'TEST 07: Agregar 3 tareas',
+        mensaje: '✓ 3 tareas agregadas con fechas de entrega diferentes'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 07: Agregar 3 tareas',
+        mensaje: 'FALLÓ: Solo se agregaron ' + agregados + ' de 3 tareas'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test07_AgregarTareas(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 07: Agregar 3 tareas',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 08: Agregar 2 lecturas
+ * 
+ * Con progreso parcial (PagActual < CantPag)
+ */
+function test08_AgregarLecturas() {
+  try {
+    var lecturas = [
+      { 
+        curso: 'HIST', 
+        lectura: 'Historia del Perú - Jorge Basadre', 
+        cantPag: 500, 
+        pagActual: 250,
+        nota: 16,
+        peso: 20
+      },
+      { 
+        curso: 'ING', 
+        lectura: 'The Great Gatsby - F. Scott Fitzgerald', 
+        cantPag: 180, 
+        pagActual: 90,
+        nota: 18,
+        peso: 15
+      }
+    ];
+    
+    var agregados = 0;
+    
+    for (var i = 0; i < lecturas.length; i++) {
+      var params = {
+        codeAlum: 'TEST05',
+        curso: lecturas[i].curso,
+        lectura: lecturas[i].lectura,
+        cantPag: lecturas[i].cantPag,
+        pagActual: lecturas[i].pagActual,
+        fechaInicio: '01/01/2026',
+        fechaFin: '31/01/2026',
+        fechaEval: '05/02/2026',
+        nota: lecturas[i].nota,
+        peso: lecturas[i].peso,
+        sem: 1
+      };
+      
+      var result = Student.agregarLectura(params);
+      if (result.success) {
+        agregados++;
+      }
+    }
+    
+    if (agregados === 2) {
+      return {
+        passed: true,
+        nombre: 'TEST 08: Agregar 2 lecturas',
+        mensaje: '✓ 2 lecturas agregadas (progreso 50% cada una)'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 08: Agregar 2 lecturas',
+        mensaje: 'FALLÓ: Solo se agregaron ' + agregados + ' de 2 lecturas'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test08_AgregarLecturas(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 08: Agregar 2 lecturas',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 09: Buscar alumno existente
+ * 
+ * DB.buscar("Alumnos", "Clave", "test1") → success
+ */
+function test09_BuscarAlumno() {
+  try {
+    var result = DB.buscar('Alumnos', 'Clave', 'test1');
+    
+    if (result.success && result.data.CodeAlum === 'TEST01') {
+      return {
+        passed: true,
+        nombre: 'TEST 09: Buscar alumno existente',
+        mensaje: '✓ Alumno encontrado correctamente (CodeAlum: TEST01)'
+      };
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 09: Buscar alumno existente',
+        mensaje: 'FALLÓ: No se encontró el alumno o CodeAlum incorrecto'
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test09_BuscarAlumno(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 09: Buscar alumno existente',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * TEST 10: Eliminar alumno completo
+ * 
+ * Admin.eliminarAlumno("TEST05") → elimina de 9 hojas
+ */
+function test10_EliminarAlumno() {
+  try {
+    var result = Admin.eliminarAlumno({ codeAlum: 'TEST05' });
+    
+    if (result.success) {
+      // Verificar que ya no existe en Alumnos
+      var verificar = DB.buscar('Alumnos', 'CodeAlum', 'TEST05');
+      
+      if (!verificar.success) {
+        return {
+          passed: true,
+          nombre: 'TEST 10: Eliminar alumno completo',
+          mensaje: '✓ TEST05 eliminado de todas las hojas (' + result.message + ')'
+        };
+      } else {
+        return {
+          passed: false,
+          nombre: 'TEST 10: Eliminar alumno completo',
+          mensaje: 'FALLÓ: Alumno aún existe en hoja Alumnos'
+        };
+      }
+    } else {
+      return {
+        passed: false,
+        nombre: 'TEST 10: Eliminar alumno completo',
+        mensaje: 'FALLÓ: ' + result.error
+      };
+    }
+    
+  } catch(error) {
+    Logger.log('Error en test10_EliminarAlumno(): ' + error.toString());
+    return {
+      passed: false,
+      nombre: 'TEST 10: Eliminar alumno completo',
+      mensaje: 'ERROR: ' + error.toString()
+    };
+  }
+}
+
+// ==========================================
+// PARTE 3: FUNCIÓN PRINCIPAL
+// ==========================================
+
+/**
+ * Ejecutar TODAS las pruebas del sistema
+ * 
+ * 🔑 USO: Ejecutar desde Script Editor → Función → ejecutarTodasLasPruebas
+ * 
+ * FLUJO:
+ * 1. Limpiar datos de prueba
+ * 2. Ejecutar 10 tests en orden
+ * 3. Mostrar resultados en UI flotante (2testui.html)
+ * 
+ * @return {Array} - Array de resultados
+ */
+function ejecutarTodasLasPruebas() {
+  var resultados = [];
+  
+  Logger.log('====================================');
+  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL');
+  Logger.log('====================================');
+  
+  // Parte 1: Limpiar
+  Logger.log('Ejecutando limpieza...');
+  resultados.push(limpiarDatosPrueba());
+  
+  // Parte 2: Ejecutar tests
+  Logger.log('Ejecutando TEST 01...');
+  resultados.push(test01_CrearAlumnos());
+  
+  Logger.log('Ejecutando TEST 02...');
+  resultados.push(test02_ValidarUnicidadCodeAlum());
+  
+  Logger.log('Ejecutando TEST 03...');
+  resultados.push(test03_ValidarUnicidadClave());
+  
+  Logger.log('Ejecutando TEST 04...');
+  resultados.push(test04_AgregarCursos());
+  
+  Logger.log('Ejecutando TEST 05...');
+  resultados.push(test05_AgregarRepasos());
+  
+  Logger.log('Ejecutando TEST 06...');
+  resultados.push(test06_AgregarEvaluaciones());
+  
+  Logger.log('Ejecutando TEST 07...');
+  resultados.push(test07_AgregarTareas());
+  
+  Logger.log('Ejecutando TEST 08...');
+  resultados.push(test08_AgregarLecturas());
+  
+  Logger.log('Ejecutando TEST 09...');
+  resultados.push(test09_BuscarAlumno());
+  
+  Logger.log('Ejecutando TEST 10...');
+  resultados.push(test10_EliminarAlumno());
+  
+  Logger.log('====================================');
+  Logger.log('SUITE DE PRUEBAS COMPLETADA');
+  Logger.log('====================================');
+  
+  // Parte 3: Mostrar resultados en UI
+  mostrarResultadosEnUI(resultados);
+  
+  return resultados;
+}
+
+/**
+ * Mostrar resultados en ventana flotante
+ * 
+ * 🎨 UI: 2testui.html con:
+ * - Header con gradiente azul/morado
+ * - Tests PASSED con fondo verde
+ * - Tests FAILED con fondo rojo
+ * - Botón "Copiar Log Completo"
+ * 
+ * @param {Array} resultados - Array de objetos resultado
+ */
+function mostrarResultadosEnUI(resultados) {
+  try {
+    var template = HtmlService.createTemplateFromFile('2testui');
+    template.resultados = JSON.stringify(resultados);
+    
+    var html = template.evaluate()
+      .setWidth(900)
+      .setHeight(700);
+    
+    SpreadsheetApp.getUi().showModalDialog(
+      html,
+      '🧪 Resultados de Pruebas - PBE Control'
+    );
+    
+  } catch(error) {
+    Logger.log('Error al mostrar UI: ' + error.toString());
+    
+    // Fallback: Mostrar en Logger
+    Logger.log('====================================');
+    Logger.log('RESUMEN DE RESULTADOS:');
+    Logger.log('====================================');
+    
+    var passed = 0;
+    var failed = 0;
+    
+    resultados.forEach(function(r) {
+      if (r.passed) {
+        passed++;
+        Logger.log('✓ ' + r.nombre + ': ' + r.mensaje);
+      } else {
+        failed++;
+        Logger.log('✗ ' + r.nombre + ': ' + r.mensaje);
+      }
+    });
+    
+    Logger.log('====================================');
+    Logger.log('TOTAL: ' + passed + ' PASSED, ' + failed + ' FAILED');
+    Logger.log('====================================');
+  }
+}
+
+// ==========================================
+// FIN DE 2testback.gs
+// Total: 14 funciones
+// - 1 limpieza
+// - 10 tests
+// - 2 utilidades (ejecutar, mostrar)
+// ==========================================
