@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados de Pruebas - PBE Control</title>
+  
+  <style>
+    /* ==========================================
+       RESET Y BASE
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    
+    /* ==========================================
+       HEADER - Gradiente azul/morado
+       ========================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .header p {
+      font-size: 14px;
+      opacity: 0.95;
+      font-family: Arial, sans-serif;
+    }
+    
+    /* ==========================================
+       CONTENEDOR PRINCIPAL
+       ========================================== */
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+    
+    /* ==========================================
+       RESUMEN - Tarjeta superior
+       ========================================== */
+    .resumen {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .resumen h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .stat-box {
+      flex: 1;
+      text-align: center;
+      padding: 15px;
+      border-radius: 6px;
+      background: #f8f9fa;
+    }
+    
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .stat-box.passed .stat-number {
+      color: #28a745;
+    }
+    
+    .stat-box.failed .stat-number {
+      color: #dc3545;
+    }
+    
+    .stat-box.total .stat-number {
+      color: #667eea;
+    }
+    
+    /* ==========================================
+       LISTA DE TESTS
+       ========================================== */
+    .tests-list {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .tests-list h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+    
+    /* ==========================================
+       TEST ITEM - Cada resultado
+       ========================================== */
+    .test-item {
+      padding: 15px 18px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 4px solid;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    
+    .test-item:hover {
+      transform: translateX(3px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Test PASSED - Fondo verde */
+    .test-item.passed {
+      background: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+    }
+    
+    /* Test FAILED - Fondo rojo */
+    .test-item.failed {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+    
+    .test-nombre {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .test-icono {
+      font-size: 18px;
+    }
+    
+    .test-mensaje {
+      margin-left: 26px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+    
+    /* ==========================================
+       BOTÓN FLOTANTE - Copiar Log
+       ========================================== */
+    .btn-copiar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    
+    .btn-copiar:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-copiar:active {
+      transform: translateY(0);
+    }
+    
+    /* ==========================================
+       FOOTER
+       ========================================== */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #999;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+    }
+    
+    /* ==========================================
+       MENSAJE DE COPIADO
+       ========================================== */
+    .mensaje-copiado {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s;
+      z-index: 1001;
+      pointer-events: none;
+    }
+    
+    .mensaje-copiado.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* ==========================================
+       RESPONSIVE
+       ========================================== */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 22px;
+      }
+      
+      .stats {
+        flex-direction: column;
+      }
+      
+      .stat-box {
+        margin-bottom: 10px;
+      }
+      
+      .btn-copiar {
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+      }
+      
+      .mensaje-copiado {
+        top: auto;
+        bottom: 80px;
+      }
+      
+      .container {
+        padding: 20px 15px;
+      }
+    }
+    
+    /* ==========================================
+       ANIMACIONES
+       ========================================== */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .test-item {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    /* Delay incremental para cada test */
+    .test-item:nth-child(1) { animation-delay: 0.05s; }
+    .test-item:nth-child(2) { animation-delay: 0.10s; }
+    .test-item:nth-child(3) { animation-delay: 0.15s; }
+    .test-item:nth-child(4) { animation-delay: 0.20s; }
+    .test-item:nth-child(5) { animation-delay: 0.25s; }
+    .test-item:nth-child(6) { animation-delay: 0.30s; }
+    .test-item:nth-child(7) { animation-delay: 0.35s; }
+    .test-item:nth-child(8) { animation-delay: 0.40s; }
+    .test-item:nth-child(9) { animation-delay: 0.45s; }
+    .test-item:nth-child(10) { animation-delay: 0.50s; }
+  </style>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🧪 Resultados de Pruebas</h1>
+    <p>PBE Control - Sistema de Gestión Académica</p>
+  </div>
+  
+  <!-- BOTÓN COPIAR LOG -->
+  <button class="btn-copiar" onclick="copiarLog()">
+    📋 Copiar Log Completo
+  </button>
+  
+  <!-- MENSAJE DE COPIADO -->
+  <div class="mensaje-copiado" id="mensajeCopiado">
+    ✓ Log copiado al portapapeles
+  </div>
+  
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="container">
+    
+    <!-- RESUMEN -->
+    <div class="resumen">
+      <h2>📊 Resumen de Resultados</h2>
+      <div class="stats">
+        <div class="stat-box total">
+          <span class="stat-number" id="statTotal">0</span>
+          <span class="stat-label">Total Tests</span>
+        </div>
+        <div class="stat-box passed">
+          <span class="stat-number" id="statPassed">0</span>
+          <span class="stat-label">Passed</span>
+        </div>
+        <div class="stat-box failed">
+          <span class="stat-number" id="statFailed">0</span>
+          <span class="stat-label">Failed</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- LISTA DE TESTS -->
+    <div class="tests-list">
+      <h2>📝 Detalle de Pruebas</h2>
+      <div id="testResults">
+        <!-- Los resultados se insertan aquí dinámicamente -->
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- FOOTER -->
+  <div class="footer">
+    PBE Control V01.13 - Sistema de Testing<br>
+    Desarrollado por Jorge Baudouin - Enero 2026
+  </div>
+  
+  <!-- SCRIPT -->
+  <script>
+    // ==========================================
+    // DATOS DE RESULTADOS
+    // ==========================================
+    
+    // Los resultados vienen desde Apps Script
+    var resultadosJSON = <?!= resultados ?>;
+    var resultados = [];
+    
+    try {
+      resultados = JSON.parse(resultadosJSON);
+    } catch(error) {
+      console.error('Error al parsear resultados:', error);
+      resultados = [];
+    }
+    
+    // ==========================================
+    // RENDERIZAR RESULTADOS
+    // ==========================================
+    
+    function renderizarResultados() {
+      var container = document.getElementById('testResults');
+      var html = '';
+      
+      var totalPassed = 0;
+      var totalFailed = 0;
+      
+      // Generar HTML para cada test
+      resultados.forEach(function(test) {
+        var estado = test.passed ? 'passed' : 'failed';
+        var icono = test.passed ? '✓' : '✗';
+        
+        if (test.passed) {
+          totalPassed++;
+        } else {
+          totalFailed++;
+        }
+        
+        html += '<div class="test-item ' + estado + '">';
+        html += '  <div class="test-nombre">';
+        html += '    <span class="test-icono">' + icono + '</span>';
+        html += '    <span>' + (test.nombre || 'Test sin nombre') + '</span>';
+        html += '  </div>';
+        html += '  <div class="test-mensaje">' + (test.mensaje || 'Sin mensaje') + '</div>';
+        html += '</div>';
+      });
+      
+      // Si no hay resultados
+      if (resultados.length === 0) {
+        html = '<div class="test-item" style="background: #f8f9fa; border-left-color: #999; color: #666;">';
+        html += '  <div class="test-nombre">ℹ️ Sin resultados</div>';
+        html += '  <div class="test-mensaje">No se ejecutaron pruebas o no se recibieron resultados.</div>';
+        html += '</div>';
+      }
+      
+      container.innerHTML = html;
+      
+      // Actualizar estadísticas
+      document.getElementById('statTotal').textContent = resultados.length;
+      document.getElementById('statPassed').textContent = totalPassed;
+      document.getElementById('statFailed').textContent = totalFailed;
+    }
+    
+    // ==========================================
+    // COPIAR LOG AL PORTAPAPELES
+    // ==========================================
+    
+    function copiarLog() {
+      var log = generarLogCompleto();
+      
+      // Crear elemento temporal para copiar
+      var textarea = document.createElement('textarea');
+      textarea.value = log;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      
+      // Seleccionar y copiar
+      textarea.select();
+      
+      try {
+        document.execCommand('copy');
+        mostrarMensajeCopiado();
+      } catch(error) {
+        alert('No se pudo copiar. Intenta manualmente:\n\n' + log);
+      }
+      
+      document.body.removeChild(textarea);
+    }
+    
+    // ==========================================
+    // GENERAR LOG COMPLETO
+    // ==========================================
+    
+    function generarLogCompleto() {
+      var log = '';
+      
+      log += '====================================\n';
+      log += 'RESULTADOS DE PRUEBAS - PBE CONTROL\n';
+      log += '====================================\n';
+      log += 'Fecha: ' + new Date().toLocaleString('es-PE') + '\n';
+      log += '\n';
+      
+      // Resumen
+      var totalPassed = 0;
+      var totalFailed = 0;
+      
+      resultados.forEach(function(test) {
+        if (test.passed) totalPassed++;
+        else totalFailed++;
+      });
+      
+      log += 'RESUMEN:\n';
+      log += '--------\n';
+      log += 'Total Tests: ' + resultados.length + '\n';
+      log += 'Passed: ' + totalPassed + '\n';
+      log += 'Failed: ' + totalFailed + '\n';
+      log += '\n';
+      
+      // Detalle de cada test
+      log += 'DETALLE:\n';
+      log += '--------\n';
+      
+      resultados.forEach(function(test, index) {
+        var icono = test.passed ? '✓' : '✗';
+        log += '\n' + (index + 1) + '. ' + icono + ' ' + (test.nombre || 'Test sin nombre') + '\n';
+        log += '   ' + (test.mensaje || 'Sin mensaje') + '\n';
+      });
+      
+      log += '\n';
+      log += '====================================\n';
+      log += 'FIN DEL LOG\n';
+      log += '====================================\n';
+      
+      return log;
+    }
+    
+    // ==========================================
+    // MOSTRAR MENSAJE DE COPIADO
+    // ==========================================
+    
+    function mostrarMensajeCopiado() {
+      var mensaje = document.getElementById('mensajeCopiado');
+      mensaje.classList.add('show');
+      
+      setTimeout(function() {
+        mensaje.classList.remove('show');
+      }, 2000);
+    }
+    
+    // ==========================================
+    // INICIALIZAR AL CARGAR
+    // ==========================================
+    
+    window.onload = function() {
+      renderizarResultados();
+    };
+  </script>
+</body>
+</html>
