@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 2testback.gs - V01.17
+PBE CONTROL - 2testback.gs - V01.18
 Sistema de Gestión Académica
-04/01/2026 - 22:30
+04/01/2026 - 23:30
 ******************************************
 
 CONTENIDO:
@@ -10,7 +10,7 @@ CONTENIDO:
 - PARTE 2: Batería de 38 casos de prueba
 - PARTE 3: Función principal ejecutarTodasLasPruebas()
 
-CAMBIOS EN V01.17:
+CAMBIOS EN V01.18:
 ✅ TEST01: Crear 6 alumnos (agregado TEST06)
 ✅ NUEVO test08g: Llenar TEST06 con data completa
 ✅ TEST32 (ahora 33): Eliminar TEST06 en lugar de TEST05
@@ -756,7 +756,7 @@ function test27_HorarioSemanal() {
 
 function test28_PromedioPonderado() {
   try {
-    var result = Student.obtenerNotasPorCurso({ codeAlum: 'TEST05', curso: 'MATE' });
+    var result = Student.obtenerNotasPorCurso({ codeAlum: 'TEST05', curso: 'FIS' });
     
     if (!result.success) return { passed: false, nombre: 'TEST 28: Promedio ponderado', mensaje: 'FALLÓ: ' + result.error };
     
@@ -764,7 +764,7 @@ function test28_PromedioPonderado() {
     var promedioValido = tienePromedio && parseFloat(result.data.promedio) > 0;
     
     return promedioValido
-      ? { passed: true, nombre: 'TEST 28: Promedio ponderado', mensaje: '✓ Promedio MATE: ' + result.data.promedio }
+      ? { passed: true, nombre: 'TEST 28: Promedio ponderado', mensaje: '✓ Promedio FIS: ' + result.data.promedio }
       : { passed: false, nombre: 'TEST 28: Promedio ponderado', mensaje: 'FALLÓ: Promedio inválido o ausente' };
   } catch(error) {
     return { passed: false, nombre: 'TEST 28: Promedio ponderado', mensaje: 'ERROR: ' + error };
@@ -874,7 +874,7 @@ function ejecutarTodasLasPruebas() {
   var resultados = [];
   
   Logger.log('====================================');
-  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.17');
+  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.18');
   Logger.log('====================================');
   
   resultados.push(limpiarDatosPrueba());
@@ -918,7 +918,7 @@ function mostrarResultadosEnUI(resultados) {
     
     var html = template.evaluate().setWidth(900).setHeight(700);
     
-    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.17');
+    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.18');
   } catch(error) {
     Logger.log('Error al mostrar UI: ' + error.toString());
     
@@ -946,14 +946,14 @@ function mostrarResultadosEnUI(resultados) {
 }
 
 // ==========================================
-// FIN DE 2testback.gs - V01.17
+// FIN DE 2testback.gs - V01.18
 // Total: 40 funciones
 // - 1 limpieza
 // - 38 tests (37 de V01.15 + 1 nuevo test08g)
 // - 1 ejecutarTodasLasPruebas()
 // - 1 mostrarResultadosEnUI()
 //
-// CAMBIOS V01.17:
+// CAMBIOS V01.18:
 // ✅ TEST01: Crear 6 alumnos (agregado TEST06)
 // ✅ TEST 08g: Llenar TEST06 con data completa
 // ✅ TEST 32: Verificar que TEST05 y TEST06 tienen datos
