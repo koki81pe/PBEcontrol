@@ -1,0 +1,1036 @@
+<!--
+******************************************
+PBE CONTROL - 6btabeval.html - V01.17
+Sistema de Gestión Académica
+05/01/2026
+
+DESCRIPCIÓN:
+Sub-tab de Evaluaciones con CRUD completo.
+Muestra lista de evaluaciones del estudiante con opciones
+para agregar, editar y eliminar.
+
+FUNCIONALIDAD:
+- Cargar evaluaciones del estudiante (al iniciar)
+- Agregar nueva evaluación (curso, nombre, fecha, nota, peso, semana)
+- Editar evaluación existente
+- Eliminar evaluación (con confirmación)
+- Filtrar por curso (dropdown)
+- Validación de unicidad Curso+NomEval
+
+CAMPOS DE LA EVALUACIÓN:
+- Curso: Dropdown de cursos del estudiante (FK) *obligatorio
+- NomEval: Nombre de la evaluación *obligatorio
+- FechaEval: Fecha de la evaluación (DD/MM/AAAA) *obligatorio
+- Nota: Calificación obtenida (0-20, decimal permitido) opcional
+- Peso: Peso en porcentaje (0-100) opcional
+- Sem: Número de semana opcional
+
+BACKEND:
+- studentObtenerEvaluaciones({ codeAlum })
+- studentObtenerCursos({ codeAlum }) - para dropdown
+- studentAgregarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem })
+- studentActualizarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem, rowNumber })
+- studentEliminarEvaluacion({ rowNumber })
+
+VALIDACIONES BACKEND:
+- Backend valida que Curso+NomEval NO se duplique para el alumno
+- Error: "La evaluación 'Parcial 1' ya existe en MATE"
+
+VALIDACIONES FRONTEND:
+- Campos obligatorios: Curso, NomEval, FechaEval
+- Formato fecha: DD/MM/AAAA
+- Nota: 0-20 (si se especifica)
+- Peso: 0-100 (si se especifica)
+
+COLORES DINÁMICOS EN NOTA:
+- >= 14: Verde (#28a745) - Aprobado con buena nota
+- 11-13: Amarillo (#ffc107) - Aprobado justo
+- < 11: Rojo (#dc3545) - Desaprobado
+
+CONECTA CON:
+- Parent: 4btabdeberes.html (contenedor)
+- Backend: wrappers student* en 1code.gs
+- Módulo: Student en 1student.gs
+
+🔑 IMPORTANTE:
+- Curso es FK → debe existir en hoja Cursos
+- Curso+NomEval DEBE ser único por alumno
+- Nota y Peso son opcionales (se completan después de la evaluación)
+- Filtro por curso permite ver solo evaluaciones de un curso
+******************************************
+-->
+<style>
+  /* ==========================================
+     CONTENEDOR PRINCIPAL
+     ========================================== */
+  .eval-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .eval-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .eval-header h2 {
+    color: #333;
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ==========================================
+     FILTROS
+     ========================================== */
+  .filtro-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filtro-container label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .filtro-container select {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 150px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  .filtro-container select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  /* ==========================================
+     BOTONES
+     ========================================== */
+  .btn-agregar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-agregar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #5568d3;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #5a6268;
+  }
+
+  .btn-icon {
+    background: transparent;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover {
+    transform: scale(1.2);
+  }
+
+  .btn-icon.delete {
+    color: #dc3545;
+  }
+
+  /* ==========================================
+     FORMULARIO
+     ========================================== */
+  .form-eval {
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .form-eval.active {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .form-group label .required {
+    color: #dc3545;
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  /* ==========================================
+     TABLA DE EVALUACIONES
+     ========================================== */
+  .eval-table-container {
+    overflow-x: auto;
+  }
+
+  .eval-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .eval-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .eval-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .eval-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+  }
+
+  .eval-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  .eval-table td {
+    padding: 12px;
+    color: #333;
+  }
+
+  /* ==========================================
+     CURSO TAG
+     ========================================== */
+  .curso-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #e9ecef;
+    color: #495057;
+  }
+
+  /* ==========================================
+     COLORES DINÁMICOS EN NOTA
+     ========================================== */
+  .nota-cell {
+    text-align: center;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .nota-alta {
+    color: #28a745;
+  }
+
+  .nota-media {
+    color: #ffc107;
+  }
+
+  .nota-baja {
+    color: #dc3545;
+  }
+
+  .nota-pendiente {
+    color: #999;
+    font-style: italic;
+  }
+
+  /* ==========================================
+     PESO Y SEMANA
+     ========================================== */
+  .peso-cell {
+    text-align: center;
+    color: #666;
+  }
+
+  .sem-cell {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+  }
+
+  /* ==========================================
+     ESTADO VACÍO
+     ========================================== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state-text {
+    font-size: 15px;
+  }
+
+  /* ==========================================
+     LOADING
+     ========================================== */
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    color: #667eea;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ==========================================
+     RESPONSIVE
+     ========================================== */
+  @media (max-width: 768px) {
+    .eval-container {
+      padding: 16px;
+    }
+
+    .eval-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      width: 100%;
+    }
+
+    .btn-agregar,
+    .filtro-container {
+      width: 100%;
+    }
+
+    .filtro-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filtro-container select {
+      width: 100%;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+
+    .eval-table {
+      font-size: 13px;
+    }
+
+    .eval-table th,
+    .eval-table td {
+      padding: 8px;
+    }
+
+    /* Ocultar columnas menos importantes en móvil */
+    .eval-table .col-sem {
+      display: none;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- CONTENEDOR DE EVALUACIONES -->
+<!-- ========================================== -->
+<div class="eval-container">
+  
+  <!-- Header con título, filtro y botón agregar -->
+  <div class="eval-header">
+    <h2>📝 Mis Evaluaciones</h2>
+    <div class="header-actions">
+      <div class="filtro-container">
+        <label>Filtrar:</label>
+        <select id="filtroCurso" onchange="aplicarFiltro()">
+          <option value="">Todos los cursos</option>
+        </select>
+      </div>
+      <button class="btn-agregar" onclick="toggleFormAgregar()">
+        + Agregar Evaluación
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar/editar evaluación -->
+  <div id="formEval" class="form-eval">
+    <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Evaluación</h3>
+    
+    <form id="evalForm" onsubmit="handleSubmitEval(event)">
+      <input type="hidden" id="evalRowNumber" value="">
+      <input type="hidden" id="evalModoEdicion" value="false">
+      
+      <!-- Fila 1: Curso, Nombre, Fecha -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Curso <span class="required">*</span></label>
+          <select id="evalCurso" required>
+            <option value="">Seleccionar curso...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de la Evaluación <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="evalNomEval" 
+            placeholder="Ej: Parcial 1, Examen Final" 
+            required
+          >
+          <small>Nombre único por curso</small>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Evaluación <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="evalFechaEval" 
+            placeholder="DD/MM/AAAA" 
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Fila 2: Nota, Peso, Semana -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nota (Opcional)</label>
+          <input 
+            type="number" 
+            id="evalNota" 
+            placeholder="0 - 20" 
+            min="0" 
+            max="20" 
+            step="0.1"
+          >
+          <small>Calificación obtenida (0-20)</small>
+        </div>
+
+        <div class="form-group">
+          <label>Peso (Opcional)</label>
+          <input 
+            type="number" 
+            id="evalPeso" 
+            placeholder="%" 
+            min="0" 
+            max="100" 
+            step="1"
+          >
+          <small>Peso en porcentaje (ej: 30)</small>
+        </div>
+
+        <div class="form-group">
+          <label>Semana (Opcional)</label>
+          <input 
+            type="number" 
+            id="evalSem" 
+            placeholder="Número de semana" 
+            min="1" 
+            step="1"
+          >
+          <small>Número de semana académica</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btnSubmit">
+          Guardar Evaluación
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="cancelarFormEval()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de evaluaciones -->
+  <div id="evalTableContainer" class="eval-table-container">
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando evaluaciones...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * VARIABLES LOCALES
+   * ==========================================
+   */
+  let evaluacionesData = [];
+  let cursosData = [];
+  let evaluacionesFiltradas = [];
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN
+   * ==========================================
+   */
+  window.addEventListener('load', function() {
+    // Verificar que currentUser esté disponible
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+      showAlert('error', 'Error: No se pudo identificar al usuario');
+      return;
+    }
+
+    cargarCursos();
+    cargarEvaluaciones();
+  });
+
+  /**
+   * ==========================================
+   * CARGAR CURSOS (para dropdown)
+   * ==========================================
+   */
+  function cargarCursos() {
+    google.script.run
+      .withSuccessHandler(handleCursosLoaded)
+      .withFailureHandler(handleError)
+      .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleCursosLoaded(response) {
+    if (response.success) {
+      cursosData = response.data;
+      poblarDropdownCursos();
+    }
+  }
+
+  function poblarDropdownCursos() {
+    const selectCurso = document.getElementById('evalCurso');
+    const selectFiltro = document.getElementById('filtroCurso');
+
+    // Limpiar opciones excepto la primera
+    selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
+    selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
+
+    cursosData.forEach(function(curso) {
+      // Dropdown de formulario
+      const option1 = document.createElement('option');
+      option1.value = curso.Curso;
+      option1.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectCurso.appendChild(option1);
+
+      // Dropdown de filtro
+      const option2 = document.createElement('option');
+      option2.value = curso.Curso;
+      option2.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectFiltro.appendChild(option2);
+    });
+  }
+
+  /**
+   * ==========================================
+   * CARGAR EVALUACIONES
+   * ==========================================
+   */
+  function cargarEvaluaciones() {
+    google.script.run
+      .withSuccessHandler(handleEvaluacionesLoaded)
+      .withFailureHandler(handleEvaluacionesError)
+      .studentObtenerEvaluaciones({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleEvaluacionesLoaded(response) {
+    if (response.success) {
+      evaluacionesData = response.data;
+      evaluacionesFiltradas = evaluacionesData;
+      
+      // Actualizar badge en contenedor padre (si existe)
+      if (typeof updateDeberesBadge === 'function') {
+        updateDeberesBadge('eval', evaluacionesData.length);
+      }
+      
+      renderEvalTable();
+    } else {
+      showAlert('error', 'Error al cargar evaluaciones: ' + response.error);
+      renderEmptyState();
+    }
+  }
+
+  function handleEvaluacionesError(error) {
+    console.error('Error al cargar evaluaciones:', error);
+    showAlert('error', 'Error de conexión al cargar evaluaciones');
+    renderEmptyState();
+  }
+
+  /**
+   * ==========================================
+   * APLICAR FILTRO
+   * ==========================================
+   */
+  function aplicarFiltro() {
+    const cursoSeleccionado = document.getElementById('filtroCurso').value;
+
+    if (cursoSeleccionado === '') {
+      evaluacionesFiltradas = evaluacionesData;
+    } else {
+      evaluacionesFiltradas = evaluacionesData.filter(function(eval) {
+        return eval.Curso === cursoSeleccionado;
+      });
+    }
+
+    renderEvalTable();
+  }
+
+  /**
+   * ==========================================
+   * RENDERIZAR TABLA
+   * ==========================================
+   */
+  function renderEvalTable() {
+    const container = document.getElementById('evalTableContainer');
+
+    if (evaluacionesFiltradas.length === 0) {
+      renderEmptyState();
+      return;
+    }
+
+    let html = `
+      <table class="eval-table">
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th>Evaluación</th>
+            <th>Fecha</th>
+            <th>Nota</th>
+            <th>Peso</th>
+            <th class="col-sem">Semana</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    evaluacionesFiltradas.forEach(function(eval) {
+      const claseNota = obtenerClaseNota(eval.Nota);
+
+      html += `
+        <tr>
+          <td><span class="curso-tag">${eval.Curso}</span></td>
+          <td><strong>${eval.NomEval}</strong></td>
+          <td>${eval.FechaEval}</td>
+          <td class="nota-cell ${claseNota}">
+            ${eval.Nota ? eval.Nota : '<span class="nota-pendiente">Pendiente</span>'}
+          </td>
+          <td class="peso-cell">${eval.Peso ? eval.Peso + '%' : '-'}</td>
+          <td class="sem-cell col-sem">${eval.Sem || '-'}</td>
+          <td>
+            <button 
+              class="btn-icon" 
+              onclick="editarEval(${eval._rowNumber})"
+              title="Editar">
+              ✏️
+            </button>
+            <button 
+              class="btn-icon delete" 
+              onclick="confirmarEliminarEval(${eval._rowNumber}, '${eval.NomEval}')"
+              title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function renderEmptyState() {
+    const container = document.getElementById('evalTableContainer');
+    const filtroActivo = document.getElementById('filtroCurso').value !== '';
+
+    if (filtroActivo) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-text">
+            No hay evaluaciones para el curso seleccionado.
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-text">
+            No tienes evaluaciones registradas aún.<br>
+            Haz clic en "+ Agregar Evaluación" para comenzar.
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * ==========================================
+   * TOGGLE FORMULARIO
+   * ==========================================
+   */
+  function toggleFormAgregar() {
+    const form = document.getElementById('formEval');
+    const isActive = form.classList.contains('active');
+
+    if (isActive) {
+      form.classList.remove('active');
+    } else {
+      resetFormEval();
+      document.getElementById('formTitle').textContent = 'Agregar Nueva Evaluación';
+      document.getElementById('evalModoEdicion').value = 'false';
+      form.classList.add('active');
+    }
+  }
+
+  /**
+   * ==========================================
+   * SUBMIT FORMULARIO
+   * ==========================================
+   */
+  function handleSubmitEval(event) {
+    event.preventDefault();
+
+    const curso = document.getElementById('evalCurso').value;
+    const nomEval = document.getElementById('evalNomEval').value.trim();
+    const fechaEval = document.getElementById('evalFechaEval').value.trim();
+    const nota = document.getElementById('evalNota').value.trim();
+    const peso = document.getElementById('evalPeso').value.trim();
+    const sem = document.getElementById('evalSem').value.trim();
+    const rowNumber = document.getElementById('evalRowNumber').value;
+    const esEdicion = document.getElementById('evalModoEdicion').value === 'true';
+
+    // Validar campos obligatorios
+    if (!curso || !nomEval || !fechaEval) {
+      showAlert('error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    // Validar formato de fecha DD/MM/AAAA
+    if (!validarFecha(fechaEval)) {
+      showAlert('error', 'Formato de fecha inválido. Use DD/MM/AAAA');
+      return;
+    }
+
+    // Validar nota (0-20)
+    if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
+      showAlert('error', 'La nota debe estar entre 0 y 20');
+      return;
+    }
+
+    // Validar peso (0-100)
+    if (peso && (parseFloat(peso) < 0 || parseFloat(peso) > 100)) {
+      showAlert('error', 'El peso debe estar entre 0 y 100%');
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      curso: curso,
+      nomEval: nomEval,
+      fechaEval: fechaEval,
+      nota: nota,
+      peso: peso,
+      sem: sem
+    };
+
+    if (esEdicion) {
+      params.rowNumber = parseInt(rowNumber);
+      
+      google.script.run
+        .withSuccessHandler(handleEvalUpdated)
+        .withFailureHandler(handleEvalError)
+        .studentActualizarEvaluacion(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleEvalAdded)
+        .withFailureHandler(handleEvalError)
+        .studentAgregarEvaluacion(params);
+    }
+  }
+
+  function handleEvalAdded(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Evaluación';
+
+    if (response.success) {
+      showAlert('success', '✓ Evaluación agregada exitosamente');
+      cancelarFormEval();
+      cargarEvaluaciones();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleEvalUpdated(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Evaluación';
+
+    if (response.success) {
+      showAlert('success', '✓ Evaluación actualizada exitosamente');
+      cancelarFormEval();
+      cargarEvaluaciones();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleEvalError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+    
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Evaluación';
+  }
+
+  /**
+   * ==========================================
+   * EDITAR EVALUACIÓN
+   * ==========================================
+   */
+  function editarEval(rowNumber) {
+    const eval = evaluacionesData.find(e => e._rowNumber === rowNumber);
+    if (!eval) return;
+
+    document.getElementById('formTitle').textContent = 'Editar Evaluación';
+    document.getElementById('evalRowNumber').value = rowNumber;
+    document.getElementById('evalModoEdicion').value = 'true';
+    document.getElementById('evalCurso').value = eval.Curso;
+    document.getElementById('evalNomEval').value = eval.NomEval;
+    document.getElementById('evalFechaEval').value = eval.FechaEval;
+    document.getElementById('evalNota').value = eval.Nota || '';
+    document.getElementById('evalPeso').value = eval.Peso || '';
+    document.getElementById('evalSem').value = eval.Sem || '';
+
+    document.getElementById('formEval').classList.add('active');
+    document.getElementById('evalNomEval').focus();
+  }
+
+  /**
+   * ==========================================
+   * ELIMINAR EVALUACIÓN
+   * ==========================================
+   */
+  function confirmarEliminarEval(rowNumber, nomEval) {
+    if (confirm('¿Eliminar la evaluación "' + nomEval + '"?\n\nEsta acción no se puede deshacer.')) {
+      eliminarEval(rowNumber);
+    }
+  }
+
+  function eliminarEval(rowNumber) {
+    google.script.run
+      .withSuccessHandler(handleEvalDeleted)
+      .withFailureHandler(handleEvalError)
+      .studentEliminarEvaluacion({ rowNumber: rowNumber });
+  }
+
+  function handleEvalDeleted(response) {
+    if (response.success) {
+      showAlert('success', '✓ Evaluación eliminada exitosamente');
+      cargarEvaluaciones();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  /**
+   * ==========================================
+   * RESET Y CANCELAR FORMULARIO
+   * ==========================================
+   */
+  function resetFormEval() {
+    document.getElementById('evalForm').reset();
+    document.getElementById('evalRowNumber').value = '';
+    document.getElementById('evalModoEdicion').value = 'false';
+  }
+
+  function cancelarFormEval() {
+    document.getElementById('formEval').classList.remove('active');
+    resetFormEval();
+  }
+
+  /**
+   * ==========================================
+   * FUNCIÓN AUXILIAR: CLASE DE NOTA
+   * ==========================================
+   */
+  function obtenerClaseNota(nota) {
+    if (!nota) return 'nota-pendiente';
+    
+    const notaNum = parseFloat(nota);
+    
+    if (notaNum >= 14) {
+      return 'nota-alta';      // Verde
+    } else if (notaNum >= 11) {
+      return 'nota-media';     // Amarillo
+    } else {
+      return 'nota-baja';      // Rojo
+    }
+  }
+
+  /**
+   * ==========================================
+   * UTILIDADES
+   * ==========================================
+   */
+  function handleError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión');
+  }
+
+  /**
+   * ==========================================
+   * LOG
+   * ==========================================
+   */
+  console.log('%c📝 Sub-tab Evaluaciones Cargado', 
+              'font-size: 11px; color: #667eea;');
+</script>
