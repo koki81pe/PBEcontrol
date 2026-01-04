@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* ==========================================
+       6BTABTODOS.HTML - ESTILOS
+       Vista unificada de Evaluaciones + Tareas + Lecturas
+       ========================================== */
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .todos-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* ==========================================
+       HEADER
+       ========================================== */
+    
+    .todos-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: 0;
+    }
+    
+    .todos-header h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .todos-header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    /* ==========================================
+       FILTROS
+       ========================================== */
+    
+    .filtros-bar {
+      background: white;
+      padding: 16px 20px;
+      border-bottom: 2px solid #e0e0e0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .filtros-bar label {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .filtros-bar select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+      min-width: 150px;
+    }
+    
+    .filtros-bar select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn-refresh {
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+      margin-left: auto;
+    }
+    
+    .btn-refresh:hover {
+      background: #5568d3;
+    }
+    
+    .btn-refresh:active {
+      transform: scale(0.98);
+    }
+    
+    /* ==========================================
+       TABLA DE DEBERES
+       ========================================== */
+    
+    .tabla-deberes-container {
+      background: white;
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .tabla-deberes {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .tabla-deberes thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .tabla-deberes th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .tabla-deberes tbody tr {
+      border-bottom: 1px solid #e0e0e0;
+      transition: background 0.2s;
+    }
+    
+    .tabla-deberes tbody tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    
+    .tabla-deberes tbody tr:hover {
+      background: #e9ecef;
+    }
+    
+    .tabla-deberes td {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    /* ==========================================
+       BADGES DE TIPO
+       ========================================== */
+    
+    .badge-tipo {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge-evaluacion {
+      background: #fee;
+      color: #dc3545;
+    }
+    
+    .badge-tarea {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .badge-lectura {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+    
+    /* ==========================================
+       CURSO TAG
+       ========================================== */
+    
+    .curso-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #e9ecef;
+      color: #495057;
+    }
+    
+    /* ==========================================
+       FECHA
+       ========================================== */
+    
+    .fecha-cell {
+      white-space: nowrap;
+    }
+    
+    .fecha-proxima {
+      color: #dc3545;
+      font-weight: 600;
+    }
+    
+    .fecha-pronto {
+      color: #ffc107;
+      font-weight: 600;
+    }
+    
+    .fecha-normal {
+      color: #28a745;
+    }
+    
+    /* ==========================================
+       NOTA Y PESO
+       ========================================== */
+    
+    .nota-cell {
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .nota-alta {
+      color: #28a745;
+    }
+    
+    .nota-media {
+      color: #ffc107;
+    }
+    
+    .nota-baja {
+      color: #dc3545;
+    }
+    
+    .peso-cell {
+      text-align: center;
+      color: #666;
+    }
+    
+    /* ==========================================
+       PROGRESO (SOLO LECTURAS)
+       ========================================== */
+    
+    .progreso-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .barra-progreso {
+      flex: 1;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .barra-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    
+    .progreso-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #667eea;
+      min-width: 40px;
+    }
+    
+    /* ==========================================
+       LOADING Y ESTADO VACÍO
+       ========================================== */
+    
+    .loading-container {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .estado-vacio {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    
+    .estado-vacio-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+    
+    .estado-vacio-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .estado-vacio-subtext {
+      font-size: 14px;
+      color: #bbb;
+    }
+    
+    /* ==========================================
+       RESPONSIVE
+       ========================================== */
+    
+    @media (max-width: 1024px) {
+      .todos-container {
+        padding: 12px;
+      }
+      
+      .filtros-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .filtros-bar select,
+      .btn-refresh {
+        width: 100%;
+        margin-left: 0;
+      }
+      
+      .tabla-deberes {
+        font-size: 13px;
+      }
+      
+      .tabla-deberes th,
+      .tabla-deberes td {
+        padding: 10px 12px;
+      }
+      
+      /* Ocultar columnas menos importantes en móvil */
+      .tabla-deberes .col-peso {
+        display: none;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .todos-header h2 {
+        font-size: 20px;
+      }
+      
+      .todos-header p {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- ==========================================
+       CONTENEDOR PRINCIPAL
+       ========================================== -->
+  
+  <div class="todos-container">
+    
+    <!-- Header -->
+    <div class="todos-header">
+      <h2>📋 Todos los Deberes</h2>
+      <p>Vista unificada de evaluaciones, tareas y lecturas ordenadas por fecha</p>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filtros-bar">
+      <label for="filtroTipo">Tipo:</label>
+      <select id="filtroTipo" onchange="aplicarFiltros()">
+        <option value="todos">Todos los tipos</option>
+        <option value="Evaluación">Evaluaciones</option>
+        <option value="Tarea">Tareas</option>
+        <option value="Lectura">Lecturas</option>
+      </select>
+      
+      <label for="filtroCurso">Curso:</label>
+      <select id="filtroCurso" onchange="aplicarFiltros()">
+        <option value="todos">Todos los cursos</option>
+      </select>
+      
+      <label for="filtroFecha">Período:</label>
+      <select id="filtroFecha" onchange="aplicarFiltros()">
+        <option value="todos">Todas las fechas</option>
+        <option value="proximos7">Próximos 7 días</option>
+        <option value="proximos30">Próximos 30 días</option>
+        <option value="pasados">Pasados</option>
+      </select>
+      
+      <button class="btn-refresh" onclick="cargarDeberes()">
+        🔄 Actualizar
+      </button>
+    </div>
+    
+    <!-- Tabla de Deberes -->
+    <div class="tabla-deberes-container">
+      
+      <!-- Loading -->
+      <div id="loadingDeberes" class="loading-container" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text">Cargando deberes...</div>
+      </div>
+      
+      <!-- Estado vacío -->
+      <div id="estadoVacio" class="estado-vacio" style="display: none;">
+        <div class="estado-vacio-icon">📚</div>
+        <div class="estado-vacio-text">No hay deberes registrados</div>
+        <div class="estado-vacio-subtext">Agrega evaluaciones, tareas o lecturas desde sus pestañas correspondientes</div>
+      </div>
+      
+      <!-- Tabla -->
+      <table class="tabla-deberes" id="tablaDeberes" style="display: none;">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Curso</th>
+            <th>Nombre</th>
+            <th>Fecha</th>
+            <th class="col-peso">Peso</th>
+            <th>Nota</th>
+            <th>Progreso/Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="deberesBody">
+          <!-- Filas dinámicas -->
+        </tbody>
+      </table>
+      
+    </div>
+    
+  </div>
+  
+  <!-- ==========================================
+       JAVASCRIPT
+       ========================================== -->
+  
+  <script>
+    // ==========================================
+    // VARIABLES GLOBALES
+    // ==========================================
+    
+    let todosLosDeberes = []; // Array original sin filtrar
+    let deberesFiltrados = []; // Array después de aplicar filtros
+    
+    // ==========================================
+    // CARGAR DEBERES AL INICIAR
+    // ==========================================
+    
+    window.addEventListener('DOMContentLoaded', function() {
+      // CAMBIO 3: Validación robusta de currentUser con retry
+      if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
+        cargarDeberes();
+      } else {
+        // Reintentar después de 100ms (el padre puede estar cargando)
+        setTimeout(function() {
+          if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
+            cargarDeberes();
+          } else {
+            console.error('[6btabtodos] currentUser no disponible');
+            document.getElementById('loadingDeberes').style.display = 'none';
+            document.getElementById('estadoVacio').style.display = 'block';
+            document.querySelector('.estado-vacio-text').textContent = 'Error al cargar usuario';
+            document.querySelector('.estado-vacio-subtext').textContent = 'Por favor, recarga la página';
+          }
+        }, 100);
+      }
+    });
+    
+    /**
+     * Cargar todos los deberes desde el backend
+     */
+    function cargarDeberes() {
+      // Verificar que currentUser esté disponible
+      if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+        showAlert('error', 'No se pudo identificar al usuario');
+        return;
+      }
+      
+      // Mostrar loading
+      document.getElementById('loadingDeberes').style.display = 'block';
+      document.getElementById('estadoVacio').style.display = 'none';
+      document.getElementById('tablaDeberes').style.display = 'none';
+      
+      // Llamar al backend
+      google.script.run
+        .withSuccessHandler(function(response) {
+          document.getElementById('loadingDeberes').style.display = 'none';
+          
+          if (response.success) {
+            todosLosDeberes = response.data;
+            
+            // CAMBIO 5: Ordenamiento inicial por fecha (más próxima primero)
+            todosLosDeberes.sort(function(a, b) {
+              if (!a.fecha) return 1;
+              if (!b.fecha) return -1;
+              const fechaA = parsearFecha(a.fecha);
+              const fechaB = parsearFecha(b.fecha);
+              if (!fechaA) return 1;
+              if (!fechaB) return -1;
+              return fechaA - fechaB;
+            });
+            
+            if (todosLosDeberes.length === 0) {
+              // Mostrar estado vacío
+              document.getElementById('estadoVacio').style.display = 'block';
+            } else {
+              // Cargar cursos en filtro
+              cargarCursosEnFiltro();
+              
+              // Aplicar filtros (mostrará todos por defecto)
+              aplicarFiltros();
+            }
+          } else {
+            showAlert('error', response.error || 'Error al cargar deberes');
+            document.getElementById('estadoVacio').style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('loadingDeberes').style.display = 'none';
+          showAlert('error', 'Error de conexión al cargar deberes');
+          console.error('Error:', error);
+        })
+        .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
+    }
+    
+    /**
+     * Cargar lista de cursos únicos en el filtro
+     */
+    function cargarCursosEnFiltro() {
+      const selectCurso = document.getElementById('filtroCurso');
+      const primerOption = selectCurso.options[0].outerHTML;
+      
+      // Extraer cursos únicos
+      const cursosUnicos = [...new Set(todosLosDeberes.map(d => d.curso))];
+      
+      // Reconstruir select
+      selectCurso.innerHTML = primerOption;
+      
+      cursosUnicos.forEach(curso => {
+        const option = document.createElement('option');
+        option.value = curso;
+        option.textContent = curso;
+        selectCurso.appendChild(option);
+      });
+    }
+    
+    /**
+     * Aplicar filtros a la lista de deberes
+     */
+    function aplicarFiltros() {
+      const filtroTipo = document.getElementById('filtroTipo').value;
+      const filtroCurso = document.getElementById('filtroCurso').value;
+      const filtroFecha = document.getElementById('filtroFecha').value;
+      
+      deberesFiltrados = todosLosDeberes.filter(deber => {
+        // Filtro por tipo
+        if (filtroTipo !== 'todos' && deber.tipo !== filtroTipo) {
+          return false;
+        }
+        
+        // Filtro por curso
+        if (filtroCurso !== 'todos' && deber.curso !== filtroCurso) {
+          return false;
+        }
+        
+        // Filtro por fecha
+        if (filtroFecha !== 'todos') {
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+          
+          const fechaDeber = parsearFecha(deber.fecha);
+          
+          if (filtroFecha === 'proximos7') {
+            const limite = new Date(hoy);
+            limite.setDate(limite.getDate() + 7);
+            if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) {
+              return false;
+            }
+          } else if (filtroFecha === 'proximos30') {
+            const limite = new Date(hoy);
+            limite.setDate(limite.getDate() + 30);
+            if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) {
+              return false;
+            }
+          } else if (filtroFecha === 'pasados') {
+            if (!fechaDeber || fechaDeber >= hoy) {
+              return false;
+            }
+          }
+        }
+        
+        return true;
+      });
+      
+      // Renderizar tabla
+      renderizarTabla();
+    }
+    
+    /**
+     * Renderizar tabla de deberes
+     */
+    function renderizarTabla() {
+      const tbody = document.getElementById('deberesBody');
+      const tabla = document.getElementById('tablaDeberes');
+      const estadoVacio = document.getElementById('estadoVacio');
+      
+      if (deberesFiltrados.length === 0) {
+        tabla.style.display = 'none';
+        estadoVacio.style.display = 'block';
+        return;
+      }
+      
+      estadoVacio.style.display = 'none';
+      tabla.style.display = 'table';
+      
+      // Construir filas HTML
+      let html = '';
+      
+      deberesFiltrados.forEach(deber => {
+        const claseFecha = obtenerClaseFecha(deber.fecha);
+        const claseNota = obtenerClaseNota(deber.nota);
+        
+        html += '<tr>';
+        
+        // Tipo (badge)
+        html += '<td>';
+        html += '<span class="badge-tipo badge-' + deber.tipo.toLowerCase() + '">';
+        html += deber.tipo;
+        html += '</span>';
+        html += '</td>';
+        
+        // Curso
+        html += '<td>';
+        html += '<span class="curso-tag">' + deber.curso + '</span>';
+        html += '</td>';
+        
+        // Nombre
+        html += '<td>' + (deber.nombre || '-') + '</td>';
+        
+        // Fecha
+        html += '<td class="fecha-cell ' + claseFecha + '">';
+        html += deber.fecha ? formatearFecha(deber.fecha) : '-';
+        html += '</td>';
+        
+        // Peso
+        html += '<td class="peso-cell col-peso">';
+        html += deber.peso ? deber.peso + '%' : '-';
+        html += '</td>';
+        
+        // Nota
+        html += '<td class="nota-cell ' + claseNota + '">';
+        html += deber.nota ? deber.nota : '-';
+        html += '</td>';
+        
+        // Detalle (progreso para lecturas)
+        html += '<td>';
+        if (deber.tipo === 'Lectura' && deber.progreso) {
+          html += '<div class="progreso-container">';
+          html += '<div class="barra-progreso">';
+          html += '<div class="barra-fill" style="width: ' + deber.progreso + '"></div>';
+          html += '</div>';
+          html += '<span class="progreso-text">' + deber.progreso + '</span>';
+          html += '</div>';
+        } else {
+          html += '-';
+        }
+        html += '</td>';
+        
+        html += '</tr>';
+      });
+      
+      tbody.innerHTML = html;
+    }
+    
+    // ==========================================
+    // FUNCIONES AUXILIARES
+    // ==========================================
+    
+    /**
+     * Parsear fecha DD/MM/AAAA a objeto Date
+     * CAMBIO 2: Usa función del contenedor si está disponible
+     */
+    function parsearFecha(fechaStr) {
+      // Usar función del contenedor padre si existe
+      if (typeof parseFechaDD_MM_AAAA === 'function') {
+        return parseFechaDD_MM_AAAA(fechaStr);
+      }
+      
+      // Fallback a implementación local
+      if (!fechaStr) return null;
+      
+      const partes = fechaStr.split('/');
+      if (partes.length !== 3) return null;
+      
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1; // Mes base 0
+      const anio = parseInt(partes[2], 10);
+      
+      return new Date(anio, mes, dia);
+    }
+    
+    /**
+     * Formatear fecha para mostrar: DD/MM/AAAA
+     */
+    function formatearFecha(fechaStr) {
+      return fechaStr; // Ya viene en formato DD/MM/AAAA
+    }
+    
+    /**
+     * Determinar clase CSS según proximidad de fecha
+     */
+    function obtenerClaseFecha(fechaStr) {
+      if (!fechaStr) return '';
+      
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      const fecha = parsearFecha(fechaStr);
+      if (!fecha) return '';
+      
+      const diffDias = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
+      
+      if (diffDias < 0) {
+        return ''; // Fecha pasada, sin color especial
+      } else if (diffDias <= 3) {
+        return 'fecha-proxima'; // Rojo
+      } else if (diffDias <= 7) {
+        return 'fecha-pronto'; // Amarillo
+      } else {
+        return 'fecha-normal'; // Verde
+      }
+    }
+    
+    /**
+     * Determinar clase CSS según nota
+     */
+    function obtenerClaseNota(nota) {
+      if (!nota) return '';
+      
+      const notaNum = parseFloat(nota);
+      
+      if (notaNum >= 14) {
+        return 'nota-alta'; // Verde
+      } else if (notaNum >= 11) {
+        return 'nota-media'; // Amarillo
+      } else {
+        return 'nota-baja'; // Rojo
+      }
+    }
+    
+    /**
+     * Mostrar alerta temporal
+     * CAMBIO 1: Solo definir si no existe globalmente
+     */
+    if (typeof showAlert === 'undefined') {
+      window.showAlert = function(type, message) {
+        const alertBox = document.createElement('div');
+        alertBox.className = 'alert alert-' + type;
+        alertBox.textContent = message;
+        alertBox.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 15px 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          z-index: 9999;
+          font-size: 14px;
+          font-weight: 500;
+          animation: slideIn 0.3s;
+          ${type === 'success' ? 'background: #d4edda; color: #155724;' : ''}
+          ${type === 'error' ? 'background: #f8d7da; color: #721c24;' : ''}
+          ${type === 'warning' ? 'background: #fff3cd; color: #856404;' : ''}
+          ${type === 'info' ? 'background: #d1ecf1; color: #0c5460;' : ''}
+        `;
+        
+        document.body.appendChild(alertBox);
+        
+        setTimeout(function() {
+          alertBox.remove();
+        }, 3000);
+      };
+      
+      // Animación slideIn
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  </script>
+  
+</body>
+</html>
+
+<!-- ==========================================
+     6BTABTODOS.HTML - V01.17b
+     Vista unificada de todos los deberes
+     04/01/2026
+     
+     CARACTERÍSTICAS:
+     ✅ Carga deberes de 3 tipos: Eval, Tareas, Lecturas
+     ✅ Filtros por tipo, curso y período
+     ✅ Ordenado por fecha (más próxima primero)
+     ✅ Badges de colores según tipo
+     ✅ Colores en fecha según proximidad
+     ✅ Colores en nota según calificación
+     ✅ Barra de progreso para lecturas
+     ✅ Responsive design
+     ✅ Loading states
+     ✅ Estado vacío amigable
+     
+     MEJORAS V01.17b (04/01/2026):
+     ✅ CAMBIO 1: Verificación defensiva de showAlert() global
+     ✅ CAMBIO 2: Usa parseFechaDD_MM_AAAA() del contenedor si existe
+     ✅ CAMBIO 3: Validación robusta de currentUser con retry
+     ✅ CAMBIO 4: Header más descriptivo (Progreso/Detalle)
+     ✅ CAMBIO 5: Ordenamiento inicial por fecha según especificación
+     
+     LLAMADAS AL BACKEND:
+     - studentObtenerTodosDeberes({ codeAlum })
+     
+     DEPENDENCIAS:
+     - Requiere variable global: currentUser.codeAlum
+     - Opcional: showAlert() global (fallback local)
+     - Opcional: parseFechaDD_MM_AAAA() del contenedor (fallback local)
+     
+     COMPATIBILIDAD:
+     - Funciona standalone o dentro de 4btabdeberes.html
+     - No rompe si funciones globales no existen (fallbacks)
+     - Validación defensiva de todas las dependencias
+     ========================================== -->
