@@ -1,0 +1,444 @@
+<!--
+******************************************
+PBE CONTROL - 4ctabplanning.html - V01.17
+Sistema de Gestión Académica
+04/01/2026
+
+DESCRIPCIÓN:
+Contenedor para los sub-tabs de Planning.
+Tab principal que incluye cuatro sub-tabs mediante include().
+
+ESTRUCTURA:
+Este es un CONTENEDOR LIGERO que organiza cuatro sub-tabs:
+1. Sub-tab Horario de Clases: Grid 7 AM-10 PM × Lun-Dom (horario fijo semanal)
+2. Sub-tab Horario Semanal: Grid con fechas para repasos y actividades
+3. Sub-tab Notas: Resumen de notas por curso con promedio ponderado
+4. Sub-tab Calendario: Vista mensual de actividades y evaluaciones
+
+Usa sub-tabs horizontales dentro del contenedor.
+
+SUB-TABS INCLUIDOS:
+- 7ctabhorarioclase.html: Grid interactivo horario fijo semanal
+- 7ctabhorariosem.html: Grid con fechas específicas (repasos/actividades)
+- 7ctabnotas.html: Resumen de notas con cálculo de promedios
+- 7ctabcalendario.html: Vista mensual tipo calendario
+
+NAVEGACIÓN:
+- Tabs horizontales internos (Horario Clases | Horario Semanal | Notas | Calendario)
+- Click cambia entre sub-tabs
+- Sub-tab activo: Borde inferior azul
+- Scroll horizontal en mobile si no caben
+
+CONECTA CON:
+- Parent: 3panelstudent.html (incluye este contenedor)
+- Children: 7ctabhorarioclase.html, 7ctabhorariosem.html, 
+            7ctabnotas.html, 7ctabcalendario.html
+
+VARIABLE GLOBAL DISPONIBLE:
+currentUser (heredada de 3panelstudent.html)
+- currentUser.codeAlum
+- currentUser.nombre
+- currentUser.email
+
+FUNCIONES GLOBALES DISPONIBLES:
+- showAlert(type, message)
+- showLoading()
+- hideLoading()
+- formatFecha(fecha)
+- diasRestantes(fecha)
+- validarFecha(fecha)
+
+🔑 IMPORTANTE:
+- Contenedor ligero, lógica en sub-tabs
+- HorarioClases usa mapeo HoraInicio→HoraIni (backend)
+- HorarioSem usa diálogo Repaso/Actividad
+- Notas calcula promedios ponderados (Eval+Tareas+Lecturas)
+- Calendario muestra vista mensual con dots de colores
+******************************************
+-->
+<style>
+  /* ==========================================
+     SUB-TABS HORIZONTALES
+     ========================================== */
+  .subtabs-container {
+    margin-bottom: 20px;
+  }
+
+  .subtabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .subtab-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .subtab-btn:hover {
+    color: #667eea;
+    background: #f9f9f9;
+  }
+
+  .subtab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+
+  .subtab-content {
+    display: none;
+  }
+
+  .subtab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ==========================================
+     RESPONSIVE - MOBILE
+     ========================================== */
+  @media (max-width: 768px) {
+    .subtabs-nav {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .subtabs-nav::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .subtabs-nav::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .subtabs-nav::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 2px;
+    }
+
+    .subtab-btn {
+      padding: 10px 18px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- SUB-TABS: PLANNING -->
+<!-- ========================================== -->
+<div class="subtabs-container">
+  
+  <!-- Navegación de Sub-tabs -->
+  <div class="subtabs-nav">
+    <button class="subtab-btn active" id="btn-subtab-horarioclase" onclick="switchSubTabPlanning('horarioclase')">
+      🕐 Horario Clases
+    </button>
+    <button class="subtab-btn" id="btn-subtab-horariosem" onclick="switchSubTabPlanning('horariosem')">
+      📅 Horario Semanal
+    </button>
+    <button class="subtab-btn" id="btn-subtab-notas" onclick="switchSubTabPlanning('notas')">
+      📊 Notas
+    </button>
+    <button class="subtab-btn" id="btn-subtab-calendario" onclick="switchSubTabPlanning('calendario')">
+      🗓️ Calendario
+    </button>
+  </div>
+
+  <!-- Sub-tab: Horario de Clases -->
+  <div id="subtab-horarioclase" class="subtab-content active">
+    <?!= include('7ctabhorarioclase'); ?>
+  </div>
+
+  <!-- Sub-tab: Horario Semanal -->
+  <div id="subtab-horariosem" class="subtab-content">
+    <?!= include('7ctabhorariosem'); ?>
+  </div>
+
+  <!-- Sub-tab: Notas -->
+  <div id="subtab-notas" class="subtab-content">
+    <?!= include('7ctabnotas'); ?>
+  </div>
+
+  <!-- Sub-tab: Calendario -->
+  <div id="subtab-calendario" class="subtab-content">
+    <?!= include('7ctabcalendario'); ?>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT LOCAL -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * NAVEGACIÓN ENTRE SUB-TABS PLANNING
+   * ==========================================
+   */
+  function switchSubTabPlanning(subTabName) {
+    // Ocultar todos los sub-tabs
+    document.querySelectorAll('#tab-planning .subtab-content').forEach(function(content) {
+      content.classList.remove('active');
+    });
+
+    // Desactivar todos los botones
+    document.querySelectorAll('#tab-planning .subtab-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+
+    // Mostrar sub-tab seleccionado
+    const selectedTab = document.getElementById('subtab-' + subTabName);
+    if (selectedTab) {
+      selectedTab.classList.add('active');
+    }
+
+    // Activar botón correspondiente
+    const selectedBtn = document.getElementById('btn-subtab-' + subTabName);
+    if (selectedBtn) {
+      selectedBtn.classList.add('active');
+    }
+
+    console.log('Sub-tab Planning cambiado a:', subTabName);
+  }
+
+  /**
+   * ==========================================
+   * FUNCIONES AUXILIARES PARA HORARIOS
+   * ==========================================
+   */
+
+  /**
+   * Obtener días de la semana actual
+   * Retorna array de fechas [Lun, Mar, Mié, Jue, Vie, Sáb, Dom]
+   */
+  function obtenerDiasSemanaActual() {
+    const hoy = new Date();
+    const diaActual = hoy.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
+    
+    // Calcular el lunes de esta semana
+    const lunes = new Date(hoy);
+    const diasDesdeeLunes = (diaActual === 0) ? 6 : diaActual - 1;
+    lunes.setDate(hoy.getDate() - diasDesdeeLunes);
+
+    const diasSemana = [];
+    for (let i = 0; i < 7; i++) {
+      const dia = new Date(lunes);
+      dia.setDate(lunes.getDate() + i);
+      diasSemana.push(dia);
+    }
+
+    return diasSemana;
+  }
+
+  /**
+   * Formatear fecha para headers de horario semanal
+   * Ejemplo: "Lun 04/01"
+   */
+  function formatearDiaSemana(fecha) {
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaNombre = dias[fecha.getDay()];
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    
+    return diaNombre + ' ' + dia + '/' + mes;
+  }
+
+  /**
+   * Parsear hora HH:MM a minutos desde medianoche
+   * Ejemplo: "14:30" → 870
+   */
+  function horaAMinutos(hora) {
+    if (!hora) return 0;
+    
+    try {
+      const partes = hora.split(':');
+      if (partes.length !== 2) return 0;
+      
+      const horas = parseInt(partes[0]);
+      const minutos = parseInt(partes[1]);
+      
+      return horas * 60 + minutos;
+    } catch(error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Formatear minutos a hora HH:MM
+   * Ejemplo: 870 → "14:30"
+   */
+  function minutosAHora(minutos) {
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    
+    return String(horas).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+  }
+
+  /**
+   * ==========================================
+   * FUNCIONES AUXILIARES PARA NOTAS
+   * ==========================================
+   */
+
+  /**
+   * Calcular promedio ponderado
+   * Entrada: array de {nota, peso}
+   * Salida: promedio ponderado o 0
+   */
+  function calcularPromedioPonderado(items) {
+    let totalNota = 0;
+    let totalPeso = 0;
+
+    items.forEach(function(item) {
+      if (item.nota && item.peso) {
+        const nota = parseFloat(item.nota);
+        const peso = parseFloat(item.peso);
+        
+        if (!isNaN(nota) && !isNaN(peso)) {
+          totalNota += nota * peso;
+          totalPeso += peso;
+        }
+      }
+    });
+
+    if (totalPeso === 0) return 0;
+    
+    return (totalNota / totalPeso).toFixed(2);
+  }
+
+  /**
+   * Obtener clase de color según promedio
+   * Verde (≥14), Amarillo (11-13), Rojo (<11)
+   */
+  function obtenerColorPromedio(promedio) {
+    const nota = parseFloat(promedio);
+    
+    if (nota >= 14) return 'nota-aprobado';    // Verde
+    if (nota >= 11) return 'nota-justo';       // Amarillo
+    return 'nota-desaprobado';                 // Rojo
+  }
+
+  /**
+   * ==========================================
+   * FUNCIONES AUXILIARES PARA CALENDARIO
+   * ==========================================
+   */
+
+  /**
+   * Obtener días del mes para vista calendario
+   * Retorna array de 42 días (6 semanas completas)
+   */
+  function obtenerDiasMes(anio, mes) {
+    const primerDia = new Date(anio, mes, 1);
+    const ultimoDia = new Date(anio, mes + 1, 0);
+    
+    // Día de la semana del primer día (0=Dom, 1=Lun, ...)
+    let primerDiaSemana = primerDia.getDay();
+    if (primerDiaSemana === 0) primerDiaSemana = 7; // Ajustar domingo
+    primerDiaSemana -= 1; // Convertir a índice Lun=0
+    
+    const dias = [];
+    
+    // Días del mes anterior para completar semana
+    const ultimoDiaMesAnterior = new Date(anio, mes, 0).getDate();
+    for (let i = primerDiaSemana - 1; i >= 0; i--) {
+      dias.push({
+        dia: ultimoDiaMesAnterior - i,
+        mes: mes - 1,
+        anio: anio,
+        esDelMes: false
+      });
+    }
+    
+    // Días del mes actual
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+      dias.push({
+        dia: dia,
+        mes: mes,
+        anio: anio,
+        esDelMes: true
+      });
+    }
+    
+    // Días del mes siguiente para completar 42 días (6 semanas)
+    const diasFaltantes = 42 - dias.length;
+    for (let dia = 1; dia <= diasFaltantes; dia++) {
+      dias.push({
+        dia: dia,
+        mes: mes + 1,
+        anio: anio,
+        esDelMes: false
+      });
+    }
+    
+    return dias;
+  }
+
+  /**
+   * Obtener nombre del mes
+   */
+  function obtenerNombreMes(mes) {
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return meses[mes];
+  }
+
+  /**
+   * Verificar si es hoy
+   */
+  function esHoy(dia, mes, anio) {
+    const hoy = new Date();
+    return dia === hoy.getDate() && 
+           mes === hoy.getMonth() && 
+           anio === hoy.getFullYear();
+  }
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN
+   * ==========================================
+   */
+  
+  // Variables globales para navegación de calendario/horario
+  window.currentWeekOffset = 0;  // Para navegación semanal
+  window.currentMonth = new Date().getMonth();
+  window.currentYear = new Date().getFullYear();
+
+  /**
+   * ==========================================
+   * LOG DE DEPURACIÓN
+   * ==========================================
+   */
+  console.log('%c📅 Tab Planning Cargado', 
+              'font-size: 12px; font-weight: bold; color: #667eea;');
+  console.log('Sub-tabs disponibles: Horario Clases, Horario Semanal, Notas, Calendario');
+  console.log('Funciones auxiliares disponibles:');
+  console.log('- Horarios: obtenerDiasSemanaActual, formatearDiaSemana, horaAMinutos, minutosAHora');
+  console.log('- Notas: calcularPromedioPonderado, obtenerColorPromedio');
+  console.log('- Calendario: obtenerDiasMes, obtenerNombreMes, esHoy');
+  console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+</script>
