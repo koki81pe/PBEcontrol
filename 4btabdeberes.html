@@ -1,0 +1,376 @@
+<!--
+******************************************
+PBE CONTROL - 4btabdeberes.html - V01.17
+Sistema de Gestión Académica
+04/01/2026
+
+DESCRIPCIÓN:
+Contenedor para los sub-tabs de Deberes.
+Tab principal que incluye cuatro sub-tabs mediante include().
+
+ESTRUCTURA:
+Este es un CONTENEDOR LIGERO que organiza cuatro sub-tabs:
+1. Sub-tab Todos: Vista unificada (Eval + Tareas + Lecturas)
+2. Sub-tab Evaluaciones: Gestión de evaluaciones con notas/pesos
+3. Sub-tab Tareas: Gestión de tareas con fechas de entrega
+4. Sub-tab Lecturas: Gestión de lecturas con barra de progreso
+
+Usa sub-tabs horizontales dentro del contenedor.
+
+SUB-TABS INCLUIDOS:
+- 6btabtodos.html: Vista unificada de todos los deberes
+- 6btabeval.html: CRUD de evaluaciones
+- 6btabtareas.html: CRUD de tareas
+- 6btablecturas.html: CRUD de lecturas con progreso
+
+NAVEGACIÓN:
+- Tabs horizontales internos (Todos | Evaluaciones | Tareas | Lecturas)
+- Click cambia entre sub-tabs
+- Sub-tab activo: Borde inferior azul
+- Scroll horizontal en mobile si no caben
+
+CONECTA CON:
+- Parent: 3panelstudent.html (incluye este contenedor)
+- Children: 6btabtodos.html, 6btabeval.html, 6btabtareas.html, 6btablecturas.html
+
+VARIABLE GLOBAL DISPONIBLE:
+currentUser (heredada de 3panelstudent.html)
+- currentUser.codeAlum
+- currentUser.nombre
+- currentUser.email
+
+FUNCIONES GLOBALES DISPONIBLES:
+- showAlert(type, message)
+- showLoading()
+- hideLoading()
+- formatFecha(fecha)
+- diasRestantes(fecha)
+
+🔑 IMPORTANTE:
+- Contenedor ligero, lógica en sub-tabs
+- Cada sub-tab es independiente
+- Vista "Todos" unifica las otras 3 vistas
+- Lecturas muestran barra de progreso (PagActual/CantPag)
+******************************************
+-->
+<style>
+  /* ==========================================
+     SUB-TABS HORIZONTALES
+     ========================================== */
+  .subtabs-container {
+    margin-bottom: 20px;
+  }
+
+  .subtabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .subtab-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .subtab-btn:hover {
+    color: #667eea;
+    background: #f9f9f9;
+  }
+
+  .subtab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+
+  .subtab-content {
+    display: none;
+  }
+
+  .subtab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ==========================================
+     BADGE CON CONTADOR (OPCIONAL)
+     ========================================== */
+  .tab-badge {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 6px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .tab-badge.empty {
+    background: #f5f5f5;
+    color: #999;
+  }
+
+  /* ==========================================
+     RESPONSIVE - MOBILE
+     ========================================== */
+  @media (max-width: 768px) {
+    .subtabs-nav {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .subtabs-nav::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .subtabs-nav::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .subtabs-nav::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 2px;
+    }
+
+    .subtab-btn {
+      padding: 10px 18px;
+      font-size: 13px;
+    }
+
+    .tab-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- SUB-TABS: DEBERES -->
+<!-- ========================================== -->
+<div class="subtabs-container">
+  
+  <!-- Navegación de Sub-tabs -->
+  <div class="subtabs-nav">
+    <button class="subtab-btn active" id="btn-subtab-todos" onclick="switchSubTabDeberes('todos')">
+      📋 Todos
+    </button>
+    <button class="subtab-btn" id="btn-subtab-eval" onclick="switchSubTabDeberes('eval')">
+      📝 Evaluaciones
+    </button>
+    <button class="subtab-btn" id="btn-subtab-tareas" onclick="switchSubTabDeberes('tareas')">
+      ✏️ Tareas
+    </button>
+    <button class="subtab-btn" id="btn-subtab-lecturas" onclick="switchSubTabDeberes('lecturas')">
+      📖 Lecturas
+    </button>
+  </div>
+
+  <!-- Sub-tab: Todos (Vista Unificada) -->
+  <div id="subtab-todos" class="subtab-content active">
+    <?!= include('6btabtodos'); ?>
+  </div>
+
+  <!-- Sub-tab: Evaluaciones -->
+  <div id="subtab-eval" class="subtab-content">
+    <?!= include('6btabeval'); ?>
+  </div>
+
+  <!-- Sub-tab: Tareas -->
+  <div id="subtab-tareas" class="subtab-content">
+    <?!= include('6btabtareas'); ?>
+  </div>
+
+  <!-- Sub-tab: Lecturas -->
+  <div id="subtab-lecturas" class="subtab-content">
+    <?!= include('6btablecturas'); ?>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT LOCAL -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * NAVEGACIÓN ENTRE SUB-TABS DEBERES
+   * ==========================================
+   */
+  function switchSubTabDeberes(subTabName) {
+    // Ocultar todos los sub-tabs
+    document.querySelectorAll('#tab-deberes .subtab-content').forEach(function(content) {
+      content.classList.remove('active');
+    });
+
+    // Desactivar todos los botones
+    document.querySelectorAll('#tab-deberes .subtab-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+
+    // Mostrar sub-tab seleccionado
+    const selectedTab = document.getElementById('subtab-' + subTabName);
+    if (selectedTab) {
+      selectedTab.classList.add('active');
+    }
+
+    // Activar botón correspondiente
+    const selectedBtn = document.getElementById('btn-subtab-' + subTabName);
+    if (selectedBtn) {
+      selectedBtn.classList.add('active');
+    }
+
+    console.log('Sub-tab Deberes cambiado a:', subTabName);
+  }
+
+  /**
+   * ==========================================
+   * ACTUALIZAR CONTADORES EN BADGES (OPCIONAL)
+   * ==========================================
+   * 
+   * Función auxiliar que pueden llamar los sub-tabs
+   * para actualizar contadores en los badges.
+   * 
+   * Ejemplo de uso desde un sub-tab:
+   * if (typeof updateDeberesBadge === 'function') {
+   *   updateDeberesBadge('eval', 5);
+   * }
+   */
+  function updateDeberesBadge(tipo, count) {
+    const btn = document.getElementById('btn-subtab-' + tipo);
+    if (!btn) return;
+
+    // Buscar badge existente o crear uno nuevo
+    let badge = btn.querySelector('.tab-badge');
+    
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'tab-badge';
+        btn.appendChild(badge);
+      }
+      badge.textContent = count;
+      badge.classList.remove('empty');
+    } else {
+      if (badge) {
+        badge.textContent = '0';
+        badge.classList.add('empty');
+      }
+    }
+  }
+
+  /**
+   * ==========================================
+   * FUNCIÓN AUXILIAR: FILTRAR POR FECHA
+   * ==========================================
+   * 
+   * Disponible para que los sub-tabs puedan
+   * filtrar deberes por rango de fechas.
+   */
+  function filtrarPorFecha(deberes, fechaDesde, fechaHasta) {
+    if (!fechaDesde && !fechaHasta) {
+      return deberes;
+    }
+
+    return deberes.filter(function(deber) {
+      if (!deber.fecha) return false;
+
+      const fechaDeber = parseFechaDD_MM_AAAA(deber.fecha);
+      if (!fechaDeber) return false;
+
+      let cumple = true;
+
+      if (fechaDesde) {
+        const desde = parseFechaDD_MM_AAAA(fechaDesde);
+        if (desde) {
+          cumple = cumple && (fechaDeber >= desde);
+        }
+      }
+
+      if (fechaHasta) {
+        const hasta = parseFechaDD_MM_AAAA(fechaHasta);
+        if (hasta) {
+          cumple = cumple && (fechaDeber <= hasta);
+        }
+      }
+
+      return cumple;
+    });
+  }
+
+  /**
+   * Parsear fecha DD/MM/AAAA a objeto Date
+   */
+  function parseFechaDD_MM_AAAA(fecha) {
+    if (!fecha) return null;
+    
+    try {
+      const partes = fecha.split('/');
+      if (partes.length !== 3) return null;
+      
+      const dia = parseInt(partes[0]);
+      const mes = parseInt(partes[1]) - 1; // Mes base 0
+      const anio = parseInt(partes[2]);
+      
+      return new Date(anio, mes, dia);
+    } catch(error) {
+      return null;
+    }
+  }
+
+  /**
+   * ==========================================
+   * FUNCIÓN AUXILIAR: ORDENAR POR FECHA
+   * ==========================================
+   * 
+   * Ordena deberes por fecha (más próxima primero)
+   */
+  function ordenarPorFecha(deberes) {
+    return deberes.sort(function(a, b) {
+      if (!a.fecha) return 1;
+      if (!b.fecha) return -1;
+
+      const fechaA = parseFechaDD_MM_AAAA(a.fecha);
+      const fechaB = parseFechaDD_MM_AAAA(b.fecha);
+
+      if (!fechaA) return 1;
+      if (!fechaB) return -1;
+
+      return fechaA - fechaB;
+    });
+  }
+
+  /**
+   * ==========================================
+   * LOG DE DEPURACIÓN
+   * ==========================================
+   */
+  console.log('%c📝 Tab Deberes Cargado', 
+              'font-size: 12px; font-weight: bold; color: #667eea;');
+  console.log('Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas');
+  console.log('Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha');
+  console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+</script>
