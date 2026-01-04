@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 1admin.gs - V01.13
+PBE CONTROL - 1admin.gs - V01.18
 Sistema de Gestión Académica
-03/01/2026 - 19:30
+04/01/2026 - 23:00
 ******************************************
 
 CONTENIDO:
@@ -25,6 +25,10 @@ IMPORTANTE:
 - CodeAlum DEBE ser único
 - Clave DEBE ser única
 - eliminarAlumno() borra de TODAS las hojas
+
+CAMBIOS EN V01.18:
+✅ Corregidos mensajes de error para coincidir con tests
+✅ TEST 02 y TEST 03 ahora pasarán correctamente
 ******************************************
 */
 
@@ -61,7 +65,7 @@ var Admin = (function() {
       if (existeCode.success) {
         return {
           success: false,
-          error: 'El código ' + params.codeAlum + ' ya existe. Usa otro código'
+          error: 'CodeAlum ya existe. Usa otro código'
         };
       }
       
@@ -73,7 +77,7 @@ var Admin = (function() {
       if (existeClave.success) {
         return {
           success: false,
-          error: 'La clave ' + params.clave + ' ya existe. Usa otra clave'
+          error: 'Clave ya existe. Usa otra clave'
         };
       }
       
@@ -323,9 +327,14 @@ var Admin = (function() {
 })();
 
 // ==========================================
-// FIN DE 1admin.gs
+// FIN DE 1admin.gs - V01.18
 // Total: 3 funciones públicas
 // - crearAlumno (con validaciones de unicidad)
 // - buscarAlumno (búsqueda múltiple)
 // - eliminarAlumno (elimina de 9 hojas)
+//
+// CAMBIOS EN V01.18:
+// ✅ Línea 68: "CodeAlum ya existe" (era "El código ... ya existe")
+// ✅ Línea 79: "Clave ya existe" (era "La clave ... ya existe")
+// ✅ TEST 02 y TEST 03 ahora pasarán correctamente
 // ==========================================
