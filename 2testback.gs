@@ -1,14 +1,21 @@
 /*
 ******************************************
-PBE CONTROL - 2testback.gs - V01.15
+PBE CONTROL - 2testback.gs - V01.16
 Sistema de Gestión Académica
-04/01/2026 - 00:15
+04/01/2026 - 02:00
 ******************************************
 
 CONTENIDO:
 - PARTE 1: Limpieza de datos de prueba
-- PARTE 2: Batería de 37 casos de prueba
+- PARTE 2: Batería de 38 casos de prueba
 - PARTE 3: Función principal ejecutarTodasLasPruebas()
+
+CAMBIOS EN V01.16:
+✅ TEST01: Crear 6 alumnos (agregado TEST06)
+✅ NUEVO test08g: Llenar TEST06 con data completa
+✅ TEST32 (ahora 33): Eliminar TEST06 en lugar de TEST05
+✅ Total: 37 → 38 tests
+✅ Conserva evidencias de TEST05 para pruebas robustas
 
 CAMBIOS EN V01.15:
 ✅ 5 nuevos tests de validación (08b-08f)
@@ -64,7 +71,8 @@ function test01_CrearAlumnos() {
       { codeAlum: 'TEST02', clave: 'test2', apellidos: 'Test Dos', nombres: 'Alumno', dni: '22222222', email: 'test2@pbe.com', tipoInsti: 'Universidad', nomInsti: 'Test University', ciclo: '2' },
       { codeAlum: 'TEST03', clave: 'test3', apellidos: 'Test Tres', nombres: 'Alumno', dni: '33333333', email: 'test3@pbe.com', tipoInsti: 'Colegio', nomInsti: 'Test School', ciclo: '3' },
       { codeAlum: 'TEST04', clave: 'test4', apellidos: 'Test Cuatro', nombres: 'Alumno', dni: '44444444', email: 'test4@pbe.com', tipoInsti: 'Instituto', nomInsti: 'Test Institute', ciclo: '4' },
-      { codeAlum: 'TEST05', clave: 'test5', apellidos: 'Test Cinco', nombres: 'Alumno', dni: '55555555', email: 'test5@pbe.com', tipoInsti: 'Academia', nomInsti: 'Test Academy', ciclo: '5' }
+      { codeAlum: 'TEST05', clave: 'test5', apellidos: 'Test Cinco', nombres: 'Alumno', dni: '55555555', email: 'test5@pbe.com', tipoInsti: 'Academia', nomInsti: 'Test Academy', ciclo: '5' },
+      { codeAlum: 'TEST06', clave: 'test6', apellidos: 'Test Seis', nombres: 'Alumno', dni: '66666666', email: 'test6@pbe.com', tipoInsti: 'Universidad', nomInsti: 'Test University', ciclo: '6' }
     ];
     
     var creados = 0;
@@ -72,11 +80,11 @@ function test01_CrearAlumnos() {
       if (Admin.crearAlumno(alumnos[i]).success) creados++;
     }
     
-    return creados === 5
-      ? { passed: true, nombre: 'TEST 01: Crear 5 alumnos', mensaje: '✓ 5 alumnos creados (TEST01-TEST05)' }
-      : { passed: false, nombre: 'TEST 01: Crear 5 alumnos', mensaje: 'FALLÓ: Solo ' + creados + ' de 5' };
+    return creados === 6
+      ? { passed: true, nombre: 'TEST 01: Crear 6 alumnos', mensaje: '✓ 6 alumnos creados (TEST01-TEST06)' }
+      : { passed: false, nombre: 'TEST 01: Crear 6 alumnos', mensaje: 'FALLÓ: Solo ' + creados + ' de 6' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 01: Crear 5 alumnos', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 01: Crear 6 alumnos', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -102,7 +110,7 @@ function test03_ValidarUnicidadClave() {
   }
 }
 
-// ========== TESTS 04-08: CREATE STUDENT ==========
+// ========== TESTS 04-08: CREATE STUDENT (TEST05) ==========
 
 function test04_AgregarCursos() {
   try {
@@ -121,10 +129,10 @@ function test04_AgregarCursos() {
     }
     
     return agregados === 6
-      ? { passed: true, nombre: 'TEST 04: Agregar 6 cursos', mensaje: '✓ 6 cursos agregados (MATE, FIS, QUIM, BIOL, HIST, ING)' }
-      : { passed: false, nombre: 'TEST 04: Agregar 6 cursos', mensaje: 'FALLÓ: Solo ' + agregados + ' de 6' };
+      ? { passed: true, nombre: 'TEST 04: Agregar 6 cursos (TEST05)', mensaje: '✓ 6 cursos agregados (MATE, FIS, QUIM, BIOL, HIST, ING)' }
+      : { passed: false, nombre: 'TEST 04: Agregar 6 cursos (TEST05)', mensaje: 'FALLÓ: Solo ' + agregados + ' de 6' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 04: Agregar 6 cursos', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 04: Agregar 6 cursos (TEST05)', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -147,10 +155,10 @@ function test05_AgregarRepasos() {
     }
     
     return agregados === 8
-      ? { passed: true, nombre: 'TEST 05: Agregar 8 repasos', mensaje: '✓ 8 repasos (4 OK, 4 Falta, 2 evaluados)' }
-      : { passed: false, nombre: 'TEST 05: Agregar 8 repasos', mensaje: 'FALLÓ: Solo ' + agregados + ' de 8' };
+      ? { passed: true, nombre: 'TEST 05: Agregar 8 repasos (TEST05)', mensaje: '✓ 8 repasos (4 OK, 4 Falta, 2 evaluados)' }
+      : { passed: false, nombre: 'TEST 05: Agregar 8 repasos (TEST05)', mensaje: 'FALLÓ: Solo ' + agregados + ' de 8' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 05: Agregar 8 repasos', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 05: Agregar 8 repasos (TEST05)', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -170,10 +178,10 @@ function test06_AgregarEvaluaciones() {
     }
     
     return agregados === 5
-      ? { passed: true, nombre: 'TEST 06: Agregar 5 evaluaciones', mensaje: '✓ 5 evaluaciones (notas 15-19)' }
-      : { passed: false, nombre: 'TEST 06: Agregar 5 evaluaciones', mensaje: 'FALLÓ: Solo ' + agregados + ' de 5' };
+      ? { passed: true, nombre: 'TEST 06: Agregar 5 evaluaciones (TEST05)', mensaje: '✓ 5 evaluaciones (notas 15-19)' }
+      : { passed: false, nombre: 'TEST 06: Agregar 5 evaluaciones (TEST05)', mensaje: 'FALLÓ: Solo ' + agregados + ' de 5' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 06: Agregar 5 evaluaciones', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 06: Agregar 5 evaluaciones (TEST05)', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -191,10 +199,10 @@ function test07_AgregarTareas() {
     }
     
     return agregados === 3
-      ? { passed: true, nombre: 'TEST 07: Agregar 3 tareas', mensaje: '✓ 3 tareas (fechas distintas)' }
-      : { passed: false, nombre: 'TEST 07: Agregar 3 tareas', mensaje: 'FALLÓ: Solo ' + agregados + ' de 3' };
+      ? { passed: true, nombre: 'TEST 07: Agregar 3 tareas (TEST05)', mensaje: '✓ 3 tareas (fechas distintas)' }
+      : { passed: false, nombre: 'TEST 07: Agregar 3 tareas (TEST05)', mensaje: 'FALLÓ: Solo ' + agregados + ' de 3' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 07: Agregar 3 tareas', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 07: Agregar 3 tareas (TEST05)', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -211,14 +219,14 @@ function test08_AgregarLecturas() {
     }
     
     return agregados === 2
-      ? { passed: true, nombre: 'TEST 08: Agregar 2 lecturas', mensaje: '✓ 2 lecturas (progreso 50%)' }
-      : { passed: false, nombre: 'TEST 08: Agregar 2 lecturas', mensaje: 'FALLÓ: Solo ' + agregados + ' de 2' };
+      ? { passed: true, nombre: 'TEST 08: Agregar 2 lecturas (TEST05)', mensaje: '✓ 2 lecturas (progreso 50%)' }
+      : { passed: false, nombre: 'TEST 08: Agregar 2 lecturas (TEST05)', mensaje: 'FALLÓ: Solo ' + agregados + ' de 2' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 08: Agregar 2 lecturas', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 08: Agregar 2 lecturas (TEST05)', mensaje: 'ERROR: ' + error };
   }
 }
 
-// ========== TESTS 08b-08f: VALIDACIONES DE UNICIDAD ==========
+// ========== TESTS 08b-08f: VALIDACIONES DE UNICIDAD (TEST05) ==========
 
 function test08b_ValidarUnicidadCurso() {
   try {
@@ -275,7 +283,71 @@ function test08f_ValidarUnicidadLectura() {
   }
 }
 
-// ========== TESTS 09-14: READ STUDENT ==========
+// ========== TEST 08g: NUEVO - LLENAR TEST06 CON DATA COMPLETA ==========
+
+function test08g_LlenarTest06() {
+  try {
+    var totalAgregados = 0;
+    
+    // Agregar 3 cursos a TEST06
+    var cursos = [
+      { curso: 'ALG', completo: 'Álgebra', color: '#E74C3C' },
+      { curso: 'GEO', completo: 'Geometría', color: '#3498DB' },
+      { curso: 'TRIG', completo: 'Trigonometría', color: '#2ECC71' }
+    ];
+    for (var i = 0; i < cursos.length; i++) {
+      if (Student.agregarCurso({ codeAlum: 'TEST06', curso: cursos[i].curso, completo: cursos[i].completo, color: cursos[i].color }).success) totalAgregados++;
+    }
+    
+    // Agregar 4 repasos a TEST06
+    var repasos = [
+      { curso: 'ALG', tema: 'Ecuaciones', estadoRep: 'OK' },
+      { curso: 'ALG', tema: 'Matrices', estadoRep: 'Falta' },
+      { curso: 'GEO', tema: 'Triángulos', estadoRep: 'OK' },
+      { curso: 'TRIG', tema: 'Identidades', estadoRep: 'OK' }
+    ];
+    for (var i = 0; i < repasos.length; i++) {
+      if (Student.agregarRepaso({ codeAlum: 'TEST06', curso: repasos[i].curso, tema: repasos[i].tema, fechaClase: '02/01/2026', fechaRep: '03/01/2026', estadoRep: repasos[i].estadoRep, detalle: 'Repaso TEST06', evaluado: '' }).success) totalAgregados++;
+    }
+    
+    // Agregar 3 evaluaciones a TEST06
+    var evaluaciones = [
+      { curso: 'ALG', nomEval: 'Examen 1', nota: 16, peso: 40 },
+      { curso: 'GEO', nomEval: 'Práctica 1', nota: 18, peso: 30 },
+      { curso: 'TRIG', nomEval: 'Final', nota: 17, peso: 50 }
+    ];
+    for (var i = 0; i < evaluaciones.length; i++) {
+      if (Student.agregarEvaluacion({ codeAlum: 'TEST06', curso: evaluaciones[i].curso, nomEval: evaluaciones[i].nomEval, fechaEval: '16/01/2026', nota: evaluaciones[i].nota, peso: evaluaciones[i].peso, sem: 1 }).success) totalAgregados++;
+    }
+    
+    // Agregar 2 tareas a TEST06
+    var tareas = [
+      { curso: 'ALG', tarea: 'Tarea 1: Polinomios', fechaEntrega: '11/01/2026', nota: 19, peso: 10 },
+      { curso: 'GEO', tarea: 'Tarea 2: Áreas', fechaEntrega: '13/01/2026', nota: 18, peso: 15 }
+    ];
+    for (var i = 0; i < tareas.length; i++) {
+      if (Student.agregarTarea({ codeAlum: 'TEST06', curso: tareas[i].curso, tarea: tareas[i].tarea, fechaEntrega: tareas[i].fechaEntrega, fechaAccion: '04/01/2026', nota: tareas[i].nota, peso: tareas[i].peso, sem: 1 }).success) totalAgregados++;
+    }
+    
+    // Agregar 1 lectura a TEST06
+    var lecturas = [
+      { curso: 'TRIG', lectura: 'Trigonometría - Venero', cantPag: 300, pagActual: 150, nota: 17, peso: 20 }
+    ];
+    for (var i = 0; i < lecturas.length; i++) {
+      if (Student.agregarLectura({ codeAlum: 'TEST06', curso: lecturas[i].curso, lectura: lecturas[i].lectura, cantPag: lecturas[i].cantPag, pagActual: lecturas[i].pagActual, fechaInicio: '02/01/2026', fechaFin: '31/01/2026', fechaEval: '06/02/2026', nota: lecturas[i].nota, peso: lecturas[i].peso, sem: 1 }).success) totalAgregados++;
+    }
+    
+    var esperados = 3 + 4 + 3 + 2 + 1; // 13 registros totales
+    
+    return totalAgregados === esperados
+      ? { passed: true, nombre: 'TEST 08g: Llenar TEST06', mensaje: '✓ TEST06 llenado con 13 registros (3 cursos, 4 repasos, 3 eval, 2 tareas, 1 lectura)' }
+      : { passed: false, nombre: 'TEST 08g: Llenar TEST06', mensaje: 'FALLÓ: Solo ' + totalAgregados + ' de ' + esperados + ' registros agregados' };
+  } catch(error) {
+    return { passed: false, nombre: 'TEST 08g: Llenar TEST06', mensaje: 'ERROR: ' + error };
+  }
+}
+
+// ========== TESTS 09-14: READ STUDENT (TEST05) ==========
 
 function test09_BuscarAlumno() {
   try {
@@ -343,7 +415,7 @@ function test14_ObtenerLecturas() {
   }
 }
 
-// ========== TESTS 15-19: UPDATE STUDENT ==========
+// ========== TESTS 15-19: UPDATE STUDENT (TEST05) ==========
 
 function test15_ActualizarCurso() {
   try {
@@ -453,7 +525,7 @@ function test19_ActualizarLectura() {
   }
 }
 
-// ========== TESTS 20-24: DELETE STUDENT ==========
+// ========== TESTS 20-24: DELETE STUDENT (TEST05) ==========
 
 function test20_EliminarCurso() {
   try {
@@ -540,7 +612,7 @@ function test24_EliminarLectura() {
   }
 }
 
-// ========== TESTS 25-27: HORARIOS ==========
+// ========== TESTS 25-27: HORARIOS (TEST05) ==========
 
 function test25_AgregarHorarios() {
   try {
@@ -600,7 +672,7 @@ function test27_HorarioSemanal() {
   }
 }
 
-// ========== TESTS 28-30: FUNCIONES ESPECIALES ==========
+// ========== TESTS 28-30: FUNCIONES ESPECIALES (TEST05) ==========
 
 function test28_PromedioPonderado() {
   try {
@@ -670,29 +742,47 @@ function test31_BusquedaAvanzada() {
     
     var encontrados = result.data ? result.data.length : 0;
     
-    return encontrados >= 4
+    return encontrados >= 5
       ? { passed: true, nombre: 'TEST 31: Búsqueda avanzada', mensaje: '✓ ' + encontrados + ' alumnos encontrados con "test"' }
-      : { passed: false, nombre: 'TEST 31: Búsqueda avanzada', mensaje: 'FALLÓ: Solo ' + encontrados + ' encontrados (esperados 4+)' };
+      : { passed: false, nombre: 'TEST 31: Búsqueda avanzada', mensaje: 'FALLÓ: Solo ' + encontrados + ' encontrados (esperados 5+)' };
   } catch(error) {
     return { passed: false, nombre: 'TEST 31: Búsqueda avanzada', mensaje: 'ERROR: ' + error };
   }
 }
 
-// ========== TEST 32: ELIMINACIÓN CASCADA ==========
+// ========== TEST 32: VERIFICAR TEST05 Y TEST06 ==========
 
-function test32_EliminacionCascada() {
+function test32_VerificarDatosTest05yTest06() {
   try {
-    var result = Admin.eliminarAlumno({ codeAlum: 'TEST05' });
+    var test05 = Student.obtenerCursos({ codeAlum: 'TEST05' });
+    var test06 = Student.obtenerCursos({ codeAlum: 'TEST06' });
     
-    if (!result.success) return { passed: false, nombre: 'TEST 32: Eliminación cascada', mensaje: 'FALLÓ: ' + result.error };
+    var test05Valido = test05.success && test05.data.length >= 5;
+    var test06Valido = test06.success && test06.data.length >= 3;
     
-    var verificar = DB.buscar('Alumnos', 'CodeAlum', 'TEST05');
+    return test05Valido && test06Valido
+      ? { passed: true, nombre: 'TEST 32: Verificar TEST05 y TEST06', mensaje: '✓ TEST05 (' + test05.data.length + ' cursos) y TEST06 (' + test06.data.length + ' cursos) tienen datos' }
+      : { passed: false, nombre: 'TEST 32: Verificar TEST05 y TEST06', mensaje: 'FALLÓ: TEST05 o TEST06 sin datos suficientes' };
+  } catch(error) {
+    return { passed: false, nombre: 'TEST 32: Verificar TEST05 y TEST06', mensaje: 'ERROR: ' + error };
+  }
+}
+
+// ========== TEST 33: ELIMINACIÓN CASCADA (TEST06) ==========
+
+function test33_EliminacionCascada() {
+  try {
+    var result = Admin.eliminarAlumno({ codeAlum: 'TEST06' });
+    
+    if (!result.success) return { passed: false, nombre: 'TEST 33: Eliminación cascada', mensaje: 'FALLÓ: ' + result.error };
+    
+    var verificar = DB.buscar('Alumnos', 'CodeAlum', 'TEST06');
     
     return !verificar.success
-      ? { passed: true, nombre: 'TEST 32: Eliminación cascada', mensaje: '✓ TEST05 eliminado de 9 hojas (' + result.message + ')' }
-      : { passed: false, nombre: 'TEST 32: Eliminación cascada', mensaje: 'FALLÓ: TEST05 aún existe en Alumnos' };
+      ? { passed: true, nombre: 'TEST 33: Eliminación cascada', mensaje: '✓ TEST06 eliminado de 9 hojas (' + result.message + ')' }
+      : { passed: false, nombre: 'TEST 33: Eliminación cascada', mensaje: 'FALLÓ: TEST06 aún existe en Alumnos' };
   } catch(error) {
-    return { passed: false, nombre: 'TEST 32: Eliminación cascada', mensaje: 'ERROR: ' + error };
+    return { passed: false, nombre: 'TEST 33: Eliminación cascada', mensaje: 'ERROR: ' + error };
   }
 }
 
@@ -704,7 +794,7 @@ function ejecutarTodasLasPruebas() {
   var resultados = [];
   
   Logger.log('====================================');
-  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.15');
+  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.16');
   Logger.log('====================================');
   
   resultados.push(limpiarDatosPrueba());
@@ -715,6 +805,7 @@ function ejecutarTodasLasPruebas() {
     test07_AgregarTareas, test08_AgregarLecturas,
     test08b_ValidarUnicidadCurso, test08c_ValidarUnicidadRepaso, test08d_ValidarUnicidadEvaluacion,
     test08e_ValidarUnicidadTarea, test08f_ValidarUnicidadLectura,
+    test08g_LlenarTest06,
     test09_BuscarAlumno, test10_ObtenerCursos, test11_ObtenerRepasos,
     test12_ObtenerEvaluaciones, test13_ObtenerTareas, test14_ObtenerLecturas,
     test15_ActualizarCurso, test16_ActualizarRepaso, test17_ActualizarEvaluacion,
@@ -723,7 +814,7 @@ function ejecutarTodasLasPruebas() {
     test23_EliminarTarea, test24_EliminarLectura,
     test25_AgregarHorarios, test26_VerificarMapeoHora, test27_HorarioSemanal,
     test28_PromedioPonderado, test29_ResumenNotas, test30_DeberesUnificados,
-    test31_BusquedaAvanzada, test32_EliminacionCascada
+    test31_BusquedaAvanzada, test32_VerificarDatosTest05yTest06, test33_EliminacionCascada
   ];
   
   for (var i = 0; i < tests.length; i++) {
@@ -747,7 +838,7 @@ function mostrarResultadosEnUI(resultados) {
     
     var html = template.evaluate().setWidth(900).setHeight(700);
     
-    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.15');
+    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.16');
   } catch(error) {
     Logger.log('Error al mostrar UI: ' + error.toString());
     
@@ -775,10 +866,17 @@ function mostrarResultadosEnUI(resultados) {
 }
 
 // ==========================================
-// FIN DE 2testback.gs - V01.15
-// Total: 39 funciones
+// FIN DE 2testback.gs - V01.16
+// Total: 40 funciones
 // - 1 limpieza
-// - 37 tests (32 originales + 5 validaciones)
+// - 38 tests (37 de V01.15 + 1 nuevo test08g)
 // - 1 ejecutarTodasLasPruebas()
 // - 1 mostrarResultadosEnUI()
+//
+// CAMBIOS V01.16:
+// ✅ TEST01: Crear 6 alumnos (agregado TEST06)
+// ✅ TEST 08g: Llenar TEST06 con data completa
+// ✅ TEST 32: Verificar que TEST05 y TEST06 tienen datos
+// ✅ TEST 33: Eliminar TEST06 (antes era TEST32 que eliminaba TEST05)
+// ✅ TEST05 conserva TODAS sus evidencias para pruebas robustas
 // ==========================================
