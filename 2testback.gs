@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 2testback.gs - V01.16
+PBE CONTROL - 2testback.gs - V01.17
 Sistema de Gestión Académica
-04/01/2026 - 02:00
+04/01/2026 - 22:30
 ******************************************
 
 CONTENIDO:
@@ -10,7 +10,7 @@ CONTENIDO:
 - PARTE 2: Batería de 38 casos de prueba
 - PARTE 3: Función principal ejecutarTodasLasPruebas()
 
-CAMBIOS EN V01.16:
+CAMBIOS EN V01.17:
 ✅ TEST01: Crear 6 alumnos (agregado TEST06)
 ✅ NUEVO test08g: Llenar TEST06 con data completa
 ✅ TEST32 (ahora 33): Eliminar TEST06 en lugar de TEST05
@@ -653,24 +653,104 @@ function test26_VerificarMapeoHora() {
   }
 }
 
+// ========== TEST 27: HORARIO SEMANAL ==========
+
 function test27_HorarioSemanal() {
   try {
-    var resultAdd = Student.agregarHorarioSem({ codeAlum: 'TEST05', actividad: 'Repaso MATE', horaInicio: '15:00', horaFin: '17:00', fechaHS: '06/01/2026', tipoAct: 'Repaso', color: '#FFC107', sem: 1 });
+    // ==========================================
+    // Agregar 2 actividades a HorarioSem
+    // ==========================================
     
-    if (!resultAdd.success) return { passed: false, nombre: 'TEST 27: Horario semanal', mensaje: 'FALLÓ: No se pudo agregar' };
+    var actividad1 = Student.agregarHorarioSem({ 
+      codeAlum: 'TEST05', 
+      actividad: 'Repaso MATE', 
+      horaInicio: '15:00', 
+      horaFin: '17:00', 
+      fechaHS: '06/01/2026', 
+      tipoAct: 'Repaso', 
+      color: '#FFC107', 
+      sem: 1 
+    });
+    
+    var actividad2 = Student.agregarHorarioSem({ 
+      codeAlum: 'TEST05', 
+      actividad: 'Estudio FIS', 
+      horaInicio: '18:00', 
+      horaFin: '20:00', 
+      fechaHS: '07/01/2026', 
+      tipoAct: 'Estudio', 
+      color: '#28A745', 
+      sem: 1 
+    });
+    
+    if (!actividad1.success || !actividad2.success) {
+      return { 
+        passed: false, 
+        nombre: 'TEST 27: Horario semanal', 
+        mensaje: 'FALLÓ: No se pudieron agregar las 2 actividades' 
+      };
+    }
+    
+    // ==========================================
+    // Verificar que se agregaron correctamente
+    // ==========================================
     
     var horarios = Student.obtenerHorarioSem({ codeAlum: 'TEST05' });
-    if (!horarios.success || horarios.data.length === 0) return { passed: false, nombre: 'TEST 27: Horario semanal', mensaje: 'FALLÓ: No se encontró el horario agregado' };
     
-    var resultDel = Student.eliminarHorarioSem({ codeAlum: 'TEST05', rowNumber: horarios.data[0]._rowNumber });
+    if (!horarios.success || horarios.data.length < 2) {
+      return { 
+        passed: false, 
+        nombre: 'TEST 27: Horario semanal', 
+        mensaje: 'FALLÓ: No se encontraron las 2 actividades agregadas' 
+      };
+    }
     
-    return resultDel.success
-      ? { passed: true, nombre: 'TEST 27: Horario semanal', mensaje: '✓ Horario semanal agregado y eliminado' }
-      : { passed: false, nombre: 'TEST 27: Horario semanal', mensaje: 'FALLÓ: No se pudo eliminar' };
+    // ==========================================
+    // Eliminar solo la primera actividad
+    // ==========================================
+    
+    var resultDel = Student.eliminarHorarioSem({ 
+      codeAlum: 'TEST05', 
+      rowNumber: horarios.data[0]._rowNumber 
+    });
+    
+    if (!resultDel.success) {
+      return { 
+        passed: false, 
+        nombre: 'TEST 27: Horario semanal', 
+        mensaje: 'FALLÓ: No se pudo eliminar la primera actividad' 
+      };
+    }
+    
+    // ==========================================
+    // Verificar que queda 1 registro
+    // ==========================================
+    
+    var horariosFinales = Student.obtenerHorarioSem({ codeAlum: 'TEST05' });
+    
+    var quedaUno = horariosFinales.success && horariosFinales.data.length === 1;
+    
+    return quedaUno
+      ? { 
+          passed: true, 
+          nombre: 'TEST 27: Horario semanal', 
+          mensaje: '✓ 2 actividades agregadas, 1 eliminada, queda 1 registro en HorarioSem' 
+        }
+      : { 
+          passed: false, 
+          nombre: 'TEST 27: Horario semanal', 
+          mensaje: 'FALLÓ: Debería quedar 1 registro, hay ' + (horariosFinales.data ? horariosFinales.data.length : 0) 
+        };
+        
   } catch(error) {
-    return { passed: false, nombre: 'TEST 27: Horario semanal', mensaje: 'ERROR: ' + error };
+    return { 
+      passed: false, 
+      nombre: 'TEST 27: Horario semanal', 
+      mensaje: 'ERROR: ' + error 
+    };
   }
 }
+
 
 // ========== TESTS 28-30: FUNCIONES ESPECIALES (TEST05) ==========
 
@@ -794,7 +874,7 @@ function ejecutarTodasLasPruebas() {
   var resultados = [];
   
   Logger.log('====================================');
-  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.16');
+  Logger.log('INICIANDO SUITE DE PRUEBAS - PBE CONTROL V01.17');
   Logger.log('====================================');
   
   resultados.push(limpiarDatosPrueba());
@@ -838,7 +918,7 @@ function mostrarResultadosEnUI(resultados) {
     
     var html = template.evaluate().setWidth(900).setHeight(700);
     
-    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.16');
+    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Resultados de Pruebas - PBE Control V01.17');
   } catch(error) {
     Logger.log('Error al mostrar UI: ' + error.toString());
     
@@ -866,14 +946,14 @@ function mostrarResultadosEnUI(resultados) {
 }
 
 // ==========================================
-// FIN DE 2testback.gs - V01.16
+// FIN DE 2testback.gs - V01.17
 // Total: 40 funciones
 // - 1 limpieza
 // - 38 tests (37 de V01.15 + 1 nuevo test08g)
 // - 1 ejecutarTodasLasPruebas()
 // - 1 mostrarResultadosEnUI()
 //
-// CAMBIOS V01.16:
+// CAMBIOS V01.17:
 // ✅ TEST01: Crear 6 alumnos (agregado TEST06)
 // ✅ TEST 08g: Llenar TEST06 con data completa
 // ✅ TEST 32: Verificar que TEST05 y TEST06 tienen datos
