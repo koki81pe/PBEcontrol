@@ -1,0 +1,188 @@
+<!--
+******************************************
+PBE CONTROL - 4atabcursosyrep.html - V01.17
+Sistema de Gestión Académica
+04/01/2026
+
+DESCRIPCIÓN:
+Contenedor para los sub-tabs de Cursos y Repasos.
+Tab principal que incluye dos sub-tabs mediante include().
+
+ESTRUCTURA:
+Este es un CONTENEDOR LIGERO que organiza dos sub-tabs:
+1. Sub-tab Cursos: Lista de cursos con CRUD
+2. Sub-tab Repasos: Lista de repasos por curso con estados
+
+Usa sub-tabs horizontales dentro del contenedor.
+
+SUB-TABS INCLUIDOS:
+- 5atabcursos.html: Gestión de cursos (agregar, editar, eliminar)
+- 5atabrepasos.html: Gestión de repasos (OK/Falta, evaluado)
+
+NAVEGACIÓN:
+- Tabs horizontales internos (Cursos | Repasos)
+- Click cambia entre sub-tabs
+- Sub-tab activo: Borde inferior azul
+
+CONECTA CON:
+- Parent: 3panelstudent.html (incluye este contenedor)
+- Children: 5atabcursos.html, 5atabrepasos.html
+
+VARIABLE GLOBAL DISPONIBLE:
+currentUser (heredada de 3panelstudent.html)
+- currentUser.codeAlum
+- currentUser.nombre
+- currentUser.email
+
+FUNCIONES GLOBALES DISPONIBLES:
+- showAlert(type, message)
+- showLoading()
+- hideLoading()
+
+🔑 IMPORTANTE:
+- Contenedor ligero, lógica en sub-tabs
+- Cada sub-tab es independiente
+- Si un sub-tab falla, no afecta al otro
+******************************************
+-->
+<style>
+  /* ==========================================
+     SUB-TABS HORIZONTALES
+     ========================================== */
+  .subtabs-container {
+    margin-bottom: 20px;
+  }
+
+  .subtabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .subtab-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .subtab-btn:hover {
+    color: #667eea;
+    background: #f9f9f9;
+  }
+
+  .subtab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+
+  .subtab-content {
+    display: none;
+  }
+
+  .subtab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ==========================================
+     RESPONSIVE - MOBILE
+     ========================================== */
+  @media (max-width: 768px) {
+    .subtabs-nav {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .subtab-btn {
+      white-space: nowrap;
+      padding: 10px 20px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- SUB-TABS: CURSOS Y REPASOS -->
+<!-- ========================================== -->
+<div class="subtabs-container">
+  
+  <!-- Navegación de Sub-tabs -->
+  <div class="subtabs-nav">
+    <button class="subtab-btn active" id="btn-subtab-cursos" onclick="switchSubTab('cursos')">
+      📚 Cursos
+    </button>
+    <button class="subtab-btn" id="btn-subtab-repasos" onclick="switchSubTab('repasos')">
+      🔄 Repasos
+    </button>
+  </div>
+
+  <!-- Sub-tab: Cursos -->
+  <div id="subtab-cursos" class="subtab-content active">
+    <?!= include('5atabcursos'); ?>
+  </div>
+
+  <!-- Sub-tab: Repasos -->
+  <div id="subtab-repasos" class="subtab-content">
+    <?!= include('5atabrepasos'); ?>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT LOCAL -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * NAVEGACIÓN ENTRE SUB-TABS
+   * ==========================================
+   */
+  function switchSubTab(subTabName) {
+    // Ocultar todos los sub-tabs
+    document.querySelectorAll('.subtab-content').forEach(function(content) {
+      content.classList.remove('active');
+    });
+
+    // Desactivar todos los botones
+    document.querySelectorAll('.subtab-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+
+    // Mostrar sub-tab seleccionado
+    document.getElementById('subtab-' + subTabName).classList.add('active');
+
+    // Activar botón correspondiente
+    document.getElementById('btn-subtab-' + subTabName).classList.add('active');
+
+    console.log('Sub-tab cambiado a:', subTabName);
+  }
+
+  /**
+   * ==========================================
+   * LOG DE DEPURACIÓN
+   * ==========================================
+   */
+  console.log('%c📚 Tab Cursos y Repasos Cargado', 
+              'font-size: 12px; font-weight: bold; color: #667eea;');
+  console.log('Sub-tabs disponibles: Cursos, Repasos');
+  console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+</script>
