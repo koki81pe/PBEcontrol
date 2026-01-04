@@ -1,0 +1,998 @@
+<!--
+******************************************
+PBE CONTROL - 5atabrepasos.html - V01.17
+Sistema de Gestión Académica
+04/01/2026
+
+DESCRIPCIÓN:
+Sub-tab de Repasos con CRUD completo.
+Muestra lista de repasos organizados por curso con
+estados (OK/Falta) y marca visual para evaluados.
+
+FUNCIONALIDAD:
+- Cargar repasos del estudiante (al iniciar)
+- Agregar nuevo repaso (curso, tema, fechas, estado)
+- Editar repaso existente
+- Eliminar repaso (con confirmación)
+- Filtrar por curso (dropdown)
+- Marcar como evaluado (cambia fondo a rosado)
+
+CAMPOS DEL REPASO:
+- Curso: Dropdown de cursos del estudiante (FK)
+- Tema: Nombre del tema repasado
+- FechaClase: Fecha de la clase original (DD/MM/AAAA)
+- FechaRep: Fecha del repaso realizado (DD/MM/AAAA)
+- EstadoRep: Dropdown (OK, Falta)
+- Detalle: Observaciones adicionales (opcional)
+- Evaluado: "Si" o vacío - marca si fue evaluado
+
+BACKEND:
+- studentObtenerRepasos({ codeAlum })
+- studentObtenerCursos({ codeAlum }) - para dropdown
+- studentAgregarRepaso({ codeAlum, curso, tema, fechaClase, fechaRep, estadoRep, detalle, evaluado })
+- studentActualizarRepaso({ codeAlum, curso, tema, fechaClase, fechaRep, estadoRep, detalle, evaluado, rowNumber })
+- studentEliminarRepaso({ rowNumber })
+
+REGLA VISUAL CRÍTICA:
+Si Evaluado = "Si" → Fondo ROSADO (#FFE6E6)
+Esto resalta visualmente los temas que fueron evaluados.
+
+CONECTA CON:
+- Parent: 4atabcursosyrep.html (contenedor)
+- Backend: wrappers student* en 1code.gs
+- Módulo: Student en 1student.gs
+
+🔑 IMPORTANTE:
+- Curso es FK → debe existir en hoja Cursos
+- EstadoRep solo puede ser "OK" o "Falta"
+- Fondo rosado (#FFE6E6) para evaluados es crítico
+- Filtro por curso permite ver solo repasos de un curso
+******************************************
+-->
+<style>
+  /* ==========================================
+     CONTENEDOR PRINCIPAL
+     ========================================== */
+  .repasos-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .repasos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .repasos-header h2 {
+    color: #333;
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ==========================================
+     FILTROS
+     ========================================== */
+  .filtro-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filtro-container label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .filtro-container select {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 150px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  .filtro-container select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  /* ==========================================
+     BOTONES
+     ========================================== */
+  .btn-agregar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-agregar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #5568d3;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #5a6268;
+  }
+
+  .btn-icon {
+    background: transparent;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover {
+    transform: scale(1.2);
+  }
+
+  .btn-icon.delete {
+    color: #dc3545;
+  }
+
+  .btn-icon.evaluated {
+    color: #E91E63;
+  }
+
+  /* ==========================================
+     FORMULARIO
+     ========================================== */
+  .form-repaso {
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .form-repaso.active {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .form-group label .required {
+    color: #dc3545;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .form-group-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .form-group-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .form-group-checkbox label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #E91E63;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  /* ==========================================
+     TABLA DE REPASOS
+     ========================================== */
+  .repasos-table-container {
+    overflow-x: auto;
+  }
+
+  .repasos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .repasos-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .repasos-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .repasos-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+  }
+
+  .repasos-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  /* ⚠️ CRÍTICO: Fondo rosado para evaluados */
+  .repasos-table tbody tr.evaluado {
+    background-color: #FFE6E6 !important;
+  }
+
+  .repasos-table tbody tr.evaluado:hover {
+    background-color: #FFD4D4 !important;
+  }
+
+  .repasos-table td {
+    padding: 12px;
+    color: #333;
+  }
+
+  /* ==========================================
+     BADGES DE ESTADO
+     ========================================== */
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .badge-ok {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .badge-falta {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .badge-evaluado {
+    background: #FFE6E6;
+    color: #E91E63;
+    margin-left: 6px;
+  }
+
+  /* ==========================================
+     ESTADO VACÍO
+     ========================================== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state-text {
+    font-size: 15px;
+  }
+
+  /* ==========================================
+     LOADING
+     ========================================== */
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    color: #667eea;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ==========================================
+     RESPONSIVE
+     ========================================== */
+  @media (max-width: 768px) {
+    .repasos-container {
+      padding: 16px;
+    }
+
+    .repasos-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      width: 100%;
+    }
+
+    .btn-agregar,
+    .filtro-container {
+      width: 100%;
+    }
+
+    .filtro-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filtro-container select {
+      width: 100%;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+
+    .repasos-table {
+      font-size: 13px;
+    }
+
+    .repasos-table th,
+    .repasos-table td {
+      padding: 8px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- CONTENEDOR DE REPASOS -->
+<!-- ========================================== -->
+<div class="repasos-container">
+  
+  <!-- Header con título, filtro y botón agregar -->
+  <div class="repasos-header">
+    <h2>🔄 Mis Repasos</h2>
+    <div class="header-actions">
+      <div class="filtro-container">
+        <label>Filtrar:</label>
+        <select id="filtroCurso" onchange="aplicarFiltro()">
+          <option value="">Todos los cursos</option>
+        </select>
+      </div>
+      <button class="btn-agregar" onclick="toggleFormAgregar()">
+        + Agregar Repaso
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar/editar repaso -->
+  <div id="formRepaso" class="form-repaso">
+    <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
+    
+    <form id="repasoForm" onsubmit="handleSubmitRepaso(event)">
+      <input type="hidden" id="repasoRowNumber" value="">
+      <input type="hidden" id="repasoModoEdicion" value="false">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Curso <span class="required">*</span></label>
+          <select id="repasoCurso" required>
+            <option value="">Seleccionar curso...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tema <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="repasoTema" 
+            placeholder="Ej: Funciones cuadráticas" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Estado <span class="required">*</span></label>
+          <select id="repasoEstadoRep" required>
+            <option value="">Seleccionar estado...</option>
+            <option value="OK">OK</option>
+            <option value="Falta">Falta</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha de Clase <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="repasoFechaClase" 
+            placeholder="DD/MM/AAAA" 
+            required
+          >
+          <small style="color: #666; font-size: 12px;">Fecha de la clase original</small>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Repaso <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="repasoFechaRep" 
+            placeholder="DD/MM/AAAA" 
+            required
+          >
+          <small style="color: #666; font-size: 12px;">Fecha en que se repasó</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Detalle (Opcional)</label>
+          <textarea 
+            id="repasoDetalle" 
+            placeholder="Observaciones adicionales sobre el repaso..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-group-checkbox">
+        <input 
+          type="checkbox" 
+          id="repasoEvaluado" 
+          value="Si"
+        >
+        <label for="repasoEvaluado">
+          ⭐ Marcar como Evaluado (fondo rosado en tabla)
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btnSubmit">
+          Guardar Repaso
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="cancelarFormRepaso()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de repasos -->
+  <div id="repasosTableContainer" class="repasos-table-container">
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando repasos...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * VARIABLES LOCALES
+   * ==========================================
+   */
+  let repasosData = [];
+  let cursosData = [];
+  let repasosFiltrados = [];
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN
+   * ==========================================
+   */
+  window.addEventListener('load', function() {
+    // Verificar que currentUser esté disponible
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+      showAlert('error', 'Error: No se pudo identificar al usuario');
+      return;
+    }
+
+    cargarCursos();
+    cargarRepasos();
+  });
+
+  /**
+   * ==========================================
+   * CARGAR CURSOS (para dropdown)
+   * ==========================================
+   */
+  function cargarCursos() {
+    google.script.run
+      .withSuccessHandler(handleCursosLoaded)
+      .withFailureHandler(handleError)
+      .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleCursosLoaded(response) {
+    if (response.success) {
+      cursosData = response.data;
+      poblarDropdownCursos();
+    }
+  }
+
+  function poblarDropdownCursos() {
+    const selectCurso = document.getElementById('repasoCurso');
+    const selectFiltro = document.getElementById('filtroCurso');
+
+    // Limpiar opciones excepto la primera
+    selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
+    selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
+
+    cursosData.forEach(function(curso) {
+      // Dropdown de formulario
+      const option1 = document.createElement('option');
+      option1.value = curso.Curso;
+      option1.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectCurso.appendChild(option1);
+
+      // Dropdown de filtro
+      const option2 = document.createElement('option');
+      option2.value = curso.Curso;
+      option2.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectFiltro.appendChild(option2);
+    });
+  }
+
+  /**
+   * ==========================================
+   * CARGAR REPASOS
+   * ==========================================
+   */
+  function cargarRepasos() {
+    google.script.run
+      .withSuccessHandler(handleRepasosLoaded)
+      .withFailureHandler(handleRepasosError)
+      .studentObtenerRepasos({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleRepasosLoaded(response) {
+    if (response.success) {
+      repasosData = response.data;
+      repasosFiltrados = repasosData;
+      renderRepasosTable();
+    } else {
+      showAlert('error', 'Error al cargar repasos: ' + response.error);
+      renderEmptyState();
+    }
+  }
+
+  function handleRepasosError(error) {
+    console.error('Error al cargar repasos:', error);
+    showAlert('error', 'Error de conexión al cargar repasos');
+    renderEmptyState();
+  }
+
+  /**
+   * ==========================================
+   * APLICAR FILTRO
+   * ==========================================
+   */
+  function aplicarFiltro() {
+    const cursoSeleccionado = document.getElementById('filtroCurso').value;
+
+    if (cursoSeleccionado === '') {
+      repasosFiltrados = repasosData;
+    } else {
+      repasosFiltrados = repasosData.filter(function(repaso) {
+        return repaso.Curso === cursoSeleccionado;
+      });
+    }
+
+    renderRepasosTable();
+  }
+
+  /**
+   * ==========================================
+   * RENDERIZAR TABLA
+   * ==========================================
+   */
+  function renderRepasosTable() {
+    const container = document.getElementById('repasosTableContainer');
+
+    if (repasosFiltrados.length === 0) {
+      renderEmptyState();
+      return;
+    }
+
+    let html = `
+      <table class="repasos-table">
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th>Tema</th>
+            <th>Fecha Clase</th>
+            <th>Fecha Repaso</th>
+            <th>Estado</th>
+            <th>Detalle</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    repasosFiltrados.forEach(function(repaso) {
+      // ⚠️ CRÍTICO: Clase "evaluado" para fondo rosado
+      const claseEvaluado = repaso.Evaluado === 'Si' ? 'evaluado' : '';
+      const badgeEvaluado = repaso.Evaluado === 'Si' ? '<span class="badge badge-evaluado">EVALUADO</span>' : '';
+      const estadoBadge = repaso.EstadoRep === 'OK' ? 'badge-ok' : 'badge-falta';
+
+      html += `
+        <tr class="${claseEvaluado}">
+          <td><strong>${repaso.Curso}</strong></td>
+          <td>${repaso.Tema}${badgeEvaluado}</td>
+          <td>${repaso.FechaClase}</td>
+          <td>${repaso.FechaRep}</td>
+          <td><span class="badge ${estadoBadge}">${repaso.EstadoRep}</span></td>
+          <td>${repaso.Detalle || '-'}</td>
+          <td>
+            <button 
+              class="btn-icon" 
+              onclick="editarRepaso(${repaso._rowNumber})"
+              title="Editar">
+              ✏️
+            </button>
+            <button 
+              class="btn-icon delete" 
+              onclick="confirmarEliminarRepaso(${repaso._rowNumber}, '${repaso.Tema}')"
+              title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function renderEmptyState() {
+    const container = document.getElementById('repasosTableContainer');
+    const filtroActivo = document.getElementById('filtroCurso').value !== '';
+
+    if (filtroActivo) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-text">
+            No hay repasos para el curso seleccionado.
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔄</div>
+          <div class="empty-state-text">
+            No tienes repasos registrados aún.<br>
+            Haz clic en "+ Agregar Repaso" para comenzar.
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * ==========================================
+   * TOGGLE FORMULARIO
+   * ==========================================
+   */
+  function toggleFormAgregar() {
+    const form = document.getElementById('formRepaso');
+    const isActive = form.classList.contains('active');
+
+    if (isActive) {
+      form.classList.remove('active');
+    } else {
+      resetFormRepaso();
+      document.getElementById('formTitle').textContent = 'Agregar Nuevo Repaso';
+      document.getElementById('repasoModoEdicion').value = 'false';
+      form.classList.add('active');
+    }
+  }
+
+  /**
+   * ==========================================
+   * SUBMIT FORMULARIO
+   * ==========================================
+   */
+  function handleSubmitRepaso(event) {
+    event.preventDefault();
+
+    const curso = document.getElementById('repasoCurso').value;
+    const tema = document.getElementById('repasoTema').value.trim();
+    const fechaClase = document.getElementById('repasoFechaClase').value.trim();
+    const fechaRep = document.getElementById('repasoFechaRep').value.trim();
+    const estadoRep = document.getElementById('repasoEstadoRep').value;
+    const detalle = document.getElementById('repasoDetalle').value.trim();
+    const evaluado = document.getElementById('repasoEvaluado').checked ? 'Si' : '';
+    const rowNumber = document.getElementById('repasoRowNumber').value;
+    const esEdicion = document.getElementById('repasoModoEdicion').value === 'true';
+
+    if (!curso || !tema || !fechaClase || !fechaRep || !estadoRep) {
+      showAlert('error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    // Validar formato de fecha DD/MM/AAAA
+    if (!validarFecha(fechaClase) || !validarFecha(fechaRep)) {
+      showAlert('error', 'Formato de fecha inválido. Use DD/MM/AAAA');
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      curso: curso,
+      tema: tema,
+      fechaClase: fechaClase,
+      fechaRep: fechaRep,
+      estadoRep: estadoRep,
+      detalle: detalle,
+      evaluado: evaluado
+    };
+
+    if (esEdicion) {
+      params.rowNumber = parseInt(rowNumber);
+      
+      google.script.run
+        .withSuccessHandler(handleRepasoUpdated)
+        .withFailureHandler(handleRepasoError)
+        .studentActualizarRepaso(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleRepasoAdded)
+        .withFailureHandler(handleRepasoError)
+        .studentAgregarRepaso(params);
+    }
+  }
+
+  function handleRepasoAdded(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Repaso';
+
+    if (response.success) {
+      showAlert('success', '✓ Repaso agregado exitosamente');
+      cancelarFormRepaso();
+      cargarRepasos();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleRepasoUpdated(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Repaso';
+
+    if (response.success) {
+      showAlert('success', '✓ Repaso actualizado exitosamente');
+      cancelarFormRepaso();
+      cargarRepasos();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleRepasoError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+    
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Repaso';
+  }
+
+  /**
+   * ==========================================
+   * EDITAR REPASO
+   * ==========================================
+   */
+  function editarRepaso(rowNumber) {
+    const repaso = repasosData.find(r => r._rowNumber === rowNumber);
+    if (!repaso) return;
+
+    document.getElementById('formTitle').textContent = 'Editar Repaso';
+    document.getElementById('repasoRowNumber').value = rowNumber;
+    document.getElementById('repasoModoEdicion').value = 'true';
+    document.getElementById('repasoCurso').value = repaso.Curso;
+    document.getElementById('repasoTema').value = repaso.Tema;
+    document.getElementById('repasoFechaClase').value = repaso.FechaClase;
+    document.getElementById('repasoFechaRep').value = repaso.FechaRep;
+    document.getElementById('repasoEstadoRep').value = repaso.EstadoRep;
+    document.getElementById('repasoDetalle').value = repaso.Detalle || '';
+    document.getElementById('repasoEvaluado').checked = repaso.Evaluado === 'Si';
+
+    document.getElementById('formRepaso').classList.add('active');
+    document.getElementById('repasoTema').focus();
+  }
+
+  /**
+   * ==========================================
+   * ELIMINAR REPASO
+   * ==========================================
+   */
+  function confirmarEliminarRepaso(rowNumber, tema) {
+    if (confirm('¿Eliminar el repaso "' + tema + '"?\n\nEsta acción no se puede deshacer.')) {
+      eliminarRepaso(rowNumber);
+    }
+  }
+
+  function eliminarRepaso(rowNumber) {
+    google.script.run
+      .withSuccessHandler(handleRepasoDeleted)
+      .withFailureHandler(handleRepasoError)
+      .studentEliminarRepaso({ rowNumber: rowNumber });
+  }
+
+  function handleRepasoDeleted(response) {
+    if (response.success) {
+      showAlert('success', '✓ Repaso eliminado exitosamente');
+      cargarRepasos();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  /**
+   * ==========================================
+   * RESET Y CANCELAR FORMULARIO
+   * ==========================================
+   */
+  function resetFormRepaso() {
+    document.getElementById('repasoForm').reset();
+    document.getElementById('repasoRowNumber').value = '';
+    document.getElementById('repasoModoEdicion').value = 'false';
+    document.getElementById('repasoEvaluado').checked = false;
+  }
+
+  function cancelarFormRepaso() {
+    document.getElementById('formRepaso').classList.remove('active');
+    resetFormRepaso();
+  }
+
+  /**
+   * ==========================================
+   * UTILIDADES
+   * ==========================================
+   */
+  function handleError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión');
+  }
+
+  /**
+   * ==========================================
+   * LOG
+   * ==========================================
+   */
+  console.log('%c🔄 Sub-tab Repasos Cargado', 
+              'font-size: 11px; color: #667eea;');
+</script>
