@@ -1,8 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 3panelstudent.html - V01.18 CLAUDE
+PBE CONTROL - 3panelstudent.html - V01.19 CLAUDE
 Sistema de Gestión Académica
 05/01/2026 - Versión Corregida
+
+CAMBIOS V01.19 CLAUDE:
+- CORRECCIÓN CRÍTICA: currentUser se inicializa ANTES de cargar tabs
+- Eliminado window.onload para inicialización (ahora usa IIFE inmediato)
+- window.onload solo actualiza UI, no inicializa datos
+- Esto resuelve la race condition donde los tabs buscaban currentUser antes de que existiera
 
 CAMBIOS V01.18:
 - CORRECCIÓN CRÍTICA: Ahora lee datos reales del usuario desde sessionStorage
@@ -32,8 +38,10 @@ currentUser = {
   email: 'test5@pbe.com'
 }
 
-Esta variable es accesible desde TODOS los sub-tabs
-mediante include(). Cada tab la usa para filtrar datos.
+🔑 CRÍTICO V01.19:
+Esta variable se inicializa INMEDIATAMENTE mediante IIFE,
+ANTES de que los tabs se carguen. Así los sub-tabs la
+encuentran disponible desde el inicio.
 
 CONECTA CON:
 - Contenedores: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
@@ -43,6 +51,7 @@ CONECTA CON:
 - Los datos del usuario se leen desde sessionStorage
 - sessionStorage se llena en 3index.html al autenticar
 - currentUser es global para todos los tabs
+- currentUser se inicializa ANTES de los tabs (V01.19)
 ******************************************
 -->
 <!DOCTYPE html>
@@ -436,19 +445,20 @@ CONECTA CON:
   </div>
 
   <!-- ========================================== -->
-  <!-- JAVASCRIPT GLOBAL -->
+  <!-- JAVASCRIPT GLOBAL - EJECUTA PRIMERO -->
   <!-- ========================================== -->
   <script>
     // ==========================================
     // VARIABLE GLOBAL - USUARIO ACTUAL
     // ==========================================
     /**
+     * CORRECCIÓN CRÍTICA V01.19 CLAUDE:
+     * Esta variable se inicializa ANTES de cargar los tabs.
+     * Así los sub-tabs la encuentran disponible desde el inicio.
+     * 
      * Esta variable es accesible desde TODOS los tabs
      * mediante include(). Cada sub-tab la usa para
      * filtrar datos del estudiante.
-     * 
-     * 🔑 V01.18: Ahora se inicializa desde sessionStorage
-     * con los datos reales del usuario autenticado
      */
     var currentUser = {
       codeAlum: '',
@@ -457,21 +467,15 @@ CONECTA CON:
     };
 
     // ==========================================
-    // INICIALIZACIÓN
+    // INICIALIZACIÓN INMEDIATA
     // ==========================================
-    window.onload = function() {
-      initializeUser();
-    };
-
     /**
-     * Inicializar datos del usuario desde sessionStorage
-     * 
-     * CORRECCIÓN V01.18:
-     * - Lee datos REALES desde sessionStorage
-     * - NO usa datos hardcodeados
-     * - Si no hay datos, redirige al login
+     * CORRECCIÓN CRÍTICA V01.19 CLAUDE:
+     * NO usamos window.onload porque se ejecuta muy tarde.
+     * Ejecutamos INMEDIATAMENTE para que currentUser
+     * esté listo ANTES de que los tabs se carguen.
      */
-    function initializeUser() {
+    (function initializeUserImmediate() {
       try {
         // Leer datos del usuario desde sessionStorage
         const userData = sessionStorage.getItem('pbe_user');
@@ -497,13 +501,13 @@ CONECTA CON:
           return;
         }
         
-        // Asignar datos reales a currentUser
+        // ==========================================
+        // ASIGNAR DATOS REALES A currentUser
+        // ESTO OCURRE ANTES DE QUE LOS TABS SE CARGUEN
+        // ==========================================
         currentUser.codeAlum = user.codeAlum;
         currentUser.nombre = user.nombre;
         currentUser.email = user.email || '';
-        
-        // Actualizar UI con nombre real del usuario
-        document.getElementById('userName').textContent = currentUser.nombre;
         
         console.log('✅ Usuario inicializado correctamente:', currentUser);
         
@@ -514,7 +518,29 @@ CONECTA CON:
           window.top.location.href = '<?!= scriptUrl ?>';
         }, 2000);
       }
-    }
+    })(); // ← IIFE: Se ejecuta INMEDIATAMENTE
+
+    // ==========================================
+    // ACTUALIZAR UI CUANDO EL DOM ESTÉ LISTO
+    // ==========================================
+    /**
+     * CORRECCIÓN V01.19 CLAUDE:
+     * currentUser YA está inicializado (arriba).
+     * Ahora solo actualizamos la UI cuando el DOM esté listo.
+     */
+    window.onload = function() {
+      // Actualizar nombre en navbar
+      if (currentUser.nombre) {
+        document.getElementById('userName').textContent = currentUser.nombre;
+      }
+      
+      console.log('%c🎓 PBE Control - Panel Estudiante V01.19', 
+                  'font-size: 16px; font-weight: bold; color: #667eea;');
+      console.log('%cVariable global currentUser:', 
+                  'font-size: 12px; color: #666;', currentUser);
+      console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
+                  'font-size: 12px; color: #666;');
+    };
 
     // ==========================================
     // NAVEGACIÓN ENTRE TABS
@@ -682,16 +708,6 @@ CONECTA CON:
       
       return true;
     }
-
-    // ==========================================
-    // LOG DE DEPURACIÓN
-    // ==========================================
-    console.log('%c🎓 PBE Control - Panel Estudiante V01.18', 
-                'font-size: 16px; font-weight: bold; color: #667eea;');
-    console.log('%cVariable global: currentUser', 
-                'font-size: 12px; color: #666;');
-    console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
-                'font-size: 12px; color: #666;');
   </script>
 </body>
 </html>
