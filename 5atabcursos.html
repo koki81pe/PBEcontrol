@@ -1,8 +1,15 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.17
+PBE CONTROL - 5atabcursos.html - V01.18 CLAUDE
 Sistema de Gestión Académica
-04/01/2026
+05/01/2026
+
+CAMBIOS V01.18 CLAUDE:
+- CORRECCIÓN: Eliminado window.addEventListener('load')
+- CORRECCIÓN: Encapsulado en IIFE para evitar colisión de variables
+- CORRECCIÓN: Validación de response null antes de leer propiedades
+- CORRECCIÓN: Patrón de espera simple para currentUser
+- Mantiene simplicidad: buscar con codeAlum → mostrar datos
 
 DESCRIPCIÓN:
 Sub-tab de Cursos con CRUD completo.
@@ -347,7 +354,7 @@ CONECTA CON:
   <!-- Header con título y botón agregar -->
   <div class="cursos-header">
     <h2>📚 Mis Cursos</h2>
-    <button class="btn-agregar" onclick="toggleFormAgregar()">
+    <button class="btn-agregar" onclick="CursosModule.toggleFormAgregar()">
       + Agregar Curso
     </button>
   </div>
@@ -356,7 +363,7 @@ CONECTA CON:
   <div id="formCurso" class="form-curso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Curso</h3>
     
-    <form id="cursoForm" onsubmit="handleSubmitCurso(event)">
+    <form id="cursoForm" onsubmit="CursosModule.handleSubmitCurso(event)">
       <input type="hidden" id="cursoRowNumber" value="">
       <input type="hidden" id="cursoModoEdicion" value="false">
       
@@ -396,10 +403,10 @@ CONECTA CON:
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="btnSubmit">
+        <button type="submit" class="btn btn-primary" id="btnSubmitCurso">
           Guardar Curso
         </button>
-        <button type="button" class="btn btn-secondary" onclick="cancelarFormCurso()">
+        <button type="button" class="btn btn-secondary" onclick="CursosModule.cancelarFormCurso()">
           Cancelar
         </button>
       </div>
@@ -420,33 +427,56 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
+(function() {
+  'use strict';
+  
   /**
    * ==========================================
-   * VARIABLES LOCALES
+   * MÓDULO ENCAPSULADO - CURSOS
    * ==========================================
+   * CORRECCIÓN V01.18 CLAUDE:
+   * - Encapsulado en IIFE para evitar colisiones
+   * - Variables privadas (cursosData, modoEdicion)
+   * - Funciones públicas expuestas en CursosModule
    */
+
+  // Variables privadas del módulo
   let cursosData = [];
   let modoEdicion = false;
+  let intentosEspera = 0;
+  const MAX_INTENTOS = 20; // 20 intentos = 2 segundos máximo
 
   /**
    * ==========================================
-   * INICIALIZACIÓN
+   * INICIALIZACIÓN CON ESPERA SIMPLE
    * ==========================================
+   * CORRECCIÓN V01.18 CLAUDE:
+   * Patrón simple de espera para currentUser
+   * No usa window.load, sino setTimeout recursivo
    */
-  window.addEventListener('load', function() {
-    // Verificar que currentUser esté disponible
-    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-      showAlert('error', 'Error: No se pudo identificar al usuario');
-      return;
+  function inicializar() {
+    // Verificar si currentUser está disponible
+    if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
+      console.log('✓ currentUser disponible:', currentUser.codeAlum);
+      cargarCursos();
+    } else {
+      // Esperar un poco más y reintentar
+      intentosEspera++;
+      
+      if (intentosEspera < MAX_INTENTOS) {
+        setTimeout(inicializar, 100); // Reintentar cada 100ms
+      } else {
+        console.error('✗ currentUser no se inicializó a tiempo');
+        mostrarError('No se pudo identificar al usuario. Recarga la página.');
+      }
     }
-
-    cargarCursos();
-  });
+  }
 
   /**
    * ==========================================
-   * CARGAR CURSOS
+   * CARGAR CURSOS - SIMPLE
    * ==========================================
+   * Busca con codeAlum → Muestra datos
    */
   function cargarCursos() {
     google.script.run
@@ -456,18 +486,26 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
+    // CORRECCIÓN V01.18 CLAUDE: Validar response null
+    if (!response) {
+      console.error('Response es null');
+      mostrarError('Error: No se recibió respuesta del servidor');
+      renderEmptyState();
+      return;
+    }
+
     if (response.success) {
       cursosData = response.data;
       renderCursosTable();
     } else {
-      showAlert('error', 'Error al cargar cursos: ' + response.error);
+      mostrarError('Error al cargar cursos: ' + response.error);
       renderEmptyState();
     }
   }
 
   function handleCursosError(error) {
     console.error('Error al cargar cursos:', error);
-    showAlert('error', 'Error de conexión al cargar cursos');
+    mostrarError('Error de conexión al cargar cursos');
     renderEmptyState();
   }
 
@@ -508,13 +546,13 @@ CONECTA CON:
           <td>
             <button 
               class="btn-icon" 
-              onclick="editarCurso(${curso._rowNumber})"
+              onclick="CursosModule.editarCurso(${curso._rowNumber})"
               title="Editar">
               ✏️
             </button>
             <button 
               class="btn-icon delete" 
-              onclick="confirmarEliminarCurso(${curso._rowNumber}, '${curso.Curso}')"
+              onclick="CursosModule.confirmarEliminarCurso(${curso._rowNumber}, '${curso.Curso}')"
               title="Eliminar">
               🗑️
             </button>
@@ -578,11 +616,11 @@ CONECTA CON:
     const esEdicion = document.getElementById('cursoModoEdicion').value === 'true';
 
     if (!curso || !completo) {
-      showAlert('error', 'Completa todos los campos obligatorios');
+      mostrarError('Completa todos los campos obligatorios');
       return;
     }
 
-    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSubmit = document.getElementById('btnSubmitCurso');
     btnSubmit.disabled = true;
     btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
 
@@ -609,38 +647,50 @@ CONECTA CON:
   }
 
   function handleCursoAdded(response) {
-    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSubmit = document.getElementById('btnSubmitCurso');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
+    // CORRECCIÓN V01.18 CLAUDE: Validar response null
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Curso agregado exitosamente');
+      mostrarExito('✓ Curso agregado exitosamente');
       cancelarFormCurso();
       cargarCursos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
   function handleCursoUpdated(response) {
-    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSubmit = document.getElementById('btnSubmitCurso');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
+    // CORRECCIÓN V01.18 CLAUDE: Validar response null
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Curso actualizado exitosamente');
+      mostrarExito('✓ Curso actualizado exitosamente');
       cancelarFormCurso();
       cargarCursos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
   function handleCursoError(error) {
     console.error('Error:', error);
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
+    mostrarError('Error de conexión. Intenta nuevamente');
     
-    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSubmit = document.getElementById('btnSubmitCurso');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
   }
@@ -684,11 +734,17 @@ CONECTA CON:
   }
 
   function handleCursoDeleted(response) {
+    // CORRECCIÓN V01.18 CLAUDE: Validar response null
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Curso eliminado exitosamente');
+      mostrarExito('✓ Curso eliminado exitosamente');
       cargarCursos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
@@ -711,9 +767,47 @@ CONECTA CON:
 
   /**
    * ==========================================
-   * LOG
+   * UTILIDADES DE MENSAJES
    * ==========================================
    */
-  console.log('%c📚 Sub-tab Cursos Cargado', 
+  function mostrarExito(mensaje) {
+    if (typeof showAlert === 'function') {
+      showAlert('success', mensaje);
+    } else {
+      console.log('✓ ' + mensaje);
+    }
+  }
+
+  function mostrarError(mensaje) {
+    if (typeof showAlert === 'function') {
+      showAlert('error', mensaje);
+    } else {
+      console.error('✗ ' + mensaje);
+    }
+  }
+
+  /**
+   * ==========================================
+   * API PÚBLICA DEL MÓDULO
+   * ==========================================
+   */
+  window.CursosModule = {
+    toggleFormAgregar: toggleFormAgregar,
+    handleSubmitCurso: handleSubmitCurso,
+    editarCurso: editarCurso,
+    confirmarEliminarCurso: confirmarEliminarCurso,
+    cancelarFormCurso: cancelarFormCurso
+  };
+
+  /**
+   * ==========================================
+   * INICIAR AL CARGAR EL SCRIPT
+   * ==========================================
+   */
+  inicializar();
+
+  console.log('%c📚 Sub-tab Cursos V01.18 CLAUDE Cargado', 
               'font-size: 11px; color: #667eea;');
+
+})();
 </script>
