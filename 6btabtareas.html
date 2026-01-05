@@ -1,0 +1,1068 @@
+<!--
+******************************************
+PBE CONTROL - 6btabtareas.html - V01.17
+Sistema de Gestión Académica
+05/01/2026
+
+DESCRIPCIÓN:
+Sub-tab de Tareas con CRUD completo.
+Muestra lista de tareas del estudiante con opciones
+para agregar, editar y eliminar.
+
+FUNCIONALIDAD:
+- Cargar tareas del estudiante (al iniciar)
+- Agregar nueva tarea (curso, nombre, fechas, nota, peso, semana)
+- Editar tarea existente
+- Eliminar tarea (con confirmación)
+- Filtrar por curso (dropdown)
+- Validación de unicidad Curso+Tarea
+
+CAMPOS DE LA TAREA:
+- Curso: Dropdown de cursos del estudiante (FK) *obligatorio
+- Tarea: Nombre de la tarea *obligatorio
+- FechaEntrega: Fecha límite de entrega (DD/MM/AAAA) *obligatorio
+- FechaAccion: Fecha de realización (DD/MM/AAAA) opcional ⚠️ ÚNICO DE TAREAS
+- Nota: Calificación obtenida (0-20, decimal permitido) opcional
+- Peso: Peso en porcentaje (0-100) opcional
+- Sem: Número de semana opcional
+
+BACKEND:
+- studentObtenerTareas({ codeAlum })
+- studentObtenerCursos({ codeAlum }) - para dropdown
+- studentAgregarTarea({ codeAlum, curso, tarea, fechaEntrega, fechaAccion, nota, peso, sem })
+- studentActualizarTarea({ codeAlum, curso, tarea, fechaEntrega, fechaAccion, nota, peso, sem, rowNumber })
+- studentEliminarTarea({ rowNumber })
+
+VALIDACIONES BACKEND:
+- Backend valida que Curso+Tarea NO se duplique para el alumno
+- Error: "La tarea 'Trabajo 1' ya existe en MATE"
+
+VALIDACIONES FRONTEND:
+- Campos obligatorios: Curso, Tarea, FechaEntrega
+- Formato fecha: DD/MM/AAAA (FechaEntrega y FechaAccion)
+- Nota: 0-20 (si se especifica)
+- Peso: 0-100 (si se especifica)
+
+COLORES DINÁMICOS EN NOTA:
+- >= 14: Verde (#28a745) - Aprobado con buena nota
+- 11-13: Amarillo (#ffc107) - Aprobado justo
+- < 11: Rojo (#dc3545) - Desaprobado
+
+DIFERENCIA vs EVALUACIONES:
+⚠️ Campo ÚNICO: FechaAccion (fecha en que se realizó la tarea)
+- Tabla tiene 8 columnas (eval tiene 7)
+- Formulario tiene 7 campos (eval tiene 6)
+
+CONECTA CON:
+- Parent: 4btabdeberes.html (contenedor)
+- Backend: wrappers student* en 1code.gs
+- Módulo: Student en 1student.gs
+
+🔑 IMPORTANTE:
+- Curso es FK → debe existir en hoja Cursos
+- Curso+Tarea DEBE ser único por alumno
+- FechaAccion representa cuándo se completó (puede ser antes/después de FechaEntrega)
+- Nota y Peso son opcionales (se completan después de la entrega)
+******************************************
+-->
+<style>
+  /* ==========================================
+     CONTENEDOR PRINCIPAL
+     ========================================== */
+  .tareas-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .tareas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .tareas-header h2 {
+    color: #333;
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ==========================================
+     FILTROS
+     ========================================== */
+  .filtro-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filtro-container label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .filtro-container select {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 150px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  .filtro-container select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  /* ==========================================
+     BOTONES
+     ========================================== */
+  .btn-agregar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-agregar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #5568d3;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #5a6268;
+  }
+
+  .btn-icon {
+    background: transparent;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover {
+    transform: scale(1.2);
+  }
+
+  .btn-icon.delete {
+    color: #dc3545;
+  }
+
+  /* ==========================================
+     FORMULARIO
+     ========================================== */
+  .form-tarea {
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .form-tarea.active {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .form-group label .required {
+    color: #dc3545;
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  /* ==========================================
+     TABLA DE TAREAS
+     ========================================== */
+  .tareas-table-container {
+    overflow-x: auto;
+  }
+
+  .tareas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .tareas-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .tareas-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .tareas-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+  }
+
+  .tareas-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  .tareas-table td {
+    padding: 12px;
+    color: #333;
+  }
+
+  /* ==========================================
+     CURSO TAG
+     ========================================== */
+  .curso-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #e9ecef;
+    color: #495057;
+  }
+
+  /* ==========================================
+     COLORES DINÁMICOS EN NOTA
+     ========================================== */
+  .nota-cell {
+    text-align: center;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .nota-alta {
+    color: #28a745;
+  }
+
+  .nota-media {
+    color: #ffc107;
+  }
+
+  .nota-baja {
+    color: #dc3545;
+  }
+
+  .nota-pendiente {
+    color: #999;
+    font-style: italic;
+  }
+
+  /* ==========================================
+     FECHA, PESO Y SEMANA
+     ========================================== */
+  .fecha-cell {
+    white-space: nowrap;
+  }
+
+  .peso-cell {
+    text-align: center;
+    color: #666;
+  }
+
+  .sem-cell {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+  }
+
+  /* ==========================================
+     ESTADO VACÍO
+     ========================================== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state-text {
+    font-size: 15px;
+  }
+
+  /* ==========================================
+     LOADING
+     ========================================== */
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    color: #667eea;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ==========================================
+     RESPONSIVE
+     ========================================== */
+  @media (max-width: 768px) {
+    .tareas-container {
+      padding: 16px;
+    }
+
+    .tareas-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      width: 100%;
+    }
+
+    .btn-agregar,
+    .filtro-container {
+      width: 100%;
+    }
+
+    .filtro-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filtro-container select {
+      width: 100%;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+
+    .tareas-table {
+      font-size: 13px;
+    }
+
+    .tareas-table th,
+    .tareas-table td {
+      padding: 8px;
+    }
+
+    /* Ocultar columnas menos importantes en móvil */
+    .tareas-table .col-sem {
+      display: none;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- CONTENEDOR DE TAREAS -->
+<!-- ========================================== -->
+<div class="tareas-container">
+  
+  <!-- Header con título, filtro y botón agregar -->
+  <div class="tareas-header">
+    <h2>✏️ Mis Tareas</h2>
+    <div class="header-actions">
+      <div class="filtro-container">
+        <label>Filtrar:</label>
+        <select id="filtroCurso" onchange="aplicarFiltro()">
+          <option value="">Todos los cursos</option>
+        </select>
+      </div>
+      <button class="btn-agregar" onclick="toggleFormAgregar()">
+        + Agregar Tarea
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar/editar tarea -->
+  <div id="formTarea" class="form-tarea">
+    <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Tarea</h3>
+    
+    <form id="tareaForm" onsubmit="handleSubmitTarea(event)">
+      <input type="hidden" id="tareaRowNumber" value="">
+      <input type="hidden" id="tareaModoEdicion" value="false">
+      
+      <!-- Fila 1: Curso, Nombre, Fecha Entrega -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Curso <span class="required">*</span></label>
+          <select id="tareaCurso" required>
+            <option value="">Seleccionar curso...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de la Tarea <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="tareaTarea" 
+            placeholder="Ej: Trabajo de Investigación" 
+            required
+          >
+          <small>Nombre único por curso</small>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Entrega <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="tareaFechaEntrega" 
+            placeholder="DD/MM/AAAA" 
+            required
+          >
+          <small>Fecha límite de entrega</small>
+        </div>
+      </div>
+
+      <!-- Fila 2: Fecha Acción, Nota, Peso, Semana -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha de Realización (Opcional)</label>
+          <input 
+            type="text" 
+            id="tareaFechaAccion" 
+            placeholder="DD/MM/AAAA"
+          >
+          <small>Fecha en que se completó</small>
+        </div>
+
+        <div class="form-group">
+          <label>Nota (Opcional)</label>
+          <input 
+            type="number" 
+            id="tareaNota" 
+            placeholder="0 - 20" 
+            min="0" 
+            max="20" 
+            step="0.1"
+          >
+          <small>Calificación (0-20)</small>
+        </div>
+
+        <div class="form-group">
+          <label>Peso (Opcional)</label>
+          <input 
+            type="number" 
+            id="tareaPeso" 
+            placeholder="%" 
+            min="0" 
+            max="100" 
+            step="1"
+          >
+          <small>Peso % (ej: 25)</small>
+        </div>
+
+        <div class="form-group">
+          <label>Semana (Opcional)</label>
+          <input 
+            type="number" 
+            id="tareaSem" 
+            placeholder="Nº semana" 
+            min="1" 
+            step="1"
+          >
+          <small>Semana académica</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btnSubmit">
+          Guardar Tarea
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="cancelarFormTarea()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de tareas -->
+  <div id="tareasTableContainer" class="tareas-table-container">
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando tareas...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * VARIABLES LOCALES
+   * ==========================================
+   */
+  let tareasData = [];
+  let cursosData = [];
+  let tareasFiltradas = [];
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN
+   * ==========================================
+   */
+  window.addEventListener('load', function() {
+    // Verificar que currentUser esté disponible
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+      showAlert('error', 'Error: No se pudo identificar al usuario');
+      return;
+    }
+
+    cargarCursos();
+    cargarTareas();
+  });
+
+  /**
+   * ==========================================
+   * CARGAR CURSOS (para dropdown)
+   * ==========================================
+   */
+  function cargarCursos() {
+    google.script.run
+      .withSuccessHandler(handleCursosLoaded)
+      .withFailureHandler(handleError)
+      .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleCursosLoaded(response) {
+    if (response.success) {
+      cursosData = response.data;
+      poblarDropdownCursos();
+    }
+  }
+
+  function poblarDropdownCursos() {
+    const selectCurso = document.getElementById('tareaCurso');
+    const selectFiltro = document.getElementById('filtroCurso');
+
+    // Limpiar opciones excepto la primera
+    selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
+    selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
+
+    cursosData.forEach(function(curso) {
+      // Dropdown de formulario
+      const option1 = document.createElement('option');
+      option1.value = curso.Curso;
+      option1.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectCurso.appendChild(option1);
+
+      // Dropdown de filtro
+      const option2 = document.createElement('option');
+      option2.value = curso.Curso;
+      option2.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectFiltro.appendChild(option2);
+    });
+  }
+
+  /**
+   * ==========================================
+   * CARGAR TAREAS
+   * ==========================================
+   */
+  function cargarTareas() {
+    google.script.run
+      .withSuccessHandler(handleTareasLoaded)
+      .withFailureHandler(handleTareasError)
+      .studentObtenerTareas({ codeAlum: currentUser.codeAlum });
+  }
+
+  function handleTareasLoaded(response) {
+    if (response.success) {
+      tareasData = response.data;
+      tareasFiltradas = tareasData;
+      
+      // Actualizar badge en contenedor padre (si existe)
+      if (typeof updateDeberesBadge === 'function') {
+        updateDeberesBadge('tareas', tareasData.length);
+      }
+      
+      renderTareasTable();
+    } else {
+      showAlert('error', 'Error al cargar tareas: ' + response.error);
+      renderEmptyState();
+    }
+  }
+
+  function handleTareasError(error) {
+    console.error('Error al cargar tareas:', error);
+    showAlert('error', 'Error de conexión al cargar tareas');
+    renderEmptyState();
+  }
+
+  /**
+   * ==========================================
+   * APLICAR FILTRO
+   * ==========================================
+   */
+  function aplicarFiltro() {
+    const cursoSeleccionado = document.getElementById('filtroCurso').value;
+
+    if (cursoSeleccionado === '') {
+      tareasFiltradas = tareasData;
+    } else {
+      tareasFiltradas = tareasData.filter(function(tarea) {
+        return tarea.Curso === cursoSeleccionado;
+      });
+    }
+
+    renderTareasTable();
+  }
+
+  /**
+   * ==========================================
+   * RENDERIZAR TABLA
+   * ==========================================
+   */
+  function renderTareasTable() {
+    const container = document.getElementById('tareasTableContainer');
+
+    if (tareasFiltradas.length === 0) {
+      renderEmptyState();
+      return;
+    }
+
+    let html = `
+      <table class="tareas-table">
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th>Tarea</th>
+            <th>Entrega</th>
+            <th>Acción</th>
+            <th>Nota</th>
+            <th>Peso</th>
+            <th class="col-sem">Semana</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    tareasFiltradas.forEach(function(tarea) {
+      const claseNota = obtenerClaseNota(tarea.Nota);
+
+      html += `
+        <tr>
+          <td><span class="curso-tag">${tarea.Curso}</span></td>
+          <td><strong>${tarea.Tarea}</strong></td>
+          <td class="fecha-cell">${tarea.FechaEntrega}</td>
+          <td class="fecha-cell">${tarea.FechaAccion || '-'}</td>
+          <td class="nota-cell ${claseNota}">
+            ${tarea.Nota ? tarea.Nota : '<span class="nota-pendiente">Pendiente</span>'}
+          </td>
+          <td class="peso-cell">${tarea.Peso ? tarea.Peso + '%' : '-'}</td>
+          <td class="sem-cell col-sem">${tarea.Sem || '-'}</td>
+          <td>
+            <button 
+              class="btn-icon" 
+              onclick="editarTarea(${tarea._rowNumber})"
+              title="Editar">
+              ✏️
+            </button>
+            <button 
+              class="btn-icon delete" 
+              onclick="confirmarEliminarTarea(${tarea._rowNumber}, '${tarea.Tarea}')"
+              title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function renderEmptyState() {
+    const container = document.getElementById('tareasTableContainer');
+    const filtroActivo = document.getElementById('filtroCurso').value !== '';
+
+    if (filtroActivo) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-text">
+            No hay tareas para el curso seleccionado.
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">✏️</div>
+          <div class="empty-state-text">
+            No tienes tareas registradas aún.<br>
+            Haz clic en "+ Agregar Tarea" para comenzar.
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * ==========================================
+   * TOGGLE FORMULARIO
+   * ==========================================
+   */
+  function toggleFormAgregar() {
+    const form = document.getElementById('formTarea');
+    const isActive = form.classList.contains('active');
+
+    if (isActive) {
+      form.classList.remove('active');
+    } else {
+      resetFormTarea();
+      document.getElementById('formTitle').textContent = 'Agregar Nueva Tarea';
+      document.getElementById('tareaModoEdicion').value = 'false';
+      form.classList.add('active');
+    }
+  }
+
+  /**
+   * ==========================================
+   * SUBMIT FORMULARIO
+   * ==========================================
+   */
+  function handleSubmitTarea(event) {
+    event.preventDefault();
+
+    const curso = document.getElementById('tareaCurso').value;
+    const tarea = document.getElementById('tareaTarea').value.trim();
+    const fechaEntrega = document.getElementById('tareaFechaEntrega').value.trim();
+    const fechaAccion = document.getElementById('tareaFechaAccion').value.trim();
+    const nota = document.getElementById('tareaNota').value.trim();
+    const peso = document.getElementById('tareaPeso').value.trim();
+    const sem = document.getElementById('tareaSem').value.trim();
+    const rowNumber = document.getElementById('tareaRowNumber').value;
+    const esEdicion = document.getElementById('tareaModoEdicion').value === 'true';
+
+    // Validar campos obligatorios
+    if (!curso || !tarea || !fechaEntrega) {
+      showAlert('error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    // Validar formato de fecha entrega DD/MM/AAAA
+    if (!validarFecha(fechaEntrega)) {
+      showAlert('error', 'Formato de fecha de entrega inválido. Use DD/MM/AAAA');
+      return;
+    }
+
+    // Validar formato de fecha acción (si se especifica)
+    if (fechaAccion && !validarFecha(fechaAccion)) {
+      showAlert('error', 'Formato de fecha de realización inválido. Use DD/MM/AAAA');
+      return;
+    }
+
+    // Validar nota (0-20)
+    if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
+      showAlert('error', 'La nota debe estar entre 0 y 20');
+      return;
+    }
+
+    // Validar peso (0-100)
+    if (peso && (parseFloat(peso) < 0 || parseFloat(peso) > 100)) {
+      showAlert('error', 'El peso debe estar entre 0 y 100%');
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      curso: curso,
+      tarea: tarea,
+      fechaEntrega: fechaEntrega,
+      fechaAccion: fechaAccion,
+      nota: nota,
+      peso: peso,
+      sem: sem
+    };
+
+    if (esEdicion) {
+      params.rowNumber = parseInt(rowNumber);
+      
+      google.script.run
+        .withSuccessHandler(handleTareaUpdated)
+        .withFailureHandler(handleTareaError)
+        .studentActualizarTarea(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleTareaAdded)
+        .withFailureHandler(handleTareaError)
+        .studentAgregarTarea(params);
+    }
+  }
+
+  function handleTareaAdded(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Tarea';
+
+    if (response.success) {
+      showAlert('success', '✓ Tarea agregada exitosamente');
+      cancelarFormTarea();
+      cargarTareas();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleTareaUpdated(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Tarea';
+
+    if (response.success) {
+      showAlert('success', '✓ Tarea actualizada exitosamente');
+      cancelarFormTarea();
+      cargarTareas();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleTareaError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+    
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar Tarea';
+  }
+
+  /**
+   * ==========================================
+   * EDITAR TAREA
+   * ==========================================
+   */
+  function editarTarea(rowNumber) {
+    const tarea = tareasData.find(t => t._rowNumber === rowNumber);
+    if (!tarea) return;
+
+    document.getElementById('formTitle').textContent = 'Editar Tarea';
+    document.getElementById('tareaRowNumber').value = rowNumber;
+    document.getElementById('tareaModoEdicion').value = 'true';
+    document.getElementById('tareaCurso').value = tarea.Curso;
+    document.getElementById('tareaTarea').value = tarea.Tarea;
+    document.getElementById('tareaFechaEntrega').value = tarea.FechaEntrega;
+    document.getElementById('tareaFechaAccion').value = tarea.FechaAccion || '';
+    document.getElementById('tareaNota').value = tarea.Nota || '';
+    document.getElementById('tareaPeso').value = tarea.Peso || '';
+    document.getElementById('tareaSem').value = tarea.Sem || '';
+
+    document.getElementById('formTarea').classList.add('active');
+    document.getElementById('tareaTarea').focus();
+  }
+
+  /**
+   * ==========================================
+   * ELIMINAR TAREA
+   * ==========================================
+   */
+  function confirmarEliminarTarea(rowNumber, nombreTarea) {
+    if (confirm('¿Eliminar la tarea "' + nombreTarea + '"?\n\nEsta acción no se puede deshacer.')) {
+      eliminarTarea(rowNumber);
+    }
+  }
+
+  function eliminarTarea(rowNumber) {
+    google.script.run
+      .withSuccessHandler(handleTareaDeleted)
+      .withFailureHandler(handleTareaError)
+      .studentEliminarTarea({ rowNumber: rowNumber });
+  }
+
+  function handleTareaDeleted(response) {
+    if (response.success) {
+      showAlert('success', '✓ Tarea eliminada exitosamente');
+      cargarTareas();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  /**
+   * ==========================================
+   * RESET Y CANCELAR FORMULARIO
+   * ==========================================
+   */
+  function resetFormTarea() {
+    document.getElementById('tareaForm').reset();
+    document.getElementById('tareaRowNumber').value = '';
+    document.getElementById('tareaModoEdicion').value = 'false';
+  }
+
+  function cancelarFormTarea() {
+    document.getElementById('formTarea').classList.remove('active');
+    resetFormTarea();
+  }
+
+  /**
+   * ==========================================
+   * FUNCIÓN AUXILIAR: CLASE DE NOTA
+   * ==========================================
+   */
+  function obtenerClaseNota(nota) {
+    if (!nota) return 'nota-pendiente';
+    
+    const notaNum = parseFloat(nota);
+    
+    if (notaNum >= 14) {
+      return 'nota-alta';      // Verde
+    } else if (notaNum >= 11) {
+      return 'nota-media';     // Amarillo
+    } else {
+      return 'nota-baja';      // Rojo
+    }
+  }
+
+  /**
+   * ==========================================
+   * UTILIDADES
+   * ==========================================
+   */
+  function handleError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión');
+  }
+
+  /**
+   * ==========================================
+   * LOG
+   * ==========================================
+   */
+  console.log('%c✏️ Sub-tab Tareas Cargado', 
+              'font-size: 11px; color: #667eea;');
+</script>
