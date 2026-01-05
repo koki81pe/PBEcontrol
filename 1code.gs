@@ -1,18 +1,25 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.21
+PBE CONTROL - 1code.gs - V01.22 CLAUDE
 Sistema de Gestión Académica
-05/01/2026 - 16:15
+05/01/2026 - 20:30
 ******************************************
 
 CONTENIDO:
 - doGet(): Router principal (Lógica MallaU con procesamiento de Templates)
 - include(): Inclusión dinámica de HTML (Indispensable para las pestañas)
 - autenticar(): Login unificado Admin/Estudiante
-- 28 WRAPPERS: Funciones puente para google.script.run
+- 31 WRAPPERS: Funciones puente para google.script.run
 
-CAMBIOS REALIZADOS:
-- Se cambió createHtmlOutputFromFile por createTemplateFromFile en TODOS los casos.
+CAMBIOS V01.22:
+- CORRECCIÓN CRÍTICA en include(): Ahora procesa templates anidados
+- Cambio: createHtmlOutputFromFile → createTemplateFromFile + evaluate()
+- Esto permite que los <?!= include() ?> dentro de sub-tabs se procesen correctamente
+- Sin este cambio, los sub-tabs mostraban texto literal: <?!= include('archivo'); ?>
+- Agregado wrapper faltante: studentActualizarHorarioSem
+
+CAMBIOS V01.21:
+- Se cambió createHtmlOutputFromFile por createTemplateFromFile en doGet().
 - Se agregó .evaluate() a cada retorno para procesar los comandos <?!= include() ?>.
 - Se mantiene la inyección de scriptUrl para redirecciones seguras.
 ******************************************
@@ -59,14 +66,42 @@ function doGet(e) {
 }
 
 // ==========================================
-// 2. FUNCIÓN include()
+// 2. FUNCIÓN include() - VERSIÓN CORREGIDA
 // ==========================================
 
 /**
- * Fundamental para que funcionen las pestañas separadas en archivos HTML
+ * CORRECCIÓN CRÍTICA V01.22
+ * 
+ * Fundamental para que funcionen las pestañas separadas en archivos HTML.
+ * 
+ * CAMBIO: Ahora usa createTemplateFromFile + evaluate() en lugar de
+ * createHtmlOutputFromFile. Esto permite procesar includes anidados.
+ * 
+ * ANTES (V01.21): 
+ * return HtmlService.createHtmlOutputFromFile(filename).getContent();
+ * - Solo retornaba HTML estático
+ * - Los <?!= include() ?> dentro de sub-tabs NO se procesaban
+ * - Resultado: Aparecía texto literal "<?!= include('archivo'); ?>"
+ * 
+ * AHORA (V01.22):
+ * var template = HtmlService.createTemplateFromFile(filename);
+ * return template.evaluate().getContent();
+ * - Crea un template del archivo
+ * - Lo evalúa (procesa todos los <?!= include() ?>)
+ * - Retorna el contenido HTML procesado
+ * - Resultado: Los sub-tabs se cargan correctamente
+ * 
+ * EJEMPLO DE FLUJO:
+ * 1. 3panelstudent.html → <?!= include('4atabcursosyrep'); ?>
+ * 2. 4atabcursosyrep.html → <?!= include('5atabcursos'); ?>
+ * 3. Ambos niveles se procesan correctamente
+ * 
+ * @param {string} filename - Nombre del archivo HTML (sin extensión .html)
+ * @return {string} - Contenido HTML procesado
  */
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  var template = HtmlService.createTemplateFromFile(filename);
+  return template.evaluate().getContent();
 }
 
 // ==========================================
@@ -113,46 +148,56 @@ function autenticar(params) {
 }
 
 // ==========================================
-// 4. WRAPPERS - STUDENT (28 Funciones)
+// 4. WRAPPERS - STUDENT (31 Funciones)
 // ==========================================
 
+// CURSOS
 function studentObtenerCursos(params) { return Student.obtenerCursos(params); }
 function studentAgregarCurso(params) { return Student.agregarCurso(params); }
 function studentActualizarCurso(params) { return Student.actualizarCurso(params); }
 function studentEliminarCurso(params) { return Student.eliminarCurso(params); }
 
+// REPASOS
 function studentObtenerRepasos(params) { return Student.obtenerRepasos(params); }
 function studentAgregarRepaso(params) { return Student.agregarRepaso(params); }
 function studentActualizarRepaso(params) { return Student.actualizarRepaso(params); }
 function studentEliminarRepaso(params) { return Student.eliminarRepaso(params); }
 
+// EVALUACIONES
 function studentObtenerEvaluaciones(params) { return Student.obtenerEvaluaciones(params); }
 function studentAgregarEvaluacion(params) { return Student.agregarEvaluacion(params); }
 function studentActualizarEvaluacion(params) { return Student.actualizarEvaluacion(params); }
 function studentEliminarEvaluacion(params) { return Student.eliminarEvaluacion(params); }
 
+// TAREAS
 function studentObtenerTareas(params) { return Student.obtenerTareas(params); }
 function studentAgregarTarea(params) { return Student.agregarTarea(params); }
 function studentActualizarTarea(params) { return Student.actualizarTarea(params); }
 function studentEliminarTarea(params) { return Student.eliminarTarea(params); }
 
+// LECTURAS
 function studentObtenerLecturas(params) { return Student.obtenerLecturas(params); }
 function studentAgregarLectura(params) { return Student.agregarLectura(params); }
 function studentActualizarLectura(params) { return Student.actualizarLectura(params); }
 function studentEliminarLectura(params) { return Student.eliminarLectura(params); }
 
+// HORARIO CLASES
 function studentObtenerHorarioClases(params) { return Student.obtenerHorarioClases(params); }
 function studentAgregarHorarioClase(params) { return Student.agregarHorarioClase(params); }
 function studentActualizarHorarioClase(params) { return Student.actualizarHorarioClase(params); }
 function studentEliminarHorarioClase(params) { return Student.eliminarHorarioClase(params); }
 
+// HORARIO SEMANAL
 function studentObtenerHorarioSem(params) { return Student.obtenerHorarioSem(params); }
 function studentAgregarHorarioSem(params) { return Student.agregarHorarioSem(params); }
+function studentActualizarHorarioSem(params) { return Student.actualizarHorarioSem(params); }
 function studentEliminarHorarioSem(params) { return Student.eliminarHorarioSem(params); }
 
+// NOTAS Y RESÚMENES
 function studentObtenerNotasPorCurso(params) { return Student.obtenerNotasPorCurso(params); }
 function studentObtenerResumenNotas(params) { return Student.obtenerResumenNotas(params); }
 
+// DEBERES (VISTAS UNIFICADAS)
 function studentObtenerTodosDeberes(params) { return Student.obtenerTodosDeberes(params); }
 function studentObtenerDeberesPorTipo(params) { return Student.obtenerDeberesPorTipo(params); }
 
@@ -164,4 +209,14 @@ function adminCrearAlumno(params) { return Admin.crearAlumno(params); }
 function adminBuscarAlumno(params) { return Admin.buscarAlumno(params); }
 function adminEliminarAlumno(params) { return Admin.eliminarAlumno(params); }
 
-// FIN DE 1code.gs
+// ==========================================
+// FIN DE 1code.gs V01.22
+// ==========================================
+// RESUMEN:
+// - 1 Router (doGet)
+// - 1 Include con procesamiento de templates anidados
+// - 1 Autenticación
+// - 31 Wrappers Student
+// - 3 Wrappers Admin
+// TOTAL: 37 funciones
+// ==========================================
