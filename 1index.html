@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top"> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBE Control - Login</title>
+  <style>
+    /******************************************
+      PBE CONTROL - 3index.html - V01.20 GEMINI
+      Sistema de Gestión Académica
+      05/01/2026 - Lógica de Redirección Estilo MallaU
+    *******************************************/
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .login-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      width: 100%;
+      max-width: 380px;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER */
+    .login-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .login-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    /* FORMULARIO */
+    .login-form {
+      padding: 30px 25px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      border: 2px solid #eee;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      background-color: #fcfcff;
+    }
+
+    /* BOTÓN */
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-login:hover { opacity: 0.9; }
+    .btn-login:disabled { background: #bbb; cursor: not-allowed; }
+
+    /* ALERTAS */
+    .alert {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      padding: 12px 20px;
+      border-radius: 4px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 10000;
+      font-size: 13px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .alert-success { background: #28a745; color: white; }
+    .alert-error { background: #dc3545; color: white; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .login-footer {
+      padding: 15px;
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      border-top: 1px solid #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h1>PBE Control</h1>
+      <p>Gestión Académica Profesional</p>
+    </div>
+
+    <div class="login-form">
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="inputClave">Clave de Acceso</label>
+          <input type="password" id="inputClave" name="clave" placeholder="••••••••" autocomplete="off" required>
+        </div>
+        <button type="submit" class="btn-login" id="btnLogin">Ingresar al Sistema</button>
+      </form>
+    </div>
+
+    <div class="login-footer">
+      PBE Control v01.20 &copy; 2026 | Protocolo MallaU
+    </div>
+  </div>
+
+  <?!= include('8modals'); ?>
+
+  <script>
+    function handleLogin(event) {
+      event.preventDefault();
+      const clave = document.getElementById('inputClave').value.trim();
+      const btnLogin = document.getElementById('btnLogin');
+
+      if (!clave) {
+        showAlert('error', 'Ingrese su clave');
+        return;
+      }
+
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = '<span class="spinner"></span>Validando...';
+
+      // 1. Guardamos la clave localmente para que los paneles la usen al cargar
+      sessionStorage.setItem('pbe_clave', clave);
+
+      google.script.run
+        .withSuccessHandler(handleLoginSuccess)
+        .withFailureHandler(function(err) {
+           showAlert('error', 'Error técnico de conexión');
+           btnLogin.disabled = false;
+           btnLogin.innerHTML = 'Ingresar al Sistema';
+        })
+        .autenticar({ clave: clave });
+    }
+
+    function handleLoginSuccess(response) {
+      if (response.success) {
+        showAlert('success', 'Bienvenido, ' + response.user.nombre);
+        
+        // Al igual que en MallaU, forzamos la redirección a la URL oficial
+        setTimeout(function() {
+          // scriptUrl viene inyectado desde el doGet de 1code.gs
+          var finalUrl = '<?!= scriptUrl ?>' + '?page=' + response.user.type;
+          
+          // CRÍTICO: window.top saca la aplicación del sandbox de Google
+          window.top.location.href = finalUrl;
+        }, 600);
+      } else {
+        showAlert('error', response.error);
+        const btnLogin = document.getElementById('btnLogin');
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = 'Ingresar al Sistema';
+        document.getElementById('inputClave').focus();
+      }
+    }
+
+    function showAlert(type, message) {
+      const old = document.querySelector('.alert');
+      if (old) old.remove();
+
+      const alertBox = document.createElement('div');
+      alertBox.className = 'alert alert-' + type;
+      alertBox.textContent = message;
+      document.body.appendChild(alertBox);
+      setTimeout(() => alertBox.remove(), 3000);
+    }
+
+    window.onload = () => {
+      // Limpiar datos previos al cargar login
+      sessionStorage.removeItem('pbe_clave');
+      document.getElementById('inputClave').focus();
+    };
+  </script>
+</body>
+</html>
