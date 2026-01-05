@@ -1,6 +1,6 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.22 CLAUDE
+PBE CONTROL - 1code.gs - V01.23 CLAUDE
 Sistema de Gestión Académica
 05/01/2026 - 20:30
 ******************************************
@@ -152,7 +152,18 @@ function autenticar(params) {
 // ==========================================
 
 // CURSOS
-function studentObtenerCursos(params) { return Student.obtenerCursos(params); }
+function studentObtenerCursos(params) { 
+  Logger.log('🔍 studentObtenerCursos WRAPPER');
+  Logger.log('  Params: ' + JSON.stringify(params));
+  
+  var result = Student.obtenerCursos(params);
+  
+  Logger.log('  Result type: ' + typeof result);
+  Logger.log('  Result is null: ' + (result === null));
+  Logger.log('  Result: ' + JSON.stringify(result));
+  
+  return result;
+}
 function studentAgregarCurso(params) { return Student.agregarCurso(params); }
 function studentActualizarCurso(params) { return Student.actualizarCurso(params); }
 function studentEliminarCurso(params) { return Student.eliminarCurso(params); }
