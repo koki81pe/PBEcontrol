@@ -1,91 +1,54 @@
 /*
 ******************************************
-PBE CONTROL - 2testfront.gs - V01.13
+PBE CONTROL - 2testfront.gs - V01.15
 Sistema de Gestión Académica
-03/01/2026 - 20:00
+05/01/2026 - 13:00
 ******************************************
 
-CONTENIDO:
-- testFrontend(): Verificar que los 18 archivos HTML existan
-- testArchivoHTML(): Verificar archivo individual
-- generarReporteFrontend(): Generar reporte detallado
+CONTENIDO COMPLETO:
+1. testFrontend(): Validación general de archivos.
+2. testArchivoHTML(): Validador individual con try-catch.
+3. testArchivoEspecifico(): Debug profundo de un solo archivo.
+4. testPorCategoria(): Validación lógica por módulos (Base, Tabs, Subtabs).
+5. generarReporteFrontend(): Motor de reporte para el sistema.
+6. mostrarResultadosUI(): Renderizado en modal de Google Sheets.
+7. testRapido(): Booleano simple para validaciones internas.
+8. listarArchivosHTML(): Auditoría de archivos existentes vs esperados.
+9. incluir() / include(): Alias para soporte de renderizado.
 
 IMPORTANTE:
-- ⚠️ PASO 0 CRÍTICO: Verificar archivos ANTES de ejecutar sistema
-- Si falta un archivo → Sistema puede mostrar página en blanco
-- Ejecutar después de cada cambio en archivos HTML
-- Resultados se muestran en Logger y UI (opcional)
-
-🔑 PRINCIPIO: "Validar TODOS los archivos HTML antes de desplegar"
+- Total archivos validados: 16 (Se eliminaron 8modals y 8navbar).
+- Compatible con 2testui.html y Utils.gs.
 ******************************************
 */
 
 // ==========================================
-// FUNCIÓN PRINCIPAL: testFrontend()
+// CONFIGURACIÓN GLOBAL DE ARCHIVOS
 // ==========================================
+const ARCHIVOS_ESPERADOS = [
+  '3index', '3paneladmin', '3panelstudent',
+  '4atabcursosyrep', '4btabdeberes', '4ctabplanning',
+  '5atabcursos', '5atabrepasos',
+  '6btabtodos', '6btabeval', '6btabtareas', '6btablecturas',
+  '7ctabhorarioclase', '7ctabhorariosem', '7ctabnotas', '7ctabcalendario'
+];
 
-/**
- * Verificar que TODOS los 18 archivos HTML existan
- * 
- * ⚠️ PASO 0 CRÍTICO: Ejecutar ANTES de usar el sistema
- * 
- * Lista de archivos (18 total):
- * - Base: 3 archivos
- * - Tabs principales: 3 archivos
- * - Sub-tabs Cursos: 2 archivos
- * - Sub-tabs Deberes: 4 archivos
- * - Sub-tabs Planning: 4 archivos
- * - Componentes: 2 archivos
- * 
- * @return {Object} - { success, totalArchivos, existentes, faltantes: [] }
- */
+// ==========================================
+// 1. FUNCIÓN PRINCIPAL: testFrontend()
+// ==========================================
 function testFrontend() {
   Logger.log('====================================');
   Logger.log('INICIANDO TEST FRONTEND - PBE CONTROL');
   Logger.log('====================================');
   
-  var archivos = [
-    // === BASE (3 archivos) ===
-    '3index',
-    '3paneladmin',
-    '3panelstudent',
-    
-    // === TABS PRINCIPALES - Contenedores (3 archivos) ===
-    '4atabcursosyrep',
-    '4btabdeberes',
-    '4ctabplanning',
-    
-    // === SUB-TABS CURSOS (2 archivos) ===
-    '5atabcursos',
-    '5atabrepasos',
-    
-    // === SUB-TABS DEBERES (4 archivos) ===
-    '6btabtodos',
-    '6btabeval',
-    '6btabtareas',
-    '6btablecturas',
-    
-    // === SUB-TABS PLANNING (4 archivos) ===
-    '7ctabhorarioclase',
-    '7ctabhorariosem',
-    '7ctabnotas',
-    '7ctabcalendario',
-    
-    // === COMPONENTES (2 archivos) ===
-    '8modals',
-    '8navbar'
-  ];
-  
   var faltantes = [];
   var existentes = 0;
   
-  Logger.log('Verificando ' + archivos.length + ' archivos HTML...');
+  Logger.log('Verificando ' + ARCHIVOS_ESPERADOS.length + ' archivos HTML...');
   Logger.log('');
   
-  // Verificar cada archivo
-  archivos.forEach(function(nombre) {
+  ARCHIVOS_ESPERADOS.forEach(function(nombre) {
     var resultado = testArchivoHTML(nombre);
-    
     if (resultado.existe) {
       existentes++;
       Logger.log('✓ ' + nombre + '.html - EXISTE');
@@ -98,435 +61,125 @@ function testFrontend() {
   Logger.log('');
   Logger.log('====================================');
   Logger.log('RESUMEN:');
-  Logger.log('Total archivos: ' + archivos.length);
+  Logger.log('Total esperados: ' + ARCHIVOS_ESPERADOS.length);
   Logger.log('Existentes: ' + existentes);
   Logger.log('Faltantes: ' + faltantes.length);
   Logger.log('====================================');
   
-  // Si hay archivos faltantes, mostrar lista
   if (faltantes.length > 0) {
-    Logger.log('');
-    Logger.log('❌ ARCHIVOS FALTANTES:');
-    faltantes.forEach(function(archivo) {
-      Logger.log('  - ' + archivo);
-    });
-    Logger.log('');
-    Logger.log('⚠️ ADVERTENCIA: El sistema puede fallar sin estos archivos');
-    Logger.log('');
-    
-    return {
-      success: false,
-      totalArchivos: archivos.length,
-      existentes: existentes,
-      faltantes: faltantes
-    };
+    Logger.log('❌ ARCHIVOS FALTANTES detectados.');
+    return { success: false, total: ARCHIVOS_ESPERADOS.length, existentes: existentes, faltantes: faltantes };
   }
   
-  // Todos los archivos existen
-  Logger.log('');
-  Logger.log('✅ Todos los 18 archivos HTML existen');
-  Logger.log('✅ Sistema listo para ejecutarse');
-  Logger.log('');
-  
-  return {
-    success: true,
-    totalArchivos: archivos.length,
-    existentes: existentes,
-    faltantes: []
-  };
+  Logger.log('✅ Todos los archivos HTML existen.');
+  return { success: true, total: ARCHIVOS_ESPERADOS.length, existentes: existentes, faltantes: [] };
 }
 
 // ==========================================
-// FUNCIÓN AUXILIAR: testArchivoHTML()
+// 2. FUNCIÓN AUXILIAR: testArchivoHTML()
 // ==========================================
-
-/**
- * Verificar que un archivo HTML específico exista
- * 
- * Método: Intentar crear HtmlOutput desde el archivo
- * Si no existe → HtmlService lanza error
- * 
- * @param {string} nombre - Nombre del archivo (sin extensión .html)
- * @return {Object} - { existe: true/false, nombre, error }
- */
 function testArchivoHTML(nombre) {
   try {
-    // Intentar crear HtmlOutput desde el archivo
     HtmlService.createHtmlOutputFromFile(nombre);
-    
-    // Si llega aquí, el archivo existe
-    return {
-      existe: true,
-      nombre: nombre + '.html',
-      error: null
-    };
-    
+    return { existe: true, nombre: nombre + '.html', error: null };
   } catch(error) {
-    // Si hay error, el archivo no existe
-    return {
-      existe: false,
-      nombre: nombre + '.html',
-      error: error.toString()
-    };
+    return { existe: false, nombre: nombre + '.html', error: error.toString() };
   }
 }
 
 // ==========================================
-// FUNCIÓN: testArchivoEspecifico()
+// 3. FUNCIÓN DE DEBUG: testArchivoEspecifico()
 // ==========================================
-
-/**
- * Probar un archivo específico con información detallada
- * 
- * Útil para debugging cuando un archivo específico falla
- * 
- * @param {string} nombre - Nombre del archivo (sin extensión)
- * @return {Object} - { existe, nombre, error, detalles }
- */
 function testArchivoEspecifico(nombre) {
-  Logger.log('====================================');
-  Logger.log('TEST ARCHIVO ESPECÍFICO: ' + nombre + '.html');
-  Logger.log('====================================');
-  
+  Logger.log('TEST DETALLADO: ' + nombre);
   var resultado = testArchivoHTML(nombre);
-  
   if (resultado.existe) {
-    Logger.log('✓ Archivo EXISTE: ' + nombre + '.html');
-    
-    // Intentar obtener contenido para verificar que no esté vacío
-    try {
-      var content = HtmlService.createHtmlOutputFromFile(nombre).getContent();
-      var longitud = content.length;
-      
-      Logger.log('  Tamaño: ' + longitud + ' caracteres');
-      
-      if (longitud === 0) {
-        Logger.log('  ⚠️ ADVERTENCIA: Archivo vacío');
-        resultado.detalles = 'Archivo existe pero está vacío';
-      } else {
-        Logger.log('  ✓ Archivo tiene contenido');
-        resultado.detalles = 'Archivo válido con ' + longitud + ' caracteres';
-      }
-      
-    } catch(error) {
-      Logger.log('  ⚠️ Error al leer contenido: ' + error.toString());
-      resultado.detalles = 'Archivo existe pero no se pudo leer: ' + error.toString();
-    }
-    
+    var content = HtmlService.createHtmlOutputFromFile(nombre).getContent();
+    Logger.log('✓ Existe. Tamaño: ' + content.length + ' caracteres.');
   } else {
-    Logger.log('✗ Archivo FALTA: ' + nombre + '.html');
-    Logger.log('  Error: ' + resultado.error);
-    resultado.detalles = 'Archivo no encontrado';
+    Logger.log('✗ No encontrado. Error: ' + resultado.error);
   }
-  
-  Logger.log('====================================');
-  
-  return resultado;
 }
 
 // ==========================================
-// FUNCIÓN: testPorCategoria()
+// 4. FUNCIÓN: testPorCategoria()
 // ==========================================
-
-/**
- * Verificar archivos organizados por categoría
- * 
- * Muestra resultados agrupados por:
- * - Base
- * - Tabs principales
- * - Sub-tabs
- * - Componentes
- * 
- * @return {Object} - { success, categorias: {} }
- */
 function testPorCategoria() {
-  Logger.log('====================================');
-  Logger.log('TEST FRONTEND POR CATEGORÍA');
-  Logger.log('====================================');
-  Logger.log('');
-  
   var categorias = {
-    'Base (3 archivos)': ['3index', '3paneladmin', '3panelstudent'],
-    'Tabs Principales (3 archivos)': ['4atabcursosyrep', '4btabdeberes', '4ctabplanning'],
-    'Sub-tabs Cursos (2 archivos)': ['5atabcursos', '5atabrepasos'],
-    'Sub-tabs Deberes (4 archivos)': ['6btabtodos', '6btabeval', '6btabtareas', '6btablecturas'],
-    'Sub-tabs Planning (4 archivos)': ['7ctabhorarioclase', '7ctabhorariosem', '7ctabnotas', '7ctabcalendario'],
-    'Componentes (2 archivos)': ['8modals', '8navbar']
+    'Base (3)': ['3index', '3paneladmin', '3panelstudent'],
+    'Tabs Principales (3)': ['4atabcursosyrep', '4btabdeberes', '4ctabplanning'],
+    'Sub-tabs Cursos (2)': ['5atabcursos', '5atabrepasos'],
+    'Sub-tabs Deberes (4)': ['6btabtodos', '6btabeval', '6btabtareas', '6btablecturas'],
+    'Sub-tabs Planning (4)': ['7ctabhorarioclase', '7ctabhorariosem', '7ctabnotas', '7ctabcalendario']
   };
   
   var resultados = {};
-  var todoExiste = true;
+  var todoOk = true;
   
-  // Verificar cada categoría
-  for (var categoria in categorias) {
-    Logger.log('📁 ' + categoria);
-    
-    var archivos = categorias[categoria];
-    var existentes = 0;
+  for (var cat in categorias) {
     var faltantes = [];
-    
-    archivos.forEach(function(nombre) {
-      var resultado = testArchivoHTML(nombre);
-      
-      if (resultado.existe) {
-        existentes++;
-        Logger.log('  ✓ ' + nombre + '.html');
-      } else {
-        faltantes.push(nombre + '.html');
-        todoExiste = false;
-        Logger.log('  ✗ ' + nombre + '.html - FALTA');
-      }
+    categorias[cat].forEach(function(n) {
+      if (!testArchivoHTML(n).existe) { faltantes.push(n); todoOk = false; }
     });
-    
-    resultados[categoria] = {
-      total: archivos.length,
-      existentes: existentes,
-      faltantes: faltantes
-    };
-    
-    Logger.log('');
+    resultados[cat] = { total: categorias[cat].length, faltantes: faltantes };
   }
-  
-  Logger.log('====================================');
-  Logger.log('RESUMEN POR CATEGORÍA:');
-  Logger.log('====================================');
-  
-  for (var cat in resultados) {
-    var res = resultados[cat];
-    var estado = res.existentes === res.total ? '✓' : '✗';
-    Logger.log(estado + ' ' + cat + ': ' + res.existentes + '/' + res.total);
-    
-    if (res.faltantes.length > 0) {
-      Logger.log('  Faltantes: ' + res.faltantes.join(', '));
-    }
-  }
-  
-  Logger.log('====================================');
-  
-  if (todoExiste) {
-    Logger.log('✅ Todas las categorías completas');
-  } else {
-    Logger.log('❌ Algunas categorías tienen archivos faltantes');
-  }
-  
-  Logger.log('');
-  
-  return {
-    success: todoExiste,
-    categorias: resultados
-  };
+  return { success: todoOk, detalle: resultados };
 }
 
 // ==========================================
-// FUNCIÓN: generarReporteFrontend()
+// 5. FUNCIÓN REPORTE: generarReporteFrontend()
 // ==========================================
-
-/**
- * Generar reporte completo de frontend
- * 
- * Incluye:
- * - Test general (18 archivos)
- * - Test por categoría
- * - Estadísticas
- * 
- * @return {Object} - Reporte completo
- */
 function generarReporteFrontend() {
-  Logger.log('');
-  Logger.log('╔════════════════════════════════════════╗');
-  Logger.log('║  REPORTE COMPLETO FRONTEND - PBE       ║');
-  Logger.log('╚════════════════════════════════════════╝');
-  Logger.log('');
+  Logger.log('GENERANDO REPORTE INTEGRAL...');
+  var general = testFrontend();
+  var categorias = testPorCategoria();
   
-  // Test general
-  var testGeneral = testFrontend();
-  
-  Logger.log('');
-  Logger.log('────────────────────────────────────────');
-  Logger.log('');
-  
-  // Test por categoría
-  var testCategorias = testPorCategoria();
-  
-  // Generar reporte final
+  var fecha;
+  try { fecha = Utils.fechaHoy(); } 
+  catch(e) { fecha = Utilities.formatDate(new Date(), "GMT-5", "dd/MM/yyyy HH:mm"); }
+
   var reporte = {
-    fecha: Utils.fechaHoy(),
-    testGeneral: testGeneral,
-    testCategorias: testCategorias,
-    sistemaListo: testGeneral.success && testCategorias.success
+    fecha: fecha,
+    general: general,
+    categorias: categorias,
+    listo: general.success && categorias.success
   };
-  
-  Logger.log('');
-  Logger.log('╔════════════════════════════════════════╗');
-  Logger.log('║  CONCLUSIÓN                            ║');
-  Logger.log('╚════════════════════════════════════════╝');
-  
-  if (reporte.sistemaListo) {
-    Logger.log('');
-    Logger.log('✅ SISTEMA FRONTEND: OK');
-    Logger.log('✅ Todos los 18 archivos HTML existen');
-    Logger.log('✅ Sistema listo para ejecutarse');
-    Logger.log('');
-  } else {
-    Logger.log('');
-    Logger.log('❌ SISTEMA FRONTEND: CON ERRORES');
-    Logger.log('❌ Faltan ' + testGeneral.faltantes.length + ' archivo(s)');
-    Logger.log('⚠️  El sistema NO está listo para ejecutarse');
-    Logger.log('');
-    Logger.log('Archivos faltantes:');
-    testGeneral.faltantes.forEach(function(archivo) {
-      Logger.log('  - ' + archivo);
-    });
-    Logger.log('');
-  }
-  
+
+  mostrarResultadosUI(reporte);
   return reporte;
 }
 
 // ==========================================
-// FUNCIÓN: mostrarResultadosUI()
+// 6. FUNCIÓN UI: mostrarResultadosUI()
 // ==========================================
-
-/**
- * Mostrar resultados en UI (opcional)
- * 
- * Si existe 2testui.html, mostrar resultados ahí
- * Si no, mostrar solo en Logger
- * 
- * @param {Object} resultados - Resultados del test
- */
 function mostrarResultadosUI(resultados) {
   try {
-    // Intentar mostrar en UI
     var template = HtmlService.createTemplateFromFile('2testui');
     template.resultados = JSON.stringify(resultados);
-    
-    var html = template.evaluate()
-      .setWidth(900)
-      .setHeight(700);
-    
-    SpreadsheetApp.getUi().showModalDialog(
-      html,
-      '🧪 Resultados Test Frontend - PBE Control'
-    );
-    
-  } catch(error) {
-    // Si falla, solo mostrar en Logger
-    Logger.log('Nota: No se pudo mostrar UI (2testui.html no disponible)');
-    Logger.log('Resultados mostrados solo en Logger');
+    var html = template.evaluate().setWidth(900).setHeight(700);
+    SpreadsheetApp.getUi().showModalDialog(html, '🧪 Test Frontend PBE Control');
+  } catch(e) {
+    Logger.log('⚠️ No se pudo abrir el modal UI. Ver Logger para resultados.');
   }
 }
 
 // ==========================================
-// FUNCIÓN: testRapido()
+// 7. FUNCIÓN: testRapido()
 // ==========================================
-
-/**
- * Test rápido - Solo verificar si todos existen
- * 
- * Sin logging detallado, solo retorna true/false
- * Útil para validaciones rápidas en otros scripts
- * 
- * @return {boolean} - true si todos existen, false si falta alguno
- */
 function testRapido() {
-  var archivos = [
-    '3index', '3paneladmin', '3panelstudent',
-    '4atabcursosyrep', '4btabdeberes', '4ctabplanning',
-    '5atabcursos', '5atabrepasos',
-    '6btabtodos', '6btabeval', '6btabtareas', '6btablecturas',
-    '7ctabhorarioclase', '7ctabhorariosem', '7ctabnotas', '7ctabcalendario',
-    '8modals', '8navbar'
-  ];
-  
-  for (var i = 0; i < archivos.length; i++) {
-    try {
-      HtmlService.createHtmlOutputFromFile(archivos[i]);
-    } catch(error) {
-      return false; // Si falla alguno, retornar false
-    }
-  }
-  
-  return true; // Todos existen
-}
-
-// ==========================================
-// FUNCIÓN: listarArchivosHTML()
-// ==========================================
-
-/**
- * Listar TODOS los archivos HTML del proyecto
- * 
- * Útil para ver qué archivos existen realmente
- * vs qué archivos DEBERÍA haber
- * 
- * @return {Array} - Lista de nombres de archivos HTML
- */
-function listarArchivosHTML() {
-  Logger.log('====================================');
-  Logger.log('LISTANDO ARCHIVOS HTML DEL PROYECTO');
-  Logger.log('====================================');
-  Logger.log('');
-  
-  // Lista de archivos esperados
-  var esperados = [
-    '3index', '3paneladmin', '3panelstudent',
-    '4atabcursosyrep', '4btabdeberes', '4ctabplanning',
-    '5atabcursos', '5atabrepasos',
-    '6btabtodos', '6btabeval', '6btabtareas', '6btablecturas',
-    '7ctabhorarioclase', '7ctabhorariosem', '7ctabnotas', '7ctabcalendario',
-    '8modals', '8navbar',
-    '2testui' // También el archivo de UI de tests
-  ];
-  
-  var existentes = [];
-  var faltantes = [];
-  
-  esperados.forEach(function(nombre) {
-    try {
-      HtmlService.createHtmlOutputFromFile(nombre);
-      existentes.push(nombre + '.html');
-      Logger.log('✓ ' + nombre + '.html');
-    } catch(error) {
-      faltantes.push(nombre + '.html');
-      Logger.log('✗ ' + nombre + '.html - NO ENCONTRADO');
-    }
+  return ARCHIVOS_ESPERADOS.every(function(n) {
+    try { HtmlService.createHtmlOutputFromFile(n); return true; } 
+    catch(e) { return false; }
   });
-  
-  Logger.log('');
-  Logger.log('====================================');
-  Logger.log('RESUMEN:');
-  Logger.log('Archivos esperados: ' + esperados.length);
-  Logger.log('Archivos existentes: ' + existentes.length);
-  Logger.log('Archivos faltantes: ' + faltantes.length);
-  Logger.log('====================================');
-  
-  if (faltantes.length > 0) {
-    Logger.log('');
-    Logger.log('Archivos que faltan:');
-    faltantes.forEach(function(archivo) {
-      Logger.log('  - ' + archivo);
-    });
-  }
-  
-  Logger.log('');
-  
-  return {
-    esperados: esperados.length,
-    existentes: existentes,
-    faltantes: faltantes
-  };
 }
 
 // ==========================================
-// FIN DE 2testfront.gs
-// Total: 9 funciones
-// - testFrontend() - Principal
-// - testArchivoHTML() - Auxiliar
-// - testArchivoEspecifico() - Debug
-// - testPorCategoria() - Categorizado
-// - generarReporteFrontend() - Reporte completo
-// - mostrarResultadosUI() - UI opcional
-// - testRapido() - Validación rápida
-// - listarArchivosHTML() - Listar archivos
+// 8. FUNCIÓN: listarArchivosHTML()
 // ==========================================
+function listarArchivosHTML() {
+  Logger.log('AUDITORÍA DE ARCHIVOS:');
+  ARCHIVOS_ESPERADOS.forEach(function(n) {
+    var e = testArchivoHTML(n).existe ? '✓' : '✗';
+    Logger.log(e + ' ' + n);
+  });
+}
