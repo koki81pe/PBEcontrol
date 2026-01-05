@@ -1,0 +1,1418 @@
+<!--
+******************************************
+PBE CONTROL - 7ctabhorariosem.html - V01.17
+Sistema de Gestión Académica
+05/01/2026
+
+DESCRIPCIÓN:
+Sub-tab de Horario Semanal con grid de fechas específicas.
+Permite visualizar clases fijas (de HorarioClases) y agregar
+actividades/repasos específicos de la semana (en HorarioSem).
+
+FUNCIONALIDAD:
+- Grid 15 filas (7 AM - 10 PM) × 8 columnas (hora + 7 días con fechas)
+- Muestra clases fijas de HorarioClases (horario que se repite)
+- Permite agregar Repasos o Actividades específicas de la semana
+- Click en celda → Diálogo: ¿Repaso o Actividad?
+- Navegación semanal (semana anterior/siguiente)
+- Eliminar actividades específicas con confirmación
+- Responsive: Scroll horizontal en mobile
+
+DIFERENCIA CON HORARIOCLASE:
+- HorarioClases: Horario FIJO semanal (Lunes, Martes genéricos)
+- HorarioSem: Actividades ESPECÍFICAS (fecha exacta: 2026-01-07)
+
+ESTRUCTURA DEL GRID:
+- Headers: Lun 06/01, Mar 07/01, etc. (fecha específica)
+- Celda muestra: Clases fijas (solo lectura) + Actividades (editables)
+- Regla de medias horas también aplica
+
+DIÁLOGO INICIAL (9.4.2 del DF):
+Al click en celda vacía:
+1. Mostrar diálogo: "¿Qué deseas agregar? [Repaso] [Actividad]"
+2. Si Repaso → Formulario: Curso, HoraIni, HoraFin (Color amarillo #FFC107)
+3. Si Actividad → Formulario: Actividad (texto libre), HoraIni, HoraFin (Color azul #17a2b8)
+
+BACKEND:
+- studentObtenerHorarioClases({ codeAlum }) - para clases fijas
+- studentObtenerHorarioSem({ codeAlum }) - para actividades específicas
+- studentAgregarHorarioSem({ codeAlum, actividad, horaInicio, horaFin, fechaHS, tipoAct, color, sem })
+- studentEliminarHorarioSem({ rowNumber })
+
+ESTRUCTURA DE DATOS:
+HorarioClases: FechaReg, CodeAlum, Curso, HoraInicio, HoraFin, Detalle (día genérico)
+HorarioSem: FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, FechaHS, TipoAct, Color, Sem
+
+CAMPOS HORARIO SEMANAL:
+- Actividad: Texto descriptivo (ej: "Repaso MATE", "Almuerzo", "Gym")
+- HoraInicio: Hora inicio formato HH:MM (24h) *required
+- HoraFin: Hora fin formato HH:MM (24h) *required
+- FechaHS: Fecha específica YYYY-MM-DD *required
+- TipoAct: "Repaso" o "Actividad" *required
+- Color: Amarillo para Repaso (#FFC107), Azul para Actividad (#17a2b8)
+- Sem: Número de semana (1-52) *optional
+
+COLORES:
+- Clases fijas: Color del curso (de Cursos.Color)
+- Repasos: Amarillo (#FFC107)
+- Actividades: Azul (#17a2b8)
+
+NAVEGACIÓN SEMANAL:
+- Botones: [← Semana Anterior] [Semana Actual] [Semana Siguiente →]
+- Actualiza headers y datos del grid
+
+CONECTA CON:
+- Parent: 4ctabplanning.html (funciones auxiliares disponibles)
+- Backend: Student.obtenerHorarioClases, Student.obtenerHorarioSem
+- Database: Hojas HorarioClases y HorarioSem
+
+🔑 IMPORTANTE:
+- Muestra clases fijas de HorarioClases (solo lectura, no editables)
+- Solo se pueden editar/eliminar actividades de HorarioSem
+- La fecha se calcula según la semana actual + offset de navegación
+- FechaHS se guarda como YYYY-MM-DD en el backend
+- Usar funciones del padre: obtenerDiasSemanaActual(), formatearDiaSemana()
+******************************************
+-->
+<style>
+  /* ==========================================
+     CONTENEDOR PRINCIPAL
+     ========================================== */
+  .horariosem-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .horariosem-header {
+    margin-bottom: 24px;
+  }
+
+  .horariosem-header h2 {
+    color: #333;
+    font-size: 20px;
+    margin: 0 0 8px 0;
+  }
+
+  .horariosem-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* ==========================================
+     NAVEGACIÓN SEMANAL
+     ========================================== */
+  .semana-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .semana-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .semana-botones {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-nav {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-nav:hover {
+    background: #5568d3;
+  }
+
+  .btn-nav.actual {
+    background: #28a745;
+  }
+
+  .btn-nav.actual:hover {
+    background: #218838;
+  }
+
+  /* ==========================================
+     LEYENDA
+     ========================================== */
+  .leyenda {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+
+  .leyenda-titulo {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+  }
+
+  .leyenda-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  /* ==========================================
+     DIÁLOGO TIPO DE ACTIVIDAD
+     ========================================== */
+  .dialogo-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+  }
+
+  .dialogo-overlay.active {
+    display: block;
+  }
+
+  .dialogo-tipo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    width: 90%;
+    max-width: 400px;
+    display: none;
+  }
+
+  .dialogo-tipo.active {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .dialogo-titulo {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .dialogo-opciones {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-opcion {
+    flex: 1;
+    padding: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .btn-opcion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-opcion.repaso {
+    border-color: #FFC107;
+    color: #856404;
+  }
+
+  .btn-opcion.repaso:hover {
+    background: #FFC107;
+    color: white;
+  }
+
+  .btn-opcion.actividad {
+    border-color: #17a2b8;
+    color: #0c5460;
+  }
+
+  .btn-opcion.actividad:hover {
+    background: #17a2b8;
+    color: white;
+  }
+
+  /* ==========================================
+     FORMULARIO
+     ========================================== */
+  .form-actividad {
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .form-actividad.active {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .form-group label .required {
+    color: #dc3545;
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .form-group small {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: space-between;
+  }
+
+  .form-actions-left {
+    display: flex;
+    gap: 12px;
+  }
+
+  .form-actions-right {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #5568d3;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #5a6268;
+  }
+
+  .btn-danger {
+    background: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #c82333;
+  }
+
+  /* ==========================================
+     GRID DE HORARIO
+     ========================================== */
+  .horario-grid-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .horario-grid {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .horario-grid thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .horario-grid th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .horario-grid th.col-hora {
+    min-width: 70px;
+    font-size: 12px;
+  }
+
+  .horario-grid th.col-dia {
+    min-width: 90px;
+  }
+
+  .horario-grid td {
+    border: 1px solid #dee2e6;
+    padding: 0;
+    height: 50px;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .horario-grid td.col-hora {
+    background: #f8f9fa;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    padding: 8px;
+  }
+
+  .celda-actividad {
+    cursor: pointer;
+    transition: background 0.2s;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4px;
+    position: relative;
+    gap: 2px;
+  }
+
+  .celda-actividad:hover {
+    background: #f0f0f0;
+  }
+
+  .celda-actividad.ocupada {
+    font-weight: 700;
+    font-size: 12px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+
+  .celda-actividad.ocupada:hover {
+    opacity: 0.9;
+    filter: brightness(1.1);
+  }
+
+  .celda-actividad.solo-lectura {
+    cursor: default;
+    opacity: 0.85;
+  }
+
+  .celda-actividad.solo-lectura:hover {
+    filter: brightness(1);
+  }
+
+  .actividad-nombre {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .actividad-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.2);
+    margin-top: 2px;
+  }
+
+  /* ==========================================
+     LOADING
+     ========================================== */
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    color: #667eea;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ==========================================
+     RESPONSIVE
+     ========================================== */
+  @media (max-width: 768px) {
+    .horariosem-container {
+      padding: 16px;
+    }
+
+    .semana-nav {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .semana-titulo {
+      text-align: center;
+    }
+
+    .semana-botones {
+      justify-content: center;
+    }
+
+    .btn-nav {
+      flex: 1;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions-left,
+    .form-actions-right {
+      width: 100%;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+
+    .dialogo-opciones {
+      flex-direction: column;
+    }
+
+    .horario-grid {
+      font-size: 11px;
+    }
+
+    .horario-grid th,
+    .horario-grid td {
+      padding: 6px 4px;
+    }
+
+    .leyenda {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- CONTENEDOR DE HORARIO SEMANAL -->
+<!-- ========================================== -->
+<div class="horariosem-container">
+  
+  <!-- Header -->
+  <div class="horariosem-header">
+    <h2>📅 Horario Semanal</h2>
+    <p class="horariosem-subtitle">Horario con fechas específicas - Incluye clases fijas y actividades de la semana</p>
+  </div>
+
+  <!-- Navegación Semanal -->
+  <div class="semana-nav">
+    <div class="semana-titulo" id="semanaTitulo">Semana del 06/01 al 12/01</div>
+    <div class="semana-botones">
+      <button class="btn-nav" onclick="navegarSemana(-1)">← Anterior</button>
+      <button class="btn-nav actual" onclick="navegarSemana(0)">Actual</button>
+      <button class="btn-nav" onclick="navegarSemana(1)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="leyenda">
+    <span class="leyenda-titulo">Leyenda:</span>
+    <div class="leyenda-item">
+      <div class="leyenda-box" style="background: var(--color-curso, #667eea);"></div>
+      <span>Clase fija (solo lectura)</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-box" style="background: #FFC107;"></div>
+      <span>Repaso</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-box" style="background: #17a2b8;"></div>
+      <span>Actividad</span>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar/editar actividad -->
+  <div id="formActividad" class="form-actividad">
+    <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Actividad</h3>
+    
+    <form id="actividadForm" onsubmit="handleSubmitActividad(event)">
+      <input type="hidden" id="actividadRowNumber" value="">
+      <input type="hidden" id="actividadModoEdicion" value="false">
+      <input type="hidden" id="actividadFecha" value="">
+      <input type="hidden" id="actividadTipo" value="">
+      
+      <!-- Curso (solo para Repaso) -->
+      <div class="form-row" id="rowCurso" style="display: none;">
+        <div class="form-group">
+          <label>Curso <span class="required">*</span></label>
+          <select id="actividadCurso">
+            <option value="">Seleccionar curso...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Actividad (solo para Actividad libre) -->
+      <div class="form-row" id="rowActividad" style="display: none;">
+        <div class="form-group">
+          <label>Actividad <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="actividadNombre"
+            placeholder="Ej: Almuerzo, Gym, Inglés"
+            maxlength="100"
+          >
+        </div>
+      </div>
+
+      <!-- Horas -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hora Inicio <span class="required">*</span></label>
+          <input 
+            type="time" 
+            id="actividadHoraIni"
+            min="07:00"
+            max="22:00"
+            required
+          >
+          <small>Rango: 07:00 - 22:00</small>
+        </div>
+
+        <div class="form-group">
+          <label>Hora Fin <span class="required">*</span></label>
+          <input 
+            type="time" 
+            id="actividadHoraFin"
+            min="07:00"
+            max="22:00"
+            required
+          >
+          <small>Debe ser mayor a hora inicio</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <div class="form-actions-left">
+          <button 
+            type="button" 
+            class="btn btn-danger" 
+            id="btnEliminar" 
+            onclick="confirmarEliminarActividad()"
+            style="display: none;">
+            Eliminar
+          </button>
+        </div>
+        <div class="form-actions-right">
+          <button type="button" class="btn btn-secondary" onclick="cancelarFormActividad()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Grid de horario -->
+  <div id="horarioGridContainer" class="horario-grid-container">
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando horario semanal...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Diálogo para elegir tipo -->
+<div id="dialogoOverlay" class="dialogo-overlay" onclick="cerrarDialogo()"></div>
+<div id="dialogoTipo" class="dialogo-tipo">
+  <div class="dialogo-titulo">¿Qué deseas agregar?</div>
+  <div class="dialogo-opciones">
+    <button class="btn-opcion repaso" onclick="seleccionarTipo('Repaso')">
+      📚 Repaso
+    </button>
+    <button class="btn-opcion actividad" onclick="seleccionarTipo('Actividad')">
+      🎯 Actividad
+    </button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================== -->
+<script>
+  /**
+   * ==========================================
+   * VARIABLES LOCALES
+   * ==========================================
+   */
+  let clasesData = [];      // Clases fijas de HorarioClases
+  let actividadesData = []; // Actividades específicas de HorarioSem
+  let cursosData = [];
+  let horarioMatrix = {};   // Matriz combinada
+
+  const HORA_INICIO = 7;
+  const HORA_FIN = 22;
+  
+  let semanaOffset = 0;      // 0 = semana actual, -1 = anterior, +1 = siguiente
+  let diasSemana = [];       // Array de fechas de la semana actual
+
+  let celdaSeleccionada = { fecha: null, hora: null };
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN
+   * ==========================================
+   */
+  window.addEventListener('load', function() {
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+      showAlert('error', 'Error: No se pudo identificar al usuario');
+      return;
+    }
+
+    inicializarHorarioSem();
+  });
+
+  function inicializarHorarioSem() {
+    // Obtener funciones del padre (4ctabplanning.html)
+    if (typeof obtenerDiasSemanaActual === 'function') {
+      diasSemana = obtenerDiasSemanaActual();
+    } else {
+      diasSemana = calcularDiasSemana(0);
+    }
+
+    actualizarTituloSemana();
+    cargarCursos();
+    cargarDatos();
+    
+    console.log('%c📅 Sub-tab Horario Semanal Cargado', 
+                'font-size: 11px; color: #667eea;');
+  }
+
+  /**
+   * ==========================================
+   * NAVEGACIÓN SEMANAL
+   * ==========================================
+   */
+  function navegarSemana(offset) {
+    if (offset === 0) {
+      semanaOffset = 0;
+    } else {
+      semanaOffset += offset;
+    }
+
+    diasSemana = calcularDiasSemana(semanaOffset);
+    actualizarTituloSemana();
+    cargarDatos();
+  }
+
+  function calcularDiasSemana(offset) {
+    const hoy = new Date();
+    const diaActual = hoy.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
+    
+    // Calcular el lunes de esta semana
+    const lunes = new Date(hoy);
+    const diasDesdeLunes = (diaActual === 0) ? 6 : diaActual - 1;
+    lunes.setDate(hoy.getDate() - diasDesdeLunes);
+
+    // Aplicar offset de semanas
+    lunes.setDate(lunes.getDate() + (offset * 7));
+
+    const dias = [];
+    for (let i = 0; i < 7; i++) {
+      const dia = new Date(lunes);
+      dia.setDate(lunes.getDate() + i);
+      dias.push(dia);
+    }
+
+    return dias;
+  }
+
+  function actualizarTituloSemana() {
+    const inicio = diasSemana[0];
+    const fin = diasSemana[6];
+
+    const inicioStr = formatearFechaCorta(inicio);
+    const finStr = formatearFechaCorta(fin);
+
+    document.getElementById('semanaTitulo').textContent = 
+      'Semana del ' + inicioStr + ' al ' + finStr;
+  }
+
+  function formatearFechaCorta(fecha) {
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    return dia + '/' + mes;
+  }
+
+  /**
+   * ==========================================
+   * CARGAR DATOS
+   * ==========================================
+   */
+  function cargarCursos() {
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response.success) {
+          cursosData = response.data;
+          poblarDropdownCursos();
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar cursos:', error);
+      })
+      .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+  }
+
+  function poblarDropdownCursos() {
+    const select = document.getElementById('actividadCurso');
+    const primerOption = select.options[0].outerHTML;
+    select.innerHTML = primerOption;
+
+    cursosData.forEach(function(curso) {
+      const option = document.createElement('option');
+      option.value = curso.Curso;
+      option.textContent = curso.Curso + ' - ' + curso.Completo;
+      option.dataset.color = curso.Color || '#667eea';
+      select.appendChild(option);
+    });
+  }
+
+  function cargarDatos() {
+    Promise.all([
+      cargarClasesFijas(),
+      cargarActividadesSem()
+    ]).then(function() {
+      construirMatrizCombinada();
+      renderHorarioGrid();
+    });
+  }
+
+  function cargarClasesFijas() {
+    return new Promise(function(resolve) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            clasesData = response.data;
+          }
+          resolve();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error al cargar clases:', error);
+          resolve();
+        })
+        .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
+    });
+  }
+
+  function cargarActividadesSem() {
+    return new Promise(function(resolve) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            actividadesData = response.data;
+          }
+          resolve();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error al cargar actividades:', error);
+          resolve();
+        })
+        .studentObtenerHorarioSem({ codeAlum: currentUser.codeAlum });
+    });
+  }
+
+  /**
+   * ==========================================
+   * CONSTRUIR MATRIZ COMBINADA
+   * ==========================================
+   */
+  function construirMatrizCombinada() {
+    // Inicializar matriz
+    horarioMatrix = {};
+    diasSemana.forEach(function(fecha) {
+      const fechaKey = formatearFechaYYYYMMDD(fecha);
+      horarioMatrix[fechaKey] = {};
+    });
+
+    // Agregar clases fijas (de HorarioClases)
+    clasesData.forEach(function(clase) {
+      const diaNombre = extraerDiaDelDetalle(clase.Detalle);
+      if (!diaNombre) return;
+
+      // Buscar qué fecha de la semana actual corresponde a ese día
+      const fecha = buscarFechaPorDia(diaNombre);
+      if (!fecha) return;
+
+      const fechaKey = formatearFechaYYYYMMDD(fecha);
+      const horas = calcularHorasOcupadas(clase.HoraIni, clase.HoraFin);
+
+      horas.forEach(function(horaInfo) {
+        const horaKey = horaInfo.hora;
+
+        if (!horarioMatrix[fechaKey][horaKey]) {
+          horarioMatrix[fechaKey][horaKey] = [];
+        }
+
+        horarioMatrix[fechaKey][horaKey].push({
+          tipo: 'clase',
+          nombre: horaInfo.prefijo + clase.Curso + horaInfo.sufijo,
+          color: obtenerColorCurso(clase.Curso),
+          editable: false
+        });
+      });
+    });
+
+    // Agregar actividades específicas (de HorarioSem)
+    actividadesData.forEach(function(act) {
+      const fechaKey = formatearFechaYYYYMMDD(new Date(act.FechaHS));
+      
+      // Verificar que la actividad esté en la semana actual
+      if (!horarioMatrix[fechaKey]) return;
+
+      const horas = calcularHorasOcupadas(act.HoraInicio, act.HoraFin);
+
+      horas.forEach(function(horaInfo) {
+        const horaKey = horaInfo.hora;
+
+        if (!horarioMatrix[fechaKey][horaKey]) {
+          horarioMatrix[fechaKey][horaKey] = [];
+        }
+
+        horarioMatrix[fechaKey][horaKey].push({
+          tipo: 'actividad',
+          nombre: horaInfo.prefijo + act.Actividad + horaInfo.sufijo,
+          color: act.Color || (act.TipoAct === 'Repaso' ? '#FFC107' : '#17a2b8'),
+          badge: act.TipoAct,
+          editable: true,
+          data: act
+        });
+      });
+    });
+  }
+
+  function extraerDiaDelDetalle(detalle) {
+    if (!detalle) return null;
+    const detalleStr = String(detalle).toLowerCase();
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    
+    for (let i = 0; i < dias.length; i++) {
+      if (detalleStr.includes(dias[i].toLowerCase())) {
+        return dias[i];
+      }
+    }
+    return null;
+  }
+
+  function buscarFechaPorDia(diaNombre) {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaIndex = dias.indexOf(diaNombre);
+    if (diaIndex === -1) return null;
+
+    // Ajustar: diasSemana[0] es Lunes (día 1), no Domingo
+    const ajuste = diaIndex === 0 ? 6 : diaIndex - 1;
+    return diasSemana[ajuste];
+  }
+
+  function calcularHorasOcupadas(horaIni, horaFin) {
+    const [hIni, mIni] = horaIni.split(':').map(Number);
+    const [hFin, mFin] = horaFin.split(':').map(Number);
+
+    const horas = [];
+    let horaInicio = hIni;
+    let prefijoPrimera = mIni >= 30 ? '/' : '';
+
+    for (let h = horaInicio; h <= hFin; h++) {
+      if (h > HORA_FIN) break;
+
+      const horaKey = formatearHora24(h);
+      const esUltima = (h === hFin);
+
+      let prefijo = (h === horaInicio) ? prefijoPrimera : '';
+      let sufijo = (esUltima && mFin >= 30) ? '/' : '';
+
+      if (esUltima && mFin === 0) continue;
+
+      horas.push({ hora: horaKey, prefijo: prefijo, sufijo: sufijo });
+    }
+
+    return horas;
+  }
+
+  function formatearFechaYYYYMMDD(fecha) {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return anio + '-' + mes + '-' + dia;
+  }
+
+  /**
+   * ==========================================
+   * RENDERIZAR GRID
+   * ==========================================
+   */
+  function renderHorarioGrid() {
+    const container = document.getElementById('horarioGridContainer');
+
+    let html = '<table class="horario-grid"><thead><tr><th class="col-hora">Hora</th>';
+
+    diasSemana.forEach(function(fecha) {
+      const diaStr = typeof formatearDiaSemana === 'function' 
+        ? formatearDiaSemana(fecha)
+        : formatearDiaLocal(fecha);
+      html += '<th class="col-dia">' + diaStr + '</th>';
+    });
+
+    html += '</tr></thead><tbody>';
+
+    for (let hora = HORA_INICIO; hora <= HORA_FIN; hora++) {
+      const horaFormato12 = formatearHora12(hora);
+      const horaKey = formatearHora24(hora);
+
+      html += '<tr><td class="col-hora">' + horaFormato12 + '</td>';
+
+      diasSemana.forEach(function(fecha) {
+        const fechaKey = formatearFechaYYYYMMDD(fecha);
+        const items = horarioMatrix[fechaKey][horaKey];
+
+        html += '<td>';
+
+        if (items && items.length > 0) {
+          items.forEach(function(item) {
+            const claseExtra = item.editable ? '' : ' solo-lectura';
+            const onclick = item.editable 
+              ? 'onclick="editarActividad(\'' + fechaKey + '\', \'' + horaKey + '\')"'
+              : '';
+
+            html += '<div class="celda-actividad ocupada' + claseExtra + '" ';
+            html += 'style="background: ' + item.color + ';" ' + onclick + '>';
+            html += '<div class="actividad-nombre">' + item.nombre + '</div>';
+            if (item.badge) {
+              html += '<div class="actividad-badge">' + item.badge + '</div>';
+            }
+            html += '</div>';
+          });
+        } else {
+          html += '<div class="celda-actividad" ';
+          html += 'onclick="clickCelda(\'' + fechaKey + '\', \'' + horaKey + '\')">';
+          html += '</div>';
+        }
+
+        html += '</td>';
+      });
+
+      html += '</tr>';
+    }
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  function formatearDiaLocal(fecha) {
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaNombre = dias[fecha.getDay()];
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    return diaNombre + ' ' + dia + '/' + mes;
+  }
+
+  /**
+   * ==========================================
+   * CLICK EN CELDA
+   * ==========================================
+   */
+  function clickCelda(fecha, hora) {
+    celdaSeleccionada = { fecha: fecha, hora: hora };
+    mostrarDialogoTipo();
+  }
+
+  function mostrarDialogoTipo() {
+    document.getElementById('dialogoOverlay').classList.add('active');
+    document.getElementById('dialogoTipo').classList.add('active');
+  }
+
+  function cerrarDialogo() {
+    document.getElementById('dialogoOverlay').classList.remove('active');
+    document.getElementById('dialogoTipo').classList.remove('active');
+  }
+
+  function seleccionarTipo(tipo) {
+    cerrarDialogo();
+    abrirFormularioAgregar(tipo);
+  }
+
+  function abrirFormularioAgregar(tipo) {
+    resetFormActividad();
+
+    document.getElementById('formTitle').textContent = 'Agregar ' + tipo;
+    document.getElementById('actividadModoEdicion').value = 'false';
+    document.getElementById('actividadFecha').value = celdaSeleccionada.fecha;
+    document.getElementById('actividadTipo').value = tipo;
+    document.getElementById('btnSubmit').textContent = 'Guardar';
+    document.getElementById('btnEliminar').style.display = 'none';
+
+    // Mostrar campos según tipo
+    if (tipo === 'Repaso') {
+      document.getElementById('rowCurso').style.display = 'block';
+      document.getElementById('rowActividad').style.display = 'none';
+      document.getElementById('actividadCurso').required = true;
+      document.getElementById('actividadNombre').required = false;
+    } else {
+      document.getElementById('rowCurso').style.display = 'none';
+      document.getElementById('rowActividad').style.display = 'block';
+      document.getElementById('actividadCurso').required = false;
+      document.getElementById('actividadNombre').required = true;
+    }
+
+    // Pre-llenar horas
+    document.getElementById('actividadHoraIni').value = celdaSeleccionada.hora;
+    const [h, m] = celdaSeleccionada.hora.split(':').map(Number);
+    document.getElementById('actividadHoraFin').value = formatearHora24(Math.min(h + 1, HORA_FIN + 1));
+
+    document.getElementById('formActividad').classList.add('active');
+    if (tipo === 'Repaso') {
+      document.getElementById('actividadCurso').focus();
+    } else {
+      document.getElementById('actividadNombre').focus();
+    }
+  }
+
+  /**
+   * ==========================================
+   * EDITAR ACTIVIDAD
+   * ==========================================
+   */
+  function editarActividad(fecha, hora) {
+    const items = horarioMatrix[fecha][hora];
+    if (!items || items.length === 0) return;
+
+    const actividadItem = items.find(function(i) { return i.editable; });
+    if (!actividadItem) {
+      showAlert('info', 'Las clases fijas solo se editan en Horario de Clases');
+      return;
+    }
+
+    const act = actividadItem.data;
+    const tipo = act.TipoAct;
+
+    document.getElementById('formTitle').textContent = 'Editar ' + tipo;
+    document.getElementById('actividadRowNumber').value = act._rowNumber;
+    document.getElementById('actividadModoEdicion').value = 'true';
+    document.getElementById('actividadFecha').value = fecha;
+    document.getElementById('actividadTipo').value = tipo;
+
+    if (tipo === 'Repaso') {
+      document.getElementById('rowCurso').style.display = 'block';
+      document.getElementById('rowActividad').style.display = 'none';
+      document.getElementById('actividadCurso').value = act.Actividad.replace(/^(Repaso\s+)?/, '');
+      document.getElementById('actividadCurso').required = true;
+      document.getElementById('actividadNombre').required = false;
+    } else {
+      document.getElementById('rowCurso').style.display = 'none';
+      document.getElementById('rowActividad').style.display = 'block';
+      document.getElementById('actividadNombre').value = act.Actividad;
+      document.getElementById('actividadCurso').required = false;
+      document.getElementById('actividadNombre').required = true;
+    }
+
+    document.getElementById('actividadHoraIni').value = act.HoraInicio;
+    document.getElementById('actividadHoraFin').value = act.HoraFin;
+
+    document.getElementById('btnSubmit').textContent = 'Actualizar';
+    document.getElementById('btnEliminar').style.display = 'block';
+    document.getElementById('formActividad').classList.add('active');
+  }
+
+  /**
+   * ==========================================
+   * SUBMIT FORMULARIO
+   * ==========================================
+   */
+  function handleSubmitActividad(event) {
+    event.preventDefault();
+
+    const tipo = document.getElementById('actividadTipo').value;
+    const horaIni = document.getElementById('actividadHoraIni').value.trim();
+    const horaFin = document.getElementById('actividadHoraFin').value.trim();
+    const fecha = document.getElementById('actividadFecha').value;
+    const esEdicion = document.getElementById('actividadModoEdicion').value === 'true';
+
+    let actividad = '';
+    if (tipo === 'Repaso') {
+      const curso = document.getElementById('actividadCurso').value.trim();
+      if (!curso) {
+        showAlert('error', 'Selecciona un curso');
+        return;
+      }
+      actividad = 'Repaso ' + curso;
+    } else {
+      actividad = document.getElementById('actividadNombre').value.trim();
+      if (!actividad) {
+        showAlert('error', 'Ingresa el nombre de la actividad');
+        return;
+      }
+    }
+
+    if (!horaIni || !horaFin) {
+      showAlert('error', 'Ingresa hora de inicio y fin');
+      return;
+    }
+
+    if (horaIni >= horaFin) {
+      showAlert('error', 'La hora de fin debe ser mayor a la hora de inicio');
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+    const color = tipo === 'Repaso' ? '#FFC107' : '#17a2b8';
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      actividad: actividad,
+      horaInicio: horaIni,
+      horaFin: horaFin,
+      fechaHS: fecha,
+      tipoAct: tipo,
+      color: color,
+      sem: ''
+    };
+
+    if (esEdicion) {
+      params.rowNumber = parseInt(document.getElementById('actividadRowNumber').value);
+      
+      google.script.run
+        .withSuccessHandler(handleActividadUpdated)
+        .withFailureHandler(handleActividadError)
+        .studentActualizarHorarioSem(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleActividadAdded)
+        .withFailureHandler(handleActividadError)
+        .studentAgregarHorarioSem(params);
+    }
+  }
+
+  function handleActividadAdded(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Guardar';
+
+    if (response.success) {
+      showAlert('success', '✓ Actividad agregada exitosamente');
+      cancelarFormActividad();
+      cargarDatos();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleActividadUpdated(response) {
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Actualizar';
+
+    if (response.success) {
+      showAlert('success', '✓ Actividad actualizada exitosamente');
+      cancelarFormActividad();
+      cargarDatos();
+    } else {
+      showAlert('error', response.error);
+    }
+  }
+
+  function handleActividadError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = false;
+    const esEdicion = document.getElementById('actividadModoEdicion').value === 'true';
+    btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+  }
+
+  /**
+   * ==========================================
+   * ELIMINAR ACTIVIDAD
+   * ==========================================
+   */
+  function confirmarEliminarActividad() {
+    const rowNumber = parseInt(document.getElementById('actividadRowNumber').value);
+
+    if (!rowNumber) {
+      showAlert('error', 'No se puede eliminar esta actividad');
+      return;
+    }
+
+    if (confirm('¿Eliminar esta actividad del horario?\n\nEsta acción no se puede deshacer.')) {
+      eliminarActividad(rowNumber);
+    }
+  }
+
+  function eliminarActividad(rowNumber) {
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response.success) {
+          showAlert('success', '✓ Actividad eliminada exitosamente');
+          cancelarFormActividad();
+          cargarDatos();
+        } else {
+          showAlert('error', response.error);
+        }
+      })
+      .withFailureHandler(function(error) {
+        showAlert('error', 'Error de conexión al eliminar actividad');
+        console.error('Error:', error);
+      })
+      .studentEliminarHorarioSem({ rowNumber: rowNumber });
+  }
+
+  /**
+   * ==========================================
+   * RESET Y CANCELAR
+   * ==========================================
+   */
+  function resetFormActividad() {
+    document.getElementById('actividadForm').reset();
+    document.getElementById('actividadRowNumber').value = '';
+    document.getElementById('actividadModoEdicion').value = 'false';
+    document.getElementById('actividadFecha').value = '';
+    document.getElementById('actividadTipo').value = '';
+  }
+
+  function cancelarFormActividad() {
+    document.getElementById('formActividad').classList.remove('active');
+    resetFormActividad();
+  }
+
+  /**
+   * ==========================================
+   * FUNCIONES AUXILIARES
+   * ==========================================
+   */
+  function formatearHora12(hora24) {
+    if (hora24 === 12) return '12 PM';
+    if (hora24 > 12) return (hora24 - 12) + ' PM';
+    if (hora24 === 0) return '12 AM';
+    return hora24 + ' AM';
+  }
+
+  function formatearHora24(hora) {
+    return ('0' + hora).slice(-2) + ':00';
+  }
+
+  function obtenerColorCurso(curso) {
+    const cursoData = cursosData.find(function(c) {
+      return c.Curso === curso;
+    });
+    return cursoData ? cursoData.Color : '#667eea';
+  }
+
+  console.log('%c📅 Sub-tab Horario Semanal Cargado', 
+              'font-size: 11px; color: #667eea;');
+</script>
