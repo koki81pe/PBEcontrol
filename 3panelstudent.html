@@ -1,8 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 3panelstudent.html - V01.17
+PBE CONTROL - 3panelstudent.html - V01.18 CLAUDE
 Sistema de Gestión Académica
-04/01/2026
+05/01/2026 - Versión Corregida
+
+CAMBIOS V01.18:
+- CORRECCIÓN CRÍTICA: Ahora lee datos reales del usuario desde sessionStorage
+- Eliminados datos hardcodeados (TEST01, Jorge Perez)
+- Si no hay datos en sessionStorage, muestra error y redirige al login
+- Agregado logout que limpia sessionStorage
 
 DESCRIPCIÓN:
 Panel principal del estudiante. Contenedor con 3 tabs
@@ -21,29 +27,21 @@ ESTRUCTURA:
 
 VARIABLE GLOBAL:
 currentUser = {
-  codeAlum: 'TEST01',
-  nombre: 'Jorge Perez',
-  email: 'jorge@email.com'
+  codeAlum: 'TEST05',
+  nombre: 'Alumno Test Cinco',
+  email: 'test5@pbe.com'
 }
 
-Esta variable es accesible desde todos los sub-tabs
+Esta variable es accesible desde TODOS los sub-tabs
 mediante include(). Cada tab la usa para filtrar datos.
 
 CONECTA CON:
 - Contenedores: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
 - Backend: Todos los wrappers student* en 1code.gs
 
-NAVEGACIÓN:
-- Click en tab → Oculta contenido actual
-- Click en tab → Muestra nuevo contenido
-- Tab activo: Borde inferior azul, fondo blanco
-- Tabs inactivos: Fondo gris claro
-- Transición: fadeIn 0.3s
-
 🔑 IMPORTANTE:
-- doGet() DEBE usar createTemplateFromFile()
-- Razón: include() solo funciona con templates
-- Cada tab se carga dinámicamente
+- Los datos del usuario se leen desde sessionStorage
+- sessionStorage se llena en 3index.html al autenticar
 - currentUser es global para todos los tabs
 ******************************************
 -->
@@ -449,8 +447,8 @@ NAVEGACIÓN:
      * mediante include(). Cada sub-tab la usa para
      * filtrar datos del estudiante.
      * 
-     * 🔑 IMPORTANTE: Se inicializa desde sessionStorage
-     * o se puede inyectar desde el backend
+     * 🔑 V01.18: Ahora se inicializa desde sessionStorage
+     * con los datos reales del usuario autenticado
      */
     var currentUser = {
       codeAlum: '',
@@ -466,23 +464,56 @@ NAVEGACIÓN:
     };
 
     /**
-     * Inicializar datos del usuario
-     * TODO: Obtener desde sessionStorage o backend
+     * Inicializar datos del usuario desde sessionStorage
+     * 
+     * CORRECCIÓN V01.18:
+     * - Lee datos REALES desde sessionStorage
+     * - NO usa datos hardcodeados
+     * - Si no hay datos, redirige al login
      */
     function initializeUser() {
-      // Por ahora, datos de prueba
-      // En producción, estos datos vendrían de:
-      // 1. sessionStorage (guardados en el login)
-      // 2. O hacer llamada a backend para obtenerlos
-      
-      currentUser.codeAlum = 'TEST01';
-      currentUser.nombre = 'Jorge Perez';
-      currentUser.email = 'jorge@email.com';
-
-      // Actualizar UI
-      document.getElementById('userName').textContent = currentUser.nombre;
-
-      console.log('Usuario inicializado:', currentUser);
+      try {
+        // Leer datos del usuario desde sessionStorage
+        const userData = sessionStorage.getItem('pbe_user');
+        
+        if (!userData) {
+          // No hay datos de sesión - redirigir al login
+          showAlert('error', 'No se pudo identificar al usuario');
+          setTimeout(function() {
+            window.top.location.href = '<?!= scriptUrl ?>';
+          }, 2000);
+          return;
+        }
+        
+        // Parsear datos del usuario
+        const user = JSON.parse(userData);
+        
+        // Validar que tenga los campos necesarios
+        if (!user.codeAlum || !user.nombre) {
+          showAlert('error', 'Datos de usuario incompletos');
+          setTimeout(function() {
+            window.top.location.href = '<?!= scriptUrl ?>';
+          }, 2000);
+          return;
+        }
+        
+        // Asignar datos reales a currentUser
+        currentUser.codeAlum = user.codeAlum;
+        currentUser.nombre = user.nombre;
+        currentUser.email = user.email || '';
+        
+        // Actualizar UI con nombre real del usuario
+        document.getElementById('userName').textContent = currentUser.nombre;
+        
+        console.log('✅ Usuario inicializado correctamente:', currentUser);
+        
+      } catch(error) {
+        console.error('Error al inicializar usuario:', error);
+        showAlert('error', 'Error al cargar datos del usuario');
+        setTimeout(function() {
+          window.top.location.href = '<?!= scriptUrl ?>';
+        }, 2000);
+      }
     }
 
     // ==========================================
@@ -564,14 +595,16 @@ NAVEGACIÓN:
     // ==========================================
     /**
      * Cerrar sesión y volver al login
+     * 
+     * V01.18: Ahora limpia sessionStorage correctamente
      */
     function logout() {
       if (confirm('¿Deseas cerrar sesión?')) {
-        // Limpiar sessionStorage si lo usas
-        // sessionStorage.clear();
+        // Limpiar sessionStorage
+        sessionStorage.clear();
         
         // Redirigir al login
-        window.location.href = '/';
+        window.top.location.href = '<?!= scriptUrl ?>';
       }
     }
 
@@ -653,7 +686,7 @@ NAVEGACIÓN:
     // ==========================================
     // LOG DE DEPURACIÓN
     // ==========================================
-    console.log('%c🎓 PBE Control - Panel Estudiante V01.17', 
+    console.log('%c🎓 PBE Control - Panel Estudiante V01.18', 
                 'font-size: 16px; font-weight: bold; color: #667eea;');
     console.log('%cVariable global: currentUser', 
                 'font-size: 12px; color: #666;');
