@@ -1,20 +1,20 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.20 (GEMINI)
+PBE CONTROL - 1code.gs - V01.21
 Sistema de Gestión Académica
-05/01/2026 - 13:50
+05/01/2026 - 16:15
 ******************************************
 
 CONTENIDO:
-- doGet(): Router principal (Lógica de MallaU: Extensiones fijas)
-- include(): Inclusión dinámica de HTML
+- doGet(): Router principal (Lógica MallaU con procesamiento de Templates)
+- include(): Inclusión dinámica de HTML (Indispensable para las pestañas)
 - autenticar(): Login unificado Admin/Estudiante
 - 28 WRAPPERS: Funciones puente para google.script.run
 
 CAMBIOS REALIZADOS:
-- Se estandarizó el uso de ScriptApp.getService().getUrl() para forzar 
-  redirecciones a la URL raíz /exec y evitar el error userCodeAppPanel.
-- Se asegura que los parámetros no se "arrastren" en la URL de forma sucia.
+- Se cambió createHtmlOutputFromFile por createTemplateFromFile en TODOS los casos.
+- Se agregó .evaluate() a cada retorno para procesar los comandos <?!= include() ?>.
+- Se mantiene la inyección de scriptUrl para redirecciones seguras.
 ******************************************
 */
 
@@ -24,20 +24,21 @@ CAMBIOS REALIZADOS:
 
 function doGet(e) {
   var page = e.parameter.page;
-  // Esta es la URL única oficial (https://.../exec)
   var scriptUrl = ScriptApp.getService().getUrl(); 
   
-  // ✅ CASO 1: Panel Estudiante (?page=student)
+  // 1. Caso Estudiante (?page=student)
+  // Ahora usa createTemplate para que las pestañas (5atabcursos, etc.) se carguen.
   if (page === 'student') {
     var template = HtmlService.createTemplateFromFile('3panelstudent');
-    template.scriptUrl = scriptUrl; // Para botones de "Cerrar Sesión"
+    template.scriptUrl = scriptUrl; 
     return template.evaluate()
       .setTitle('PBE Control - Panel Estudiante')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   
-  // ✅ CASO 2: Panel Administrador (?page=admin)
+  // 2. Caso Administrador (?page=admin)
+  // Ahora usa createTemplate para que las pestañas (4atabcursosyrep, etc.) se carguen.
   if (page === 'admin') {
     var template = HtmlService.createTemplateFromFile('3paneladmin');
     template.scriptUrl = scriptUrl;
@@ -47,7 +48,7 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   
-  // ✅ CASO POR DEFECTO: Login (Si no hay parámetros o son incorrectos)
+  // 3. Caso Base (Login / Index)
   var template = HtmlService.createTemplateFromFile('3index');
   template.scriptUrl = scriptUrl; 
   
@@ -61,6 +62,9 @@ function doGet(e) {
 // 2. FUNCIÓN include()
 // ==========================================
 
+/**
+ * Fundamental para que funcionen las pestañas separadas en archivos HTML
+ */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
