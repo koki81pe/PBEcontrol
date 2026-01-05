@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* ==========================================
+       PBE CONTROL - 7ctabcalendario.html
+       Calendario Mensual
+       05/01/2026
+       ========================================== */
+    
+    .calendario-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* === HEADER DEL CALENDARIO === */
+    
+    .calendario-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      color: white;
+    }
+    
+    .calendario-header h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .calendario-nav {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .calendario-nav button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .calendario-nav button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    /* === GRID DEL CALENDARIO === */
+    
+    .calendario-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #ddd;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    /* === HEADERS DE DÍAS === */
+    
+    .calendario-dia-header {
+      background: #f5f5f5;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #333;
+      border-bottom: 2px solid #ddd;
+    }
+    
+    /* === CELDAS DEL CALENDARIO === */
+    
+    .calendario-celda {
+      background: white;
+      min-height: 100px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .calendario-celda:hover {
+      background: #f8f9fa;
+      transform: scale(1.02);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Día fuera del mes actual */
+    .calendario-celda.fuera-mes {
+      background: #e0e0e0;
+      cursor: default;
+    }
+    
+    .calendario-celda.fuera-mes:hover {
+      background: #e0e0e0;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* Día actual */
+    .calendario-celda.hoy {
+      border: 3px solid #667eea;
+      box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Número del día */
+    .calendario-dia-numero {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    
+    .calendario-celda.fuera-mes .calendario-dia-numero {
+      color: #999;
+    }
+    
+    .calendario-celda.hoy .calendario-dia-numero {
+      color: #667eea;
+      font-size: 18px;
+    }
+    
+    /* === INDICADORES (DOTS) === */
+    
+    .calendario-indicadores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    
+    .calendario-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .calendario-dot.evaluacion {
+      background: #dc3545; /* Rojo */
+    }
+    
+    .calendario-dot.tarea {
+      background: #ffc107; /* Amarillo */
+    }
+    
+    .calendario-dot.lectura {
+      background: #28a745; /* Verde */
+    }
+    
+    .calendario-dot.actividad {
+      background: #17a2b8; /* Azul */
+    }
+    
+    /* === MODAL DE ACTIVIDADES === */
+    
+    .calendario-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s;
+    }
+    
+    .calendario-modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .calendario-modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s;
+    }
+    
+    .calendario-modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .calendario-modal-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .calendario-modal-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    
+    .calendario-modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+    
+    .calendario-modal-body {
+      padding: 20px;
+    }
+    
+    /* === LISTA DE ACTIVIDADES EN MODAL === */
+    
+    .calendario-actividad-item {
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border-left: 4px solid #ddd;
+      background: #f8f9fa;
+    }
+    
+    .calendario-actividad-item.evaluacion {
+      border-left-color: #dc3545;
+      background: #ffe6e6;
+    }
+    
+    .calendario-actividad-item.tarea {
+      border-left-color: #ffc107;
+      background: #fff9e6;
+    }
+    
+    .calendario-actividad-item.lectura {
+      border-left-color: #28a745;
+      background: #e6ffe6;
+    }
+    
+    .calendario-actividad-item.actividad {
+      border-left-color: #17a2b8;
+      background: #e6f7ff;
+    }
+    
+    .calendario-actividad-tipo {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    
+    .calendario-actividad-nombre {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    
+    .calendario-actividad-curso {
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .calendario-sin-actividades {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+      font-size: 14px;
+    }
+    
+    /* === LEYENDA === */
+    
+    .calendario-leyenda {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .calendario-leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .calendario-leyenda-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    /* === SPINNER DE CARGA === */
+    
+    .calendario-loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+      font-size: 14px;
+    }
+    
+    .calendario-loading.active {
+      display: block;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    /* === ALERTAS === */
+    
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      animation: slideIn 0.3s;
+      max-width: 400px;
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border-left: 4px solid #28a745;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 4px solid #dc3545;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left: 4px solid #17a2b8;
+    }
+    
+    /* === ANIMACIONES === */
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* === RESPONSIVE === */
+    
+    @media (max-width: 1024px) {
+      .calendario-container {
+        padding: 12px;
+      }
+      
+      .calendario-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      
+      .calendario-header h2 {
+        font-size: 20px;
+      }
+      
+      .calendario-celda {
+        min-height: 80px;
+        padding: 6px;
+      }
+      
+      .calendario-dia-numero {
+        font-size: 14px;
+      }
+      
+      .calendario-leyenda {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .calendario-modal-content {
+        width: 95%;
+        max-height: 85vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       CONTENEDOR PRINCIPAL
+       ========================================== -->
+  
+  <div class="calendario-container">
+    
+    <!-- HEADER CON NAVEGACIÓN -->
+    <div class="calendario-header">
+      <h2 id="calendarioTitulo">Enero 2026</h2>
+      <div class="calendario-nav">
+        <button onclick="cambiarMes(-1)">← Anterior</button>
+        <button onclick="irMesActual()">Hoy</button>
+        <button onclick="cambiarMes(1)">Siguiente →</button>
+      </div>
+    </div>
+    
+    <!-- SPINNER DE CARGA -->
+    <div id="calendarioLoading" class="calendario-loading">
+      <div class="spinner"></div>
+      <p>Cargando calendario...</p>
+    </div>
+    
+    <!-- GRID DEL CALENDARIO -->
+    <div id="calendarioGrid" class="calendario-grid" style="display: none;">
+      <!-- Headers de días -->
+      <div class="calendario-dia-header">Lun</div>
+      <div class="calendario-dia-header">Mar</div>
+      <div class="calendario-dia-header">Mié</div>
+      <div class="calendario-dia-header">Jue</div>
+      <div class="calendario-dia-header">Vie</div>
+      <div class="calendario-dia-header">Sáb</div>
+      <div class="calendario-dia-header">Dom</div>
+      
+      <!-- Las celdas se generan dinámicamente con JS -->
+    </div>
+    
+    <!-- LEYENDA -->
+    <div class="calendario-leyenda">
+      <div class="calendario-leyenda-item">
+        <div class="calendario-leyenda-dot evaluacion"></div>
+        <span>Evaluación</span>
+      </div>
+      <div class="calendario-leyenda-item">
+        <div class="calendario-leyenda-dot tarea"></div>
+        <span>Tarea</span>
+      </div>
+      <div class="calendario-leyenda-item">
+        <div class="calendario-leyenda-dot lectura"></div>
+        <span>Lectura</span>
+      </div>
+      <div class="calendario-leyenda-item">
+        <div class="calendario-leyenda-dot actividad"></div>
+        <span>Actividad</span>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- ==========================================
+       MODAL DE ACTIVIDADES DEL DÍA
+       ========================================== -->
+  
+  <div id="calendarioModal" class="calendario-modal">
+    <div class="calendario-modal-content">
+      <div class="calendario-modal-header">
+        <h3 id="modalTitulo">Actividades del día</h3>
+        <button class="calendario-modal-close" onclick="cerrarModal()">×</button>
+      </div>
+      <div id="modalBody" class="calendario-modal-body">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT - LÓGICA DEL CALENDARIO
+       ========================================== -->
+
+  <script>
+    // ==========================================
+    // VARIABLES GLOBALES
+    // ==========================================
+    
+    let mesActual = new Date().getMonth(); // 0-11
+    let anioActual = new Date().getFullYear();
+    let diaActual = new Date().getDate();
+    
+    let todasActividades = []; // Cache de todas las actividades
+    
+    const MESES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    // ==========================================
+    // INICIALIZACIÓN
+    // ==========================================
+    
+    window.addEventListener('load', function() {
+      cargarCalendario();
+    });
+    
+    // ==========================================
+    // CARGAR CALENDARIO
+    // ==========================================
+    
+    function cargarCalendario() {
+      showLoading();
+      
+      // Obtener todas las actividades del estudiante
+      Promise.all([
+        cargarEvaluaciones(),
+        cargarTareas(),
+        cargarLecturas(),
+        cargarHorarioSem()
+      ]).then(function(resultados) {
+        // Combinar todas las actividades
+        todasActividades = [];
+        
+        resultados.forEach(function(resultado) {
+          if (resultado && resultado.length > 0) {
+            todasActividades = todasActividades.concat(resultado);
+          }
+        });
+        
+        // Generar el calendario
+        generarCalendario();
+        hideLoading();
+        
+      }).catch(function(error) {
+        console.error('Error al cargar calendario:', error);
+        showAlert('error', 'Error al cargar el calendario. Intenta nuevamente');
+        hideLoading();
+      });
+    }
+    
+    // ==========================================
+    // CARGAR EVALUACIONES
+    // ==========================================
+    
+    function cargarEvaluaciones() {
+      return new Promise(function(resolve, reject) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success && response.data) {
+              const actividades = response.data.map(function(item) {
+                return {
+                  tipo: 'evaluacion',
+                  tipoNombre: 'Evaluación',
+                  fecha: item.FechaEval,
+                  nombre: item.NomEval,
+                  curso: item.Curso
+                };
+              });
+              resolve(actividades);
+            } else {
+              resolve([]);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar evaluaciones:', error);
+            resolve([]);
+          })
+          .studentObtenerEvaluaciones({ codeAlum: currentUser.codeAlum });
+      });
+    }
+    
+    // ==========================================
+    // CARGAR TAREAS
+    // ==========================================
+    
+    function cargarTareas() {
+      return new Promise(function(resolve, reject) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success && response.data) {
+              const actividades = response.data.map(function(item) {
+                return {
+                  tipo: 'tarea',
+                  tipoNombre: 'Tarea',
+                  fecha: item.FechaEntrega,
+                  nombre: item.Tarea,
+                  curso: item.Curso
+                };
+              });
+              resolve(actividades);
+            } else {
+              resolve([]);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar tareas:', error);
+            resolve([]);
+          })
+          .studentObtenerTareas({ codeAlum: currentUser.codeAlum });
+      });
+    }
+    
+    // ==========================================
+    // CARGAR LECTURAS
+    // ==========================================
+    
+    function cargarLecturas() {
+      return new Promise(function(resolve, reject) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success && response.data) {
+              const actividades = response.data
+                .filter(function(item) {
+                  return item.FechaEval; // Solo lecturas con fecha de evaluación
+                })
+                .map(function(item) {
+                  return {
+                    tipo: 'lectura',
+                    tipoNombre: 'Lectura',
+                    fecha: item.FechaEval,
+                    nombre: item.Lectura,
+                    curso: item.Curso
+                  };
+                });
+              resolve(actividades);
+            } else {
+              resolve([]);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar lecturas:', error);
+            resolve([]);
+          })
+          .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
+      });
+    }
+    
+    // ==========================================
+    // CARGAR HORARIO SEMANAL (ACTIVIDADES)
+    // ==========================================
+    
+    function cargarHorarioSem() {
+      return new Promise(function(resolve, reject) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success && response.data) {
+              const actividades = response.data.map(function(item) {
+                return {
+                  tipo: 'actividad',
+                  tipoNombre: 'Actividad',
+                  fecha: item.FechaHS,
+                  nombre: item.Actividad,
+                  curso: '' // Las actividades no siempre tienen curso
+                };
+              });
+              resolve(actividades);
+            } else {
+              resolve([]);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar horario semanal:', error);
+            resolve([]);
+          })
+          .studentObtenerHorarioSem({ codeAlum: currentUser.codeAlum });
+      });
+    }
+    
+    // ==========================================
+    // GENERAR CALENDARIO
+    // ==========================================
+    
+    function generarCalendario() {
+      // Actualizar título
+      document.getElementById('calendarioTitulo').textContent = 
+        MESES[mesActual] + ' ' + anioActual;
+      
+      // Obtener primer día del mes (0 = Dom, 1 = Lun, ...)
+      const primerDia = new Date(anioActual, mesActual, 1).getDay();
+      const ajustePrimerDia = primerDia === 0 ? 6 : primerDia - 1; // Ajustar para que Lun = 0
+      
+      // Obtener último día del mes
+      const ultimoDia = new Date(anioActual, mesActual + 1, 0).getDate();
+      
+      // Obtener último día del mes anterior
+      const ultimoDiaMesAnterior = new Date(anioActual, mesActual, 0).getDate();
+      
+      // Limpiar grid (mantener headers)
+      const grid = document.getElementById('calendarioGrid');
+      while (grid.children.length > 7) {
+        grid.removeChild(grid.lastChild);
+      }
+      
+      // Fecha actual para comparación
+      const hoy = new Date();
+      const esHoy = function(dia) {
+        return dia === diaActual && 
+               mesActual === hoy.getMonth() && 
+               anioActual === hoy.getFullYear();
+      };
+      
+      // ==========================================
+      // DÍAS DEL MES ANTERIOR (GRISES)
+      // ==========================================
+      
+      for (let i = ajustePrimerDia - 1; i >= 0; i--) {
+        const dia = ultimoDiaMesAnterior - i;
+        const celda = crearCelda(dia, true, false, mesActual - 1);
+        grid.appendChild(celda);
+      }
+      
+      // ==========================================
+      // DÍAS DEL MES ACTUAL
+      // ==========================================
+      
+      for (let dia = 1; dia <= ultimoDia; dia++) {
+        const celda = crearCelda(dia, false, esHoy(dia), mesActual);
+        grid.appendChild(celda);
+      }
+      
+      // ==========================================
+      // DÍAS DEL MES SIGUIENTE (GRISES)
+      // ==========================================
+      
+      const celdasTotales = grid.children.length - 7; // Restar headers
+      const celdasFaltantes = 42 - celdasTotales; // 6 semanas × 7 días = 42
+      
+      for (let dia = 1; dia <= celdasFaltantes; dia++) {
+        const celda = crearCelda(dia, true, false, mesActual + 1);
+        grid.appendChild(celda);
+      }
+      
+      // Mostrar grid
+      grid.style.display = 'grid';
+    }
+    
+    // ==========================================
+    // CREAR CELDA DEL CALENDARIO
+    // ==========================================
+    
+    function crearCelda(dia, fueraMes, esHoy, mes) {
+      const celda = document.createElement('div');
+      celda.className = 'calendario-celda';
+      
+      if (fueraMes) {
+        celda.classList.add('fuera-mes');
+      }
+      
+      if (esHoy) {
+        celda.classList.add('hoy');
+      }
+      
+      // Número del día
+      const numero = document.createElement('div');
+      numero.className = 'calendario-dia-numero';
+      numero.textContent = dia;
+      celda.appendChild(numero);
+      
+      // Obtener actividades del día
+      if (!fueraMes) {
+        const fechaDia = formatearFecha(dia, mes);
+        const actividadesDia = obtenerActividadesPorFecha(fechaDia);
+        
+        // Crear indicadores (dots)
+        if (actividadesDia.length > 0) {
+          const indicadores = document.createElement('div');
+          indicadores.className = 'calendario-indicadores';
+          
+          // Agrupar por tipo y crear máximo 1 dot por tipo
+          const tipos = {};
+          actividadesDia.forEach(function(act) {
+            tipos[act.tipo] = true;
+          });
+          
+          Object.keys(tipos).forEach(function(tipo) {
+            const dot = document.createElement('span');
+            dot.className = 'calendario-dot ' + tipo;
+            indicadores.appendChild(dot);
+          });
+          
+          celda.appendChild(indicadores);
+        }
+        
+        // Click para abrir modal
+        celda.onclick = function() {
+          abrirModalActividades(dia, mes, actividadesDia);
+        };
+      }
+      
+      return celda;
+    }
+    
+    // ==========================================
+    // OBTENER ACTIVIDADES POR FECHA
+    // ==========================================
+    
+    function obtenerActividadesPorFecha(fecha) {
+      return todasActividades.filter(function(act) {
+        return act.fecha === fecha;
+      });
+    }
+    
+    // ==========================================
+    // FORMATEAR FECHA (DD/MM/AAAA)
+    // ==========================================
+    
+    function formatearFecha(dia, mes) {
+      const d = String(dia).padStart(2, '0');
+      const m = String(mes + 1).padStart(2, '0');
+      return d + '/' + m + '/' + anioActual;
+    }
+    
+    // ==========================================
+    // ABRIR MODAL DE ACTIVIDADES
+    // ==========================================
+    
+    function abrirModalActividades(dia, mes, actividades) {
+      const modal = document.getElementById('calendarioModal');
+      const titulo = document.getElementById('modalTitulo');
+      const body = document.getElementById('modalBody');
+      
+      // Actualizar título
+      titulo.textContent = dia + ' de ' + MESES[mes] + ' ' + anioActual;
+      
+      // Limpiar body
+      body.innerHTML = '';
+      
+      // Si no hay actividades
+      if (actividades.length === 0) {
+        body.innerHTML = '<div class="calendario-sin-actividades">No hay actividades programadas para este día</div>';
+        modal.classList.add('active');
+        return;
+      }
+      
+      // Crear lista de actividades
+      actividades.forEach(function(act) {
+        const item = document.createElement('div');
+        item.className = 'calendario-actividad-item ' + act.tipo;
+        
+        const tipo = document.createElement('div');
+        tipo.className = 'calendario-actividad-tipo';
+        tipo.textContent = act.tipoNombre;
+        
+        const nombre = document.createElement('div');
+        nombre.className = 'calendario-actividad-nombre';
+        nombre.textContent = act.nombre;
+        
+        item.appendChild(tipo);
+        item.appendChild(nombre);
+        
+        if (act.curso) {
+          const curso = document.createElement('div');
+          curso.className = 'calendario-actividad-curso';
+          curso.textContent = 'Curso: ' + act.curso;
+          item.appendChild(curso);
+        }
+        
+        body.appendChild(item);
+      });
+      
+      // Mostrar modal
+      modal.classList.add('active');
+    }
+    
+    // ==========================================
+    // CERRAR MODAL
+    // ==========================================
+    
+    function cerrarModal() {
+      const modal = document.getElementById('calendarioModal');
+      modal.classList.remove('active');
+    }
+    
+    // Cerrar modal al hacer click fuera
+    document.getElementById('calendarioModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        cerrarModal();
+      }
+    });
+    
+    // ==========================================
+    // NAVEGACIÓN DE MESES
+    // ==========================================
+    
+    function cambiarMes(direccion) {
+      mesActual += direccion;
+      
+      if (mesActual > 11) {
+        mesActual = 0;
+        anioActual++;
+      } else if (mesActual < 0) {
+        mesActual = 11;
+        anioActual--;
+      }
+      
+      generarCalendario();
+    }
+    
+    function irMesActual() {
+      mesActual = new Date().getMonth();
+      anioActual = new Date().getFullYear();
+      diaActual = new Date().getDate();
+      generarCalendario();
+    }
+    
+    // ==========================================
+    // UTILIDADES - LOADING Y ALERTAS
+    // ==========================================
+    
+    function showLoading() {
+      document.getElementById('calendarioLoading').classList.add('active');
+      document.getElementById('calendarioGrid').style.display = 'none';
+    }
+    
+    function hideLoading() {
+      document.getElementById('calendarioLoading').classList.remove('active');
+      document.getElementById('calendarioGrid').style.display = 'grid';
+    }
+    
+    function showAlert(type, message) {
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-' + type;
+      alert.textContent = message;
+      
+      document.body.appendChild(alert);
+      
+      setTimeout(function() {
+        alert.remove();
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
+
+<!--
+******************************************
+PBE CONTROL - 7ctabcalendario.html - V01.17
+Sistema de Gestión Académica
+05/01/2026 - 01:00
+******************************************
+
+PROPÓSITO:
+- Vista de calendario mensual con actividades
+- Indicadores visuales (dots) por tipo
+- Modal al hacer click en un día
+- Navegación entre meses
+
+CARACTERÍSTICAS:
+✅ Grid 7×6 (42 celdas para cubrir todas las semanas)
+✅ Días fuera del mes: Gris claro (#e0e0e0)
+✅ Día actual: Borde azul (#667eea)
+✅ Indicadores (dots): Evaluación (rojo), Tarea (amarillo), Lectura (verde), Actividad (azul)
+✅ Modal con lista de actividades del día
+✅ Navegación: Anterior, Hoy, Siguiente
+✅ Responsive: Desktop y Mobile
+
+INTEGRACIÓN:
+- Llama a: studentObtenerEvaluaciones(), studentObtenerTareas(), studentObtenerLecturas(), studentObtenerHorarioSem()
+- Usa: currentUser.codeAlum (variable global del panel estudiante)
+- Retorna: Promise.all() para cargar todas las fuentes
+
+FORMATO DE FECHAS:
+- Usa DD/MM/AAAA (coherente con el resto del sistema)
+- Compara fechas string directamente
+
+ESPECIFICACIONES SEGÚN DISEÑO FUNCIONAL (Sección 9.5.4):
+✅ Grid 7×6 (42 celdas)
+✅ Días fuera del mes en gris
+✅ Día actual con borde azul
+✅ Click en día → Modal con actividades
+✅ Indicadores visuales (dots) por tipo
+✅ 🔴 Evaluación (rojo)
+✅ 🟡 Tarea (amarillo)
+✅ 🟢 Lectura (verde)
+✅ 🔵 Actividad (azul)
+
+NOTAS TÉCNICAS:
+- ajustePrimerDia: Convierte domingo=0 a domingo=6 (para que semana empiece en Lunes)
+- Promise.all(): Carga las 4 fuentes en paralelo
+- Cache: todasActividades[] se mantiene en memoria para eficiencia
+- Modal: Click fuera del modal lo cierra
+- Animaciones: fadeIn, slideUp, slideIn
+
+VALIDACIÓN:
+- testFrontend() verificará que este archivo exista
+- No requiere tests backend específicos (solo consume datos)
+
+******************************************
+-->
