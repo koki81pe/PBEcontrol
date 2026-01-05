@@ -7,9 +7,14 @@
   <title>PBE Control - Login</title>
   <style>
     /******************************************
-      PBE CONTROL - 3index.html - V01.21 GEMINI
+      PBE CONTROL - 3index.html - V01.22 CLAUDE
       Sistema de Gestión Académica
-      05/01/2026 - Versión Sincronizada
+      05/01/2026 - Versión Corregida
+      
+      CAMBIOS V01.22:
+      - Se guarda el objeto user completo en sessionStorage
+      - Antes solo guardaba la clave
+      - Ahora guarda: codeAlum, nombre, email, type
     *******************************************/
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -149,7 +154,7 @@
     </div>
 
     <div class="login-footer">
-      PBE Control v01.21 &copy; 2026 | Protocolo de Acceso Seguro
+      PBE Control v01.22 &copy; 2026 | Protocolo de Acceso Seguro
     </div>
   </div>
 
@@ -170,13 +175,11 @@
       btnLogin.innerHTML = '<span class="spinner"></span>Validando...';
 
       // Limpiamos cualquier sesión previa antes de validar la nueva
-      sessionStorage.removeItem('pbe_clave');
+      sessionStorage.clear();
 
       google.script.run
         .withSuccessHandler(function(response) {
           if (response.success) {
-            // Guardamos la clave para que los paneles la usen
-            sessionStorage.setItem('pbe_clave', clave);
             handleLoginSuccess(response);
           } else {
             handleLoginSuccess(response); // Manejará el error internamente
@@ -192,6 +195,13 @@
 
     function handleLoginSuccess(response) {
       if (response.success) {
+        // ==========================================
+        // CORRECCIÓN V01.22:
+        // Guardar TODO el objeto user en sessionStorage
+        // NO solo la clave, sino todos los datos del usuario
+        // ==========================================
+        sessionStorage.setItem('pbe_user', JSON.stringify(response.user));
+        
         showAlert('success', 'Bienvenido, ' + response.user.nombre);
         
         setTimeout(function() {
