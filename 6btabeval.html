@@ -1,6 +1,6 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabeval.html - V01.18 GPT
+PBE CONTROL - 6btabeval.html - V01.19 GPT
 Sistema de Gestión Académica
 06/01/2026 - 14:00 (Perú UTC-5)
 
@@ -14,10 +14,15 @@ OBJETIVO DEL PATCH (V01.18):
 - Blindar handlers ante response null (evitar "Cannot read ... success")
 - Mantener HTML/CSS intactos; cambios solo en JS
 
+OBJETIVO DEL PATCH (V01.19):
+- [LAZY-LOAD] Asegurar inicialización aunque el subtab sea cargado dinámicamente
+  (si el evento window.load ya ocurrió).
+
 REGLAS TÉCNICAS:
 - [SCOPE] Todo el JS se encapsula en un módulo IIFE para no contaminar window
 - [EXPORT] Solo se exponen a window las funciones usadas en onclick/onchange/onsubmit
 - [NULL-GUARD] Nunca asumir que response existe o tiene .success
+- [INIT-GUARD] Evitar doble inicialización cuando se cumplan múltiples triggers
 
 FUNCIONALIDAD:
 - Cargar evaluaciones del estudiante (al iniciar)
@@ -573,10 +578,11 @@ CONECTA CON:
 <script>
 /**
  * ==========================================
- * [PBE][SCOPE] Sub-tab Evaluaciones (V01.18)
+ * [PBE][SCOPE] Sub-tab Evaluaciones (V01.19)
  * - Encapsulado para evitar colisión de variables globales entre subtabs.
  * - Exporta solo handlers usados por atributos HTML (onclick/onchange/onsubmit).
  * - Incluye guards para response null.
+ * - Init safe para lazy-load (si window.load ya ocurrió).
  * ==========================================
  */
 (function PBE_EVAL_MODULE() {
@@ -593,19 +599,32 @@ CONECTA CON:
 
   /**
    * ==========================================
-   * INICIALIZACIÓN
+   * INICIALIZACIÓN (SAFE PARA LAZY-LOAD)
    * ==========================================
    */
-  window.addEventListener('load', function() {
+  let _initDone = false;
+
+  function init() {
+    if (_initDone) return;
+
     // Verificar que currentUser esté disponible
     if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
       showAlert('error', 'Error: No se pudo identificar al usuario');
       return;
     }
 
+    _initDone = true;
     cargarCursos();
     cargarEvaluaciones();
-  });
+  }
+
+  // Caso 1: carga inicial normal
+  window.addEventListener('load', init);
+
+  // Caso 2: carga dinámica (lazy-load) donde load ya ocurrió
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    init();
+  }
 
   /**
    * ==========================================
