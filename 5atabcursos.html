@@ -1,59 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.19 CLAUDE
+PBE CONTROL - 5atabcursos.html - V01.21 GPT (EXTRA)
 Sistema de Gestión Académica
-05/01/2026
+06/01/2026
 
-CAMBIOS V01.19 CLAUDE:
-- CORRECCIÓN CRÍTICA: Eliminado setTimeout innecesario
-- currentUser ahora se inicializa ANTES en 3panelstudent.html (V01.19)
-- Simplificación: inicializar() ahora llama directamente a cargarCursos()
-- MANTIENE: IIFE para encapsulación y evitar colisiones
-
-CAMBIOS V01.18 CLAUDE:
-- CORRECCIÓN: Eliminado window.addEventListener('load')
-- CORRECCIÓN: Encapsulado en IIFE para evitar colisión de variables
-- CORRECCIÓN: Validación de response null antes de leer propiedades
-- CORRECCIÓN: Patrón de espera simple para currentUser
-- Mantiene simplicidad: buscar con codeAlum → mostrar datos
-
-DESCRIPCIÓN:
-Sub-tab de Cursos con CRUD completo.
-Muestra lista de cursos del estudiante con opciones
-para agregar, editar y eliminar.
-
-FUNCIONALIDAD:
-- Cargar cursos del estudiante (al iniciar)
-- Agregar nuevo curso (nombre corto, nombre completo, color)
-- Editar curso existente
-- Eliminar curso (con confirmación)
-- Validación de unicidad de nombre corto
-
-CAMPOS DEL CURSO:
-- Curso: Nombre corto ÚNICO (ej: "MATE", "FIS")
-- Completo: Nombre completo (ej: "Matemáticas", "Física")
-- Color: Color hex para identificación visual (ej: "#FF5733")
-
-BACKEND:
-- studentObtenerCursos({ codeAlum })
-- studentAgregarCurso({ codeAlum, curso, completo, color })
-- studentActualizarCurso({ codeAlum, curso, completo, color, rowNumber })
-- studentEliminarCurso({ rowNumber })
-
-VALIDACIONES BACKEND:
-- Backend valida que Curso NO se duplique para el alumno
-- Error: "El curso MATE ya existe. Usa otro nombre corto"
-
-CONECTA CON:
-- Parent: 4atabcursosyrep.html (contenedor)
-- Backend: wrappers student* en 1code.gs
-- Módulo: Student en 1student.gs
-
-🔑 IMPORTANTE:
-- Curso (nombre corto) DEBE ser único por alumno
-- Color por defecto: #FF5733 (si no se especifica)
-- Eliminar curso requiere confirmación
-- Al editar, se puede cambiar nombre completo y color
+PATCH V01.21 (EXTRA HARDENING):
+- [HTML-ESCAPE] escHtml() para evitar inyección/rotura de tabla por < > & " '
+- [COLOR-SAFE] Validación hex #RRGGBB con fallback #FF5733 en render y al editar
+- [ROWNUMBER-GUARD] Anti-NaN / entero válido antes de enviar update
+- Mantiene: PBE Standard V01.20 (NULL-GUARD, cursoSafe onclick, badge, init)
 ******************************************
 -->
 <style>
@@ -356,7 +311,7 @@ CONECTA CON:
 <!-- CONTENEDOR DE CURSOS -->
 <!-- ========================================== -->
 <div class="cursos-container">
-  
+
   <!-- Header con título y botón agregar -->
   <div class="cursos-header">
     <h2>📚 Mis Cursos</h2>
@@ -368,18 +323,18 @@ CONECTA CON:
   <!-- Formulario para agregar/editar curso -->
   <div id="formCurso" class="form-curso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Curso</h3>
-    
+
     <form id="cursoForm" onsubmit="CursosModule.handleSubmitCurso(event)">
       <input type="hidden" id="cursoRowNumber" value="">
       <input type="hidden" id="cursoModoEdicion" value="false">
-      
+
       <div class="form-row">
         <div class="form-group">
           <label>Nombre Corto <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="cursoCurso" 
-            placeholder="Ej: MATE, FIS, QUIM" 
+          <input
+            type="text"
+            id="cursoCurso"
+            placeholder="Ej: MATE, FIS, QUIM"
             maxlength="10"
             required
           >
@@ -388,19 +343,19 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Nombre Completo <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="cursoCompleto" 
-            placeholder="Ej: Matemáticas, Física" 
+          <input
+            type="text"
+            id="cursoCompleto"
+            placeholder="Ej: Matemáticas, Física"
             required
           >
         </div>
 
         <div class="form-group">
           <label>Color</label>
-          <input 
-            type="color" 
-            id="cursoColor" 
+          <input
+            type="color"
+            id="cursoColor"
             value="#FF5733"
             style="height: 42px; cursor: pointer;"
           >
@@ -433,41 +388,60 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
-(function() {
+(function PBE_CURSOS_MODULE() {
   'use strict';
-  
-  /**
-   * ==========================================
-   * MÓDULO ENCAPSULADO - CURSOS
-   * ==========================================
-   * V01.19 CLAUDE:
-   * - MANTIENE encapsulación IIFE (evita colisiones)
-   * - ELIMINA setTimeout innecesario
-   * - currentUser YA existe cuando este script se ejecuta
-   */
 
   // Variables privadas del módulo
   let cursosData = [];
-  let modoEdicion = false;
+
+  // [INIT] Evita dobles inicializaciones si el subtab se inyecta más de una vez
+  let _initDone = false;
 
   /**
    * ==========================================
-   * INICIALIZACIÓN DIRECTA
+   * HELPERS (EXTRA HARDENING)
    * ==========================================
-   * V01.19 CLAUDE:
-   * Ya NO necesitamos setTimeout porque currentUser
-   * se inicializa ANTES en 3panelstudent.html (V01.19)
    */
-  function inicializar() {
-    // Verificar que currentUser existe
-    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-      console.error('✗ currentUser no está disponible');
+
+  // [HTML-ESCAPE] Para contenido de celdas (NO para onclick)
+  function escHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // [COLOR-SAFE] Solo acepta #RRGGBB
+  function sanitizeHexColor(value, fallback) {
+    const v = String(value ?? '');
+    return /^#[0-9A-Fa-f]{6}$/.test(v) ? v : (fallback || '#FF5733');
+  }
+
+  /**
+   * ==========================================
+   * INICIALIZACIÓN (IDEMPOTENTE + LAZY LOAD READY)
+   * ==========================================
+   */
+  function init() {
+    if (_initDone) return;
+
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.codeAlum) {
       mostrarError('Error: No se pudo identificar al usuario');
       return;
     }
-    
-    console.log('✓ currentUser disponible:', currentUser.codeAlum);
+
+    _initDone = true;
     cargarCursos();
+  }
+
+  // Caso 1: carga normal (al abrir la webapp)
+  window.addEventListener('load', init);
+
+  // Caso 2: carga dinámica (cuando el HTML se inyecta después del load)
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    init();
   }
 
   /**
@@ -483,21 +457,22 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    // Validar response null
-    if (!response) {
-      console.error('Response es null');
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
+      mostrarError('Error al cargar cursos: ' + msg);
       renderEmptyState();
       return;
     }
 
-    if (response.success) {
-      cursosData = response.data;
-      renderCursosTable();
-    } else {
-      mostrarError('Error al cargar cursos: ' + response.error);
-      renderEmptyState();
+    cursosData = response.data || [];
+
+    // [PARENT BADGE] Notificar al contenedor padre (si existe)
+    if (typeof updateDeberesBadge === 'function') {
+      updateDeberesBadge('cursos', cursosData.length);
     }
+
+    renderCursosTable();
   }
 
   function handleCursosError(error) {
@@ -514,7 +489,7 @@ CONECTA CON:
   function renderCursosTable() {
     const container = document.getElementById('cursosTableContainer');
 
-    if (cursosData.length === 0) {
+    if (!cursosData || cursosData.length === 0) {
       renderEmptyState();
       return;
     }
@@ -533,23 +508,33 @@ CONECTA CON:
     `;
 
     cursosData.forEach(function(curso) {
+      // Escape para no romper onclick si hay comillas simples
+      const cursoSafe = String((curso && curso.Curso) || '').replace(/'/g, "\\'");
+
+      // [COLOR-SAFE] Fallback si viene corrupto
+      const colorSafe = sanitizeHexColor(curso && curso.Color, '#FF5733');
+
+      // [HTML-ESCAPE] Para mostrar contenido en tabla
+      const codigoHtml = escHtml(curso && curso.Curso);
+      const completoHtml = escHtml(curso && curso.Completo);
+
       html += `
         <tr>
           <td>
-            <div class="curso-color-box" style="background-color: ${curso.Color}"></div>
+            <div class="curso-color-box" style="background-color: ${colorSafe}"></div>
           </td>
-          <td><strong>${curso.Curso}</strong></td>
-          <td>${curso.Completo}</td>
+          <td><strong>${codigoHtml}</strong></td>
+          <td>${completoHtml}</td>
           <td>
-            <button 
-              class="btn-icon" 
+            <button
+              class="btn-icon"
               onclick="CursosModule.editarCurso(${curso._rowNumber})"
               title="Editar">
               ✏️
             </button>
-            <button 
-              class="btn-icon delete" 
-              onclick="CursosModule.confirmarEliminarCurso(${curso._rowNumber}, '${curso.Curso}')"
+            <button
+              class="btn-icon delete"
+              onclick="CursosModule.confirmarEliminarCurso(${curso._rowNumber}, '${cursoSafe}')"
               title="Eliminar">
               🗑️
             </button>
@@ -629,8 +614,16 @@ CONECTA CON:
     };
 
     if (esEdicion) {
-      params.rowNumber = parseInt(rowNumber);
-      
+      // [ROWNUMBER-GUARD] Evitar NaN / fila inválida
+      const rn = parseInt(rowNumber, 10);
+      if (!Number.isInteger(rn) || rn <= 0) {
+        mostrarError('Fila inválida para actualizar.');
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Guardar Curso';
+        return;
+      }
+      params.rowNumber = rn;
+
       google.script.run
         .withSuccessHandler(handleCursoUpdated)
         .withFailureHandler(handleCursoError)
@@ -648,18 +641,16 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo agregar el curso.';
+      mostrarError(msg);
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Curso agregado exitosamente');
-      cancelarFormCurso();
-      cargarCursos();
-    } else {
-      mostrarError(response.error);
-    }
+    mostrarExito('✓ Curso agregado exitosamente');
+    cancelarFormCurso();
+    cargarCursos();
   }
 
   function handleCursoUpdated(response) {
@@ -667,24 +658,22 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo actualizar el curso.';
+      mostrarError(msg);
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Curso actualizado exitosamente');
-      cancelarFormCurso();
-      cargarCursos();
-    } else {
-      mostrarError(response.error);
-    }
+    mostrarExito('✓ Curso actualizado exitosamente');
+    cancelarFormCurso();
+    cargarCursos();
   }
 
   function handleCursoError(error) {
     console.error('Error:', error);
     mostrarError('Error de conexión. Intenta nuevamente');
-    
+
     const btnSubmit = document.getElementById('btnSubmitCurso');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
@@ -702,9 +691,11 @@ CONECTA CON:
     document.getElementById('formTitle').textContent = 'Editar Curso';
     document.getElementById('cursoRowNumber').value = rowNumber;
     document.getElementById('cursoModoEdicion').value = 'true';
-    document.getElementById('cursoCurso').value = curso.Curso;
-    document.getElementById('cursoCompleto').value = curso.Completo;
-    document.getElementById('cursoColor').value = curso.Color;
+    document.getElementById('cursoCurso').value = curso.Curso || '';
+    document.getElementById('cursoCompleto').value = curso.Completo || '';
+
+    // [COLOR-SAFE] En caso de datos históricos corruptos
+    document.getElementById('cursoColor').value = sanitizeHexColor(curso.Color, '#FF5733');
 
     document.getElementById('formCurso').classList.add('active');
     document.getElementById('cursoCurso').focus();
@@ -729,17 +720,15 @@ CONECTA CON:
   }
 
   function handleCursoDeleted(response) {
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo eliminar el curso.';
+      mostrarError(msg);
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Curso eliminado exitosamente');
-      cargarCursos();
-    } else {
-      mostrarError(response.error);
-    }
+    mostrarExito('✓ Curso eliminado exitosamente');
+    cargarCursos();
   }
 
   /**
@@ -784,7 +773,6 @@ CONECTA CON:
    * ==========================================
    * API PÚBLICA DEL MÓDULO
    * ==========================================
-   * Expone funciones necesarias para onclick del HTML
    */
   window.CursosModule = {
     toggleFormAgregar: toggleFormAgregar,
@@ -794,15 +782,6 @@ CONECTA CON:
     cancelarFormCurso: cancelarFormCurso
   };
 
-  /**
-   * ==========================================
-   * INICIAR AL CARGAR EL SCRIPT
-   * ==========================================
-   */
-  inicializar();
-
-  console.log('%c📚 Sub-tab Cursos V01.19 CLAUDE Cargado', 
-              'font-size: 11px; color: #667eea;');
-
+  console.log('%c📚 Sub-tab Cursos V01.21 GPT (EXTRA) Cargado', 'font-size: 11px; color: #667eea;');
 })();
 </script>
