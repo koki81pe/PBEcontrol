@@ -1,8 +1,13 @@
 <!--
 ******************************************
-PBE CONTROL - 3panelstudent.html - V01.19 CLAUDE
+PBE CONTROL - 3panelstudent.html - V01.20 CLAUDE
 Sistema de Gestión Académica
 05/01/2026 - Versión Corregida
+
+CAMBIOS V01.20 CLAUDE:
+- CORRECCIÓN CRÍTICA: Script de inicialización movido ANTES de los includes
+- Esto asegura que currentUser exista ANTES de que los tabs se inyecten
+- El IIFE se ejecuta ANTES de que el HTML de los tabs llegue al navegador
 
 CAMBIOS V01.19 CLAUDE:
 - CORRECCIÓN CRÍTICA: currentUser se inicializa ANTES de cargar tabs
@@ -38,10 +43,10 @@ currentUser = {
   email: 'test5@pbe.com'
 }
 
-🔑 CRÍTICO V01.19:
-Esta variable se inicializa INMEDIATAMENTE mediante IIFE,
-ANTES de que los tabs se carguen. Así los sub-tabs la
-encuentran disponible desde el inicio.
+🔑 CRÍTICO V01.20:
+Esta variable se inicializa ANTES de los includes,
+garantizando que esté disponible cuando los tabs
+se inyecten en el HTML.
 
 CONECTA CON:
 - Contenedores: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
@@ -51,7 +56,7 @@ CONECTA CON:
 - Los datos del usuario se leen desde sessionStorage
 - sessionStorage se llena en 3index.html al autenticar
 - currentUser es global para todos los tabs
-- currentUser se inicializa ANTES de los tabs (V01.19)
+- currentUser se inicializa ANTES de los includes (V01.20)
 ******************************************
 -->
 <!DOCTYPE html>
@@ -377,6 +382,89 @@ CONECTA CON:
       }
     }
   </style>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT GLOBAL - SE EJECUTA PRIMERO -->
+  <!-- CRÍTICO V01.20: ANTES DE LOS INCLUDES -->
+  <!-- ========================================== -->
+  <script>
+    // ==========================================
+    // VARIABLE GLOBAL - USUARIO ACTUAL
+    // ==========================================
+    /**
+     * CORRECCIÓN CRÍTICA V01.20 CLAUDE:
+     * Esta variable se declara ANTES de los includes.
+     * Cuando el navegador ejecute los scripts de los tabs,
+     * currentUser YA existirá en el scope global.
+     */
+    var currentUser = {
+      codeAlum: '',
+      nombre: '',
+      email: ''
+    };
+
+    // ==========================================
+    // INICIALIZACIÓN INMEDIATA
+    // ==========================================
+    /**
+     * CORRECCIÓN CRÍTICA V01.20 CLAUDE:
+     * Este IIFE se ejecuta ANTES de que los includes
+     * se inyecten en el HTML. Garantiza que currentUser
+     * tenga datos cuando los tabs se carguen.
+     */
+    (function initializeUserImmediate() {
+      try {
+        // Leer datos del usuario desde sessionStorage
+        const userData = sessionStorage.getItem('pbe_user');
+        
+        if (!userData) {
+          // No hay datos de sesión - redirigir al login
+          console.error('✗ No hay datos de sesión');
+          alert('No se pudo identificar al usuario. Redirigiendo al login...');
+          setTimeout(function() {
+            window.top.location.href = '<?!= scriptUrl ?>';
+          }, 2000);
+          return;
+        }
+        
+        // Parsear datos del usuario
+        const user = JSON.parse(userData);
+        
+        // Validar que tenga los campos necesarios
+        if (!user.codeAlum || !user.nombre) {
+          console.error('✗ Datos de usuario incompletos:', user);
+          alert('Datos de usuario incompletos. Redirigiendo al login...');
+          setTimeout(function() {
+            window.top.location.href = '<?!= scriptUrl ?>';
+          }, 2000);
+          return;
+        }
+        
+        // ==========================================
+        // ASIGNAR DATOS REALES A currentUser
+        // ESTO OCURRE ANTES DE QUE LOS TABS SE CARGUEN
+        // ==========================================
+        currentUser.codeAlum = user.codeAlum;
+        currentUser.nombre = user.nombre;
+        currentUser.email = user.email || '';
+        
+        console.log('✅ Usuario inicializado correctamente:', currentUser);
+        
+      } catch(error) {
+        console.error('✗ Error al inicializar usuario:', error);
+        alert('Error al cargar datos del usuario. Redirigiendo al login...');
+        setTimeout(function() {
+          window.top.location.href = '<?!= scriptUrl ?>';
+        }, 2000);
+      }
+    })(); // ← IIFE: Se ejecuta INMEDIATAMENTE
+
+    console.log('%c🎓 PBE Control - Panel Estudiante V01.20', 
+                'font-size: 16px; font-weight: bold; color: #667eea;');
+    console.log('%c✓ currentUser inicializado ANTES de cargar tabs', 
+                'font-size: 12px; color: #28a745;');
+  </script>
+
 </head>
 <body>
   <!-- ========================================== -->
@@ -445,97 +533,18 @@ CONECTA CON:
   </div>
 
   <!-- ========================================== -->
-  <!-- JAVASCRIPT GLOBAL - EJECUTA PRIMERO -->
+  <!-- JAVASCRIPT - FUNCIONES GLOBALES -->
   <!-- ========================================== -->
   <script>
     // ==========================================
-    // VARIABLE GLOBAL - USUARIO ACTUAL
-    // ==========================================
-    /**
-     * CORRECCIÓN CRÍTICA V01.19 CLAUDE:
-     * Esta variable se inicializa ANTES de cargar los tabs.
-     * Así los sub-tabs la encuentran disponible desde el inicio.
-     * 
-     * Esta variable es accesible desde TODOS los tabs
-     * mediante include(). Cada sub-tab la usa para
-     * filtrar datos del estudiante.
-     */
-    var currentUser = {
-      codeAlum: '',
-      nombre: '',
-      email: ''
-    };
-
-    // ==========================================
-    // INICIALIZACIÓN INMEDIATA
-    // ==========================================
-    /**
-     * CORRECCIÓN CRÍTICA V01.19 CLAUDE:
-     * NO usamos window.onload porque se ejecuta muy tarde.
-     * Ejecutamos INMEDIATAMENTE para que currentUser
-     * esté listo ANTES de que los tabs se carguen.
-     */
-    (function initializeUserImmediate() {
-      try {
-        // Leer datos del usuario desde sessionStorage
-        const userData = sessionStorage.getItem('pbe_user');
-        
-        if (!userData) {
-          // No hay datos de sesión - redirigir al login
-          showAlert('error', 'No se pudo identificar al usuario');
-          setTimeout(function() {
-            window.top.location.href = '<?!= scriptUrl ?>';
-          }, 2000);
-          return;
-        }
-        
-        // Parsear datos del usuario
-        const user = JSON.parse(userData);
-        
-        // Validar que tenga los campos necesarios
-        if (!user.codeAlum || !user.nombre) {
-          showAlert('error', 'Datos de usuario incompletos');
-          setTimeout(function() {
-            window.top.location.href = '<?!= scriptUrl ?>';
-          }, 2000);
-          return;
-        }
-        
-        // ==========================================
-        // ASIGNAR DATOS REALES A currentUser
-        // ESTO OCURRE ANTES DE QUE LOS TABS SE CARGUEN
-        // ==========================================
-        currentUser.codeAlum = user.codeAlum;
-        currentUser.nombre = user.nombre;
-        currentUser.email = user.email || '';
-        
-        console.log('✅ Usuario inicializado correctamente:', currentUser);
-        
-      } catch(error) {
-        console.error('Error al inicializar usuario:', error);
-        showAlert('error', 'Error al cargar datos del usuario');
-        setTimeout(function() {
-          window.top.location.href = '<?!= scriptUrl ?>';
-        }, 2000);
-      }
-    })(); // ← IIFE: Se ejecuta INMEDIATAMENTE
-
-    // ==========================================
     // ACTUALIZAR UI CUANDO EL DOM ESTÉ LISTO
     // ==========================================
-    /**
-     * CORRECCIÓN V01.19 CLAUDE:
-     * currentUser YA está inicializado (arriba).
-     * Ahora solo actualizamos la UI cuando el DOM esté listo.
-     */
     window.onload = function() {
       // Actualizar nombre en navbar
       if (currentUser.nombre) {
         document.getElementById('userName').textContent = currentUser.nombre;
       }
       
-      console.log('%c🎓 PBE Control - Panel Estudiante V01.19', 
-                  'font-size: 16px; font-weight: bold; color: #667eea;');
       console.log('%cVariable global currentUser:', 
                   'font-size: 12px; color: #666;', currentUser);
       console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
@@ -545,11 +554,6 @@ CONECTA CON:
     // ==========================================
     // NAVEGACIÓN ENTRE TABS
     // ==========================================
-    /**
-     * Cambiar entre tabs principales
-     * 
-     * @param {string} tabName - Nombre del tab (cursosyrep, deberes, planning)
-     */
     function switchTab(tabName) {
       // Ocultar todos los tabs
       document.querySelectorAll('.tab-content').forEach(function(tab) {
@@ -573,12 +577,6 @@ CONECTA CON:
     // ==========================================
     // SISTEMA DE ALERTAS GLOBAL
     // ==========================================
-    /**
-     * Mostrar alerta temporal
-     * 
-     * @param {string} type - Tipo: success, error, warning, info
-     * @param {string} message - Mensaje a mostrar
-     */
     function showAlert(type, message) {
       // Eliminar alertas previas
       const existingAlerts = document.querySelectorAll('.alert');
@@ -602,16 +600,10 @@ CONECTA CON:
     // ==========================================
     // LOADING SCREEN
     // ==========================================
-    /**
-     * Mostrar pantalla de carga
-     */
     function showLoading() {
       document.getElementById('loadingScreen').classList.add('active');
     }
 
-    /**
-     * Ocultar pantalla de carga
-     */
     function hideLoading() {
       document.getElementById('loadingScreen').classList.remove('active');
     }
@@ -619,11 +611,6 @@ CONECTA CON:
     // ==========================================
     // LOGOUT
     // ==========================================
-    /**
-     * Cerrar sesión y volver al login
-     * 
-     * V01.18: Ahora limpia sessionStorage correctamente
-     */
     function logout() {
       if (confirm('¿Deseas cerrar sesión?')) {
         // Limpiar sessionStorage
@@ -638,12 +625,6 @@ CONECTA CON:
     // UTILIDADES GLOBALES
     // ==========================================
     
-    /**
-     * Formatear fecha DD/MM/AAAA a texto legible
-     * 
-     * @param {string} fecha - Fecha en formato DD/MM/AAAA
-     * @return {string} - Fecha formateada
-     */
     function formatFecha(fecha) {
       if (!fecha) return '-';
       
@@ -664,12 +645,6 @@ CONECTA CON:
       }
     }
 
-    /**
-     * Calcular días restantes hasta una fecha
-     * 
-     * @param {string} fecha - Fecha en formato DD/MM/AAAA
-     * @return {number} - Días restantes
-     */
     function diasRestantes(fecha) {
       if (!fecha) return null;
       
@@ -685,12 +660,6 @@ CONECTA CON:
       }
     }
 
-    /**
-     * Validar formato de fecha DD/MM/AAAA
-     * 
-     * @param {string} fecha - Fecha a validar
-     * @return {boolean} - true si es válida
-     */
     function validarFecha(fecha) {
       if (!fecha) return false;
       
