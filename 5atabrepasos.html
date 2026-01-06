@@ -1,8 +1,18 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabrepasos.html - V01.17
+PBE CONTROL - 5atabrepasos.html - V01.18 CLAUDE
 Sistema de Gestión Académica
-04/01/2026
+05/01/2026
+
+CAMBIOS V01.18 CLAUDE:
+- CORRECCIÓN CRÍTICA: Encapsulado en IIFE para evitar colisión de variables
+- Variables renombradas: repasosData (antes cursosData colisionaba con 5atabcursos)
+- Eliminado window.addEventListener('load')
+- Inicialización directa (currentUser ya existe)
+- Funciones públicas expuestas en window.RepasosModule
+
+CAMBIOS V01.17:
+- Versión estable previa
 
 DESCRIPCIÓN:
 Sub-tab de Repasos con CRUD completo.
@@ -469,11 +479,11 @@ CONECTA CON:
     <div class="header-actions">
       <div class="filtro-container">
         <label>Filtrar:</label>
-        <select id="filtroCurso" onchange="aplicarFiltro()">
+        <select id="filtroCurso" onchange="RepasosModule.aplicarFiltro()">
           <option value="">Todos los cursos</option>
         </select>
       </div>
-      <button class="btn-agregar" onclick="toggleFormAgregar()">
+      <button class="btn-agregar" onclick="RepasosModule.toggleFormAgregar()">
         + Agregar Repaso
       </button>
     </div>
@@ -483,7 +493,7 @@ CONECTA CON:
   <div id="formRepaso" class="form-repaso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
     
-    <form id="repasoForm" onsubmit="handleSubmitRepaso(event)">
+    <form id="repasoForm" onsubmit="RepasosModule.handleSubmitRepaso(event)">
       <input type="hidden" id="repasoRowNumber" value="">
       <input type="hidden" id="repasoModoEdicion" value="false">
       
@@ -564,7 +574,7 @@ CONECTA CON:
         <button type="submit" class="btn btn-primary" id="btnSubmit">
           Guardar Repaso
         </button>
-        <button type="button" class="btn btn-secondary" onclick="cancelarFormRepaso()">
+        <button type="button" class="btn btn-secondary" onclick="RepasosModule.cancelarFormRepaso()">
           Cancelar
         </button>
       </div>
@@ -585,30 +595,41 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
+(function() {
+  'use strict';
+  
   /**
    * ==========================================
-   * VARIABLES LOCALES
+   * MÓDULO ENCAPSULADO - REPASOS
    * ==========================================
+   * V01.18 CLAUDE:
+   * - Encapsulado en IIFE para evitar colisiones
+   * - Variables privadas (repasosData, cursosListaData)
+   * - NO colisiona con cursosData de 5atabcursos.html
    */
+
+  // Variables privadas del módulo
   let repasosData = [];
-  let cursosData = [];
+  let cursosListaData = []; // ← Renombrado para evitar colisión
   let repasosFiltrados = [];
 
   /**
    * ==========================================
-   * INICIALIZACIÓN
+   * INICIALIZACIÓN DIRECTA
    * ==========================================
    */
-  window.addEventListener('load', function() {
-    // Verificar que currentUser esté disponible
+  function inicializar() {
+    // Verificar que currentUser existe
     if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-      showAlert('error', 'Error: No se pudo identificar al usuario');
+      console.error('✗ currentUser no está disponible');
+      mostrarError('Error: No se pudo identificar al usuario');
       return;
     }
-
+    
+    console.log('✓ currentUser disponible en Repasos:', currentUser.codeAlum);
     cargarCursos();
     cargarRepasos();
-  });
+  }
 
   /**
    * ==========================================
@@ -623,8 +644,13 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
+    if (!response) {
+      console.error('Response es null en cargarCursos');
+      return;
+    }
+
     if (response.success) {
-      cursosData = response.data;
+      cursosListaData = response.data;
       poblarDropdownCursos();
     }
   }
@@ -637,7 +663,7 @@ CONECTA CON:
     selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
 
-    cursosData.forEach(function(curso) {
+    cursosListaData.forEach(function(curso) {
       // Dropdown de formulario
       const option1 = document.createElement('option');
       option1.value = curso.Curso;
@@ -665,19 +691,26 @@ CONECTA CON:
   }
 
   function handleRepasosLoaded(response) {
+    if (!response) {
+      console.error('Response es null en cargarRepasos');
+      mostrarError('Error: No se recibió respuesta del servidor');
+      renderEmptyState();
+      return;
+    }
+
     if (response.success) {
       repasosData = response.data;
       repasosFiltrados = repasosData;
       renderRepasosTable();
     } else {
-      showAlert('error', 'Error al cargar repasos: ' + response.error);
+      mostrarError('Error al cargar repasos: ' + response.error);
       renderEmptyState();
     }
   }
 
   function handleRepasosError(error) {
     console.error('Error al cargar repasos:', error);
-    showAlert('error', 'Error de conexión al cargar repasos');
+    mostrarError('Error de conexión al cargar repasos');
     renderEmptyState();
   }
 
@@ -746,13 +779,13 @@ CONECTA CON:
           <td>
             <button 
               class="btn-icon" 
-              onclick="editarRepaso(${repaso._rowNumber})"
+              onclick="RepasosModule.editarRepaso(${repaso._rowNumber})"
               title="Editar">
               ✏️
             </button>
             <button 
               class="btn-icon delete" 
-              onclick="confirmarEliminarRepaso(${repaso._rowNumber}, '${repaso.Tema}')"
+              onclick="RepasosModule.confirmarEliminarRepaso(${repaso._rowNumber}, '${repaso.Tema}')"
               title="Eliminar">
               🗑️
             </button>
@@ -833,13 +866,13 @@ CONECTA CON:
     const esEdicion = document.getElementById('repasoModoEdicion').value === 'true';
 
     if (!curso || !tema || !fechaClase || !fechaRep || !estadoRep) {
-      showAlert('error', 'Completa todos los campos obligatorios');
+      mostrarError('Completa todos los campos obligatorios');
       return;
     }
 
     // Validar formato de fecha DD/MM/AAAA
     if (!validarFecha(fechaClase) || !validarFecha(fechaRep)) {
-      showAlert('error', 'Formato de fecha inválido. Use DD/MM/AAAA');
+      mostrarError('Formato de fecha inválido. Use DD/MM/AAAA');
       return;
     }
 
@@ -878,12 +911,17 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Repaso';
 
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Repaso agregado exitosamente');
+      mostrarExito('✓ Repaso agregado exitosamente');
       cancelarFormRepaso();
       cargarRepasos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
@@ -892,18 +930,23 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Repaso';
 
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Repaso actualizado exitosamente');
+      mostrarExito('✓ Repaso actualizado exitosamente');
       cancelarFormRepaso();
       cargarRepasos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
   function handleRepasoError(error) {
     console.error('Error:', error);
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
+    mostrarError('Error de conexión. Intenta nuevamente');
     
     const btnSubmit = document.getElementById('btnSubmit');
     btnSubmit.disabled = false;
@@ -953,11 +996,16 @@ CONECTA CON:
   }
 
   function handleRepasoDeleted(response) {
+    if (!response) {
+      mostrarError('Error: No se recibió respuesta del servidor');
+      return;
+    }
+
     if (response.success) {
-      showAlert('success', '✓ Repaso eliminado exitosamente');
+      mostrarExito('✓ Repaso eliminado exitosamente');
       cargarRepasos();
     } else {
-      showAlert('error', response.error);
+      mostrarError(response.error);
     }
   }
 
@@ -985,14 +1033,54 @@ CONECTA CON:
    */
   function handleError(error) {
     console.error('Error:', error);
-    showAlert('error', 'Error de conexión');
+    mostrarError('Error de conexión');
+  }
+
+  function validarFecha(fecha) {
+    // Valida formato DD/MM/AAAA
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    return regex.test(fecha);
+  }
+
+  function mostrarExito(mensaje) {
+    if (typeof showAlert === 'function') {
+      showAlert('success', mensaje);
+    } else {
+      console.log('✓ ' + mensaje);
+    }
+  }
+
+  function mostrarError(mensaje) {
+    if (typeof showAlert === 'function') {
+      showAlert('error', mensaje);
+    } else {
+      console.error('✗ ' + mensaje);
+    }
   }
 
   /**
    * ==========================================
-   * LOG
+   * API PÚBLICA DEL MÓDULO
    * ==========================================
    */
-  console.log('%c🔄 Sub-tab Repasos Cargado', 
+  window.RepasosModule = {
+    aplicarFiltro: aplicarFiltro,
+    toggleFormAgregar: toggleFormAgregar,
+    handleSubmitRepaso: handleSubmitRepaso,
+    editarRepaso: editarRepaso,
+    confirmarEliminarRepaso: confirmarEliminarRepaso,
+    cancelarFormRepaso: cancelarFormRepaso
+  };
+
+  /**
+   * ==========================================
+   * INICIAR AL CARGAR EL SCRIPT
+   * ==========================================
+   */
+  inicializar();
+
+  console.log('%c🔄 Sub-tab Repasos V01.18 CLAUDE Cargado', 
               'font-size: 11px; color: #667eea;');
+
+})();
 </script>
