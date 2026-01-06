@@ -1,58 +1,37 @@
 <!--
 ******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.17
+PBE CONTROL - 4atabcursosyrep.html - V01.19 GPT
 Sistema de Gestión Académica
 04/01/2026
 
-DESCRIPCIÓN:
-Contenedor para los sub-tabs de Cursos y Repasos.
-Tab principal que incluye dos sub-tabs mediante include().
+DESCRIPCIÓN GENERAL:
+Contenedor principal para los sub-tabs de Cursos y Repasos
+dentro del Panel del Estudiante.
 
-ESTRUCTURA:
-Este es un CONTENEDOR LIGERO que organiza dos sub-tabs:
-1. Sub-tab Cursos: Lista de cursos con CRUD
-2. Sub-tab Repasos: Lista de repasos por curso con estados
+Este archivo NO contiene lógica de negocio.
+Su única función es:
+- Organizar visualmente
+- Gestionar navegación entre sub-tabs
+- Incluir los archivos hijos correspondientes
 
-Usa sub-tabs horizontales dentro del contenedor.
-
-SUB-TABS INCLUIDOS:
-- 5atabcursos.html: Gestión de cursos (agregar, editar, eliminar)
-- 5atabrepasos.html: Gestión de repasos (OK/Falta, evaluado)
-
-NAVEGACIÓN:
-- Tabs horizontales internos (Cursos | Repasos)
-- Click cambia entre sub-tabs
-- Sub-tab activo: Borde inferior azul
-
-CONECTA CON:
-- Parent: 3panelstudent.html (incluye este contenedor)
-- Children: 5atabcursos.html, 5atabrepasos.html
-
-VARIABLE GLOBAL DISPONIBLE:
-currentUser (heredada de 3panelstudent.html)
-- currentUser.codeAlum
-- currentUser.nombre
-- currentUser.email
-
-FUNCIONES GLOBALES DISPONIBLES:
-- showAlert(type, message)
-- showLoading()
-- hideLoading()
-
-🔑 IMPORTANTE:
-- Contenedor ligero, lógica en sub-tabs
-- Cada sub-tab es independiente
-- Si un sub-tab falla, no afecta al otro
+CAMBIOS IMPORTANTES:
+- JavaScript encapsulado con IIFE
+- Función switchSubTab expuesta de forma controlada
 ******************************************
 -->
+
+<!-- ======================================================
+     SECCIÓN 1: ESTILOS DE LOS SUB-TABS
+     Define la apariencia visual de la navegación interna
+     ====================================================== -->
 <style>
-  /* ==========================================
-     SUB-TABS HORIZONTALES
-     ========================================== */
+
+  /* Contenedor general de los sub-tabs */
   .subtabs-container {
     margin-bottom: 20px;
   }
 
+  /* Barra de navegación horizontal */
   .subtabs-nav {
     display: flex;
     gap: 8px;
@@ -60,6 +39,7 @@ FUNCIONES GLOBALES DISPONIBLES:
     margin-bottom: 20px;
   }
 
+  /* Botones de cada sub-tab */
   .subtab-btn {
     padding: 12px 24px;
     font-size: 14px;
@@ -73,25 +53,30 @@ FUNCIONES GLOBALES DISPONIBLES:
     font-family: inherit;
   }
 
+  /* Hover visual */
   .subtab-btn:hover {
     color: #667eea;
     background: #f9f9f9;
   }
 
+  /* Estado activo */
   .subtab-btn.active {
     color: #667eea;
     border-bottom-color: #667eea;
   }
 
+  /* Contenido de cada sub-tab */
   .subtab-content {
     display: none;
   }
 
+  /* Sub-tab visible */
   .subtab-content.active {
     display: block;
     animation: fadeIn 0.3s ease-out;
   }
 
+  /* Animación suave al cambiar sub-tab */
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -103,10 +88,11 @@ FUNCIONES GLOBALES DISPONIBLES:
     }
   }
 
-  /* ==========================================
-     RESPONSIVE - MOBILE
-     ========================================== */
+  /* ===============================
+     RESPONSIVE: DISPOSITIVOS MÓVILES
+     =============================== */
   @media (max-width: 768px) {
+
     .subtabs-nav {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -120,69 +106,101 @@ FUNCIONES GLOBALES DISPONIBLES:
   }
 </style>
 
-<!-- ========================================== -->
-<!-- SUB-TABS: CURSOS Y REPASOS -->
-<!-- ========================================== -->
+<!-- ======================================================
+     SECCIÓN 2: ESTRUCTURA HTML DE LOS SUB-TABS
+     Define botones y contenedores
+     ====================================================== -->
 <div class="subtabs-container">
-  
-  <!-- Navegación de Sub-tabs -->
+
+  <!-- Navegación entre sub-tabs -->
   <div class="subtabs-nav">
-    <button class="subtab-btn active" id="btn-subtab-cursos" onclick="switchSubTab('cursos')">
+
+    <!-- Botón: Cursos -->
+    <button class="subtab-btn active"
+            id="btn-subtab-cursos"
+            onclick="switchSubTab('cursos')">
       📚 Cursos
     </button>
-    <button class="subtab-btn" id="btn-subtab-repasos" onclick="switchSubTab('repasos')">
+
+    <!-- Botón: Repasos -->
+    <button class="subtab-btn"
+            id="btn-subtab-repasos"
+            onclick="switchSubTab('repasos')">
       🔄 Repasos
     </button>
+
   </div>
 
-  <!-- Sub-tab: Cursos -->
+  <!-- ==================================================
+       CONTENIDO SUB-TAB: CURSOS
+       Incluye archivo 5atabcursos.html
+       ================================================== -->
   <div id="subtab-cursos" class="subtab-content active">
     <?!= include('5atabcursos'); ?>
   </div>
 
-  <!-- Sub-tab: Repasos -->
+  <!-- ==================================================
+       CONTENIDO SUB-TAB: REPASOS
+       Incluye archivo 5atabrepasos.html
+       ================================================== -->
   <div id="subtab-repasos" class="subtab-content">
     <?!= include('5atabrepasos'); ?>
   </div>
 
 </div>
 
-<!-- ========================================== -->
-<!-- JAVASCRIPT LOCAL -->
-<!-- ========================================== -->
+<!-- ======================================================
+     SECCIÓN 3: JAVASCRIPT LOCAL (ENCAPSULADO)
+     Controla SOLO la navegación visual entre sub-tabs
+     ====================================================== -->
 <script>
+(function () {
+
   /**
-   * ==========================================
-   * NAVEGACIÓN ENTRE SUB-TABS
-   * ==========================================
+   * ------------------------------------------------------
+   * FUNCIÓN: switchSubTab
+   * Cambia visualmente entre Cursos y Repasos
+   * ------------------------------------------------------
+   * @param {string} subTabName - 'cursos' | 'repasos'
    */
   function switchSubTab(subTabName) {
-    // Ocultar todos los sub-tabs
-    document.querySelectorAll('.subtab-content').forEach(function(content) {
-      content.classList.remove('active');
-    });
 
-    // Desactivar todos los botones
-    document.querySelectorAll('.subtab-btn').forEach(function(btn) {
-      btn.classList.remove('active');
-    });
+    // Oculta todos los contenidos
+    document.querySelectorAll('.subtab-content')
+      .forEach(el => el.classList.remove('active'));
 
-    // Mostrar sub-tab seleccionado
-    document.getElementById('subtab-' + subTabName).classList.add('active');
+    // Desactiva todos los botones
+    document.querySelectorAll('.subtab-btn')
+      .forEach(el => el.classList.remove('active'));
 
-    // Activar botón correspondiente
-    document.getElementById('btn-subtab-' + subTabName).classList.add('active');
+    // Activa el contenido seleccionado
+    document.getElementById('subtab-' + subTabName)
+      .classList.add('active');
+
+    // Activa el botón correspondiente
+    document.getElementById('btn-subtab-' + subTabName)
+      .classList.add('active');
 
     console.log('Sub-tab cambiado a:', subTabName);
   }
 
   /**
-   * ==========================================
-   * LOG DE DEPURACIÓN
-   * ==========================================
+   * ------------------------------------------------------
+   * EXPOSICIÓN CONTROLADA DE FUNCIÓN
+   * Necesaria para que onclick del HTML funcione
+   * ------------------------------------------------------
    */
-  console.log('%c📚 Tab Cursos y Repasos Cargado', 
-              'font-size: 12px; font-weight: bold; color: #667eea;');
-  console.log('Sub-tabs disponibles: Cursos, Repasos');
-  console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+  window.switchSubTab = switchSubTab;
+
+  /**
+   * ------------------------------------------------------
+   * LOG DE CONFIRMACIÓN DE CARGA
+   * ------------------------------------------------------
+   */
+  console.log(
+    '%c📚 Contenedor Cursos/Repasos cargado correctamente',
+    'font-size:12px;font-weight:bold;color:#667eea'
+  );
+
+})();
 </script>
