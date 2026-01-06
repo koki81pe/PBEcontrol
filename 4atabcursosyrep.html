@@ -1,8 +1,8 @@
 <!--
 ******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.19 GPT
+PBE CONTROL - 4atabcursosyrep.html - V01.20 GPT
 Sistema de Gestión Académica
-04/01/2026
+05/01/2026
 
 DESCRIPCIÓN GENERAL:
 Contenedor principal para los sub-tabs de Cursos y Repasos
@@ -14,9 +14,15 @@ Su única función es:
 - Gestionar navegación entre sub-tabs
 - Incluir los archivos hijos correspondientes
 
-CAMBIOS IMPORTANTES:
-- JavaScript encapsulado con IIFE
-- Función switchSubTab expuesta de forma controlada
+CAMBIO CRÍTICO V01.20:
+- Eliminada inclusión directa con <?!= include() ?>
+- Carga controlada y única de sub-tabs (lazy load)
+- Evita re-ejecución de scripts hijos
+- Previene redeclaración de variables (ej: cursosData)
+
+MANTIENE:
+- Encapsulación con IIFE
+- API pública mínima (switchSubTab)
 ******************************************
 -->
 
@@ -108,7 +114,7 @@ CAMBIOS IMPORTANTES:
 
 <!-- ======================================================
      SECCIÓN 2: ESTRUCTURA HTML DE LOS SUB-TABS
-     Define botones y contenedores
+     Define botones y contenedores (vacíos)
      ====================================================== -->
 <div class="subtabs-container">
 
@@ -132,29 +138,66 @@ CAMBIOS IMPORTANTES:
   </div>
 
   <!-- ==================================================
-       CONTENIDO SUB-TAB: CURSOS
-       Incluye archivo 5atabcursos.html
+       CONTENEDOR SUB-TAB: CURSOS
+       Carga dinámica de 5atabcursos.html
        ================================================== -->
   <div id="subtab-cursos" class="subtab-content active">
-    <?!= include('5atabcursos'); ?>
+    <!-- Contenido cargado vía google.script.run -->
   </div>
 
   <!-- ==================================================
-       CONTENIDO SUB-TAB: REPASOS
-       Incluye archivo 5atabrepasos.html
+       CONTENEDOR SUB-TAB: REPASOS
+       Carga dinámica de 5atabrepasos.html
        ================================================== -->
   <div id="subtab-repasos" class="subtab-content">
-    <?!= include('5atabrepasos'); ?>
+    <!-- Contenido cargado vía google.script.run -->
   </div>
 
 </div>
 
 <!-- ======================================================
      SECCIÓN 3: JAVASCRIPT LOCAL (ENCAPSULADO)
-     Controla SOLO la navegación visual entre sub-tabs
+     Controla SOLO navegación y carga de sub-tabs
      ====================================================== -->
 <script>
 (function () {
+  'use strict';
+
+  /**
+   * ------------------------------------------------------
+   * ESTADO INTERNO DE CARGA
+   * Evita que un sub-tab se cargue más de una vez
+   * ------------------------------------------------------
+   */
+  const loadedSubTabs = {
+    cursos: false,
+    repasos: false
+  };
+
+  /**
+   * ------------------------------------------------------
+   * FUNCIÓN: loadSubTab
+   * Carga el HTML del sub-tab SOLO una vez
+   * ------------------------------------------------------
+   * @param {string} subTabName - 'cursos' | 'repasos'
+   */
+  function loadSubTab(subTabName) {
+
+    if (loadedSubTabs[subTabName]) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function (html) {
+        document.getElementById('subtab-' + subTabName).innerHTML = html;
+        loadedSubTabs[subTabName] = true;
+        console.log('✓ Sub-tab cargado:', subTabName);
+      })
+      .withFailureHandler(function (error) {
+        console.error('Error al cargar sub-tab:', subTabName, error);
+      })
+      .getHtmlPartial(subTabName);
+  }
 
   /**
    * ------------------------------------------------------
@@ -181,24 +224,35 @@ CAMBIOS IMPORTANTES:
     document.getElementById('btn-subtab-' + subTabName)
       .classList.add('active');
 
+    // Carga segura del sub-tab
+    loadSubTab(subTabName);
+
     console.log('Sub-tab cambiado a:', subTabName);
   }
 
   /**
    * ------------------------------------------------------
    * EXPOSICIÓN CONTROLADA DE FUNCIÓN
-   * Necesaria para que onclick del HTML funcione
+   * Necesaria para onclick del HTML
    * ------------------------------------------------------
    */
   window.switchSubTab = switchSubTab;
 
   /**
    * ------------------------------------------------------
-   * LOG DE CONFIRMACIÓN DE CARGA
+   * CARGA INICIAL
+   * Solo se carga CURSOS al iniciar
+   * ------------------------------------------------------
+   */
+  loadSubTab('cursos');
+
+  /**
+   * ------------------------------------------------------
+   * LOG DE CONFIRMACIÓN
    * ------------------------------------------------------
    */
   console.log(
-    '%c📚 Contenedor Cursos/Repasos cargado correctamente',
+    '%c📚 Contenedor Cursos/Repasos V01.20 cargado correctamente',
     'font-size:12px;font-weight:bold;color:#667eea'
   );
 
