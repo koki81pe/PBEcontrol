@@ -1,30 +1,29 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabtareas.html - V01.17
+PBE CONTROL - 6btabtareas.html - V01.18.1 GPT (EXTRA ESCAPE)
 Sistema de Gestión Académica
-05/01/2026
+06/01/2026 - 15:00 (Perú UTC-5)
 
 DESCRIPCIÓN:
 Sub-tab de Tareas con CRUD completo.
 Muestra lista de tareas del estudiante con opciones
 para agregar, editar y eliminar.
 
-FUNCIONALIDAD:
-- Cargar tareas del estudiante (al iniciar)
-- Agregar nueva tarea (curso, nombre, fechas, nota, peso, semana)
-- Editar tarea existente
-- Eliminar tarea (con confirmación)
-- Filtrar por curso (dropdown)
-- Validación de unicidad Curso+Tarea
+OBJETIVO DEL PATCH (V01.18):
+- Evitar colisión de variables globales entre subtabs (ej: cursosData)
+- Blindar handlers ante response null (evitar "Cannot read ... success")
+- Mantener HTML/CSS intactos; cambios solo en JS
+- Compatibilidad con carga dinámica (lazy load): NO depender solo de window.load
 
-CAMPOS DE LA TAREA:
-- Curso: Dropdown de cursos del estudiante (FK) *obligatorio
-- Tarea: Nombre de la tarea *obligatorio
-- FechaEntrega: Fecha límite de entrega (DD/MM/AAAA) *obligatorio
-- FechaAccion: Fecha de realización (DD/MM/AAAA) opcional ⚠️ ÚNICO DE TAREAS
-- Nota: Calificación obtenida (0-20, decimal permitido) opcional
-- Peso: Peso en porcentaje (0-100) opcional
-- Sem: Número de semana opcional
+EXTRA (V01.18.1):
+- Escape robusto para el nombre de la tarea en el onclick de eliminar
+  (maneja \, ', saltos de línea) para evitar romper atributos HTML.
+
+REGLAS TÉCNICAS:
+- [SCOPE] Todo el JS se encapsula en un módulo IIFE para no contaminar window
+- [EXPORT] Solo se exponen a window las funciones usadas en onclick/onchange/onsubmit
+- [NULL-GUARD] Nunca asumir que response existe o tiene .success
+- [INIT] Inicialización idempotente (no duplica carga si se llama 2 veces)
 
 BACKEND:
 - studentObtenerTareas({ codeAlum })
@@ -33,36 +32,10 @@ BACKEND:
 - studentActualizarTarea({ codeAlum, curso, tarea, fechaEntrega, fechaAccion, nota, peso, sem, rowNumber })
 - studentEliminarTarea({ rowNumber })
 
-VALIDACIONES BACKEND:
-- Backend valida que Curso+Tarea NO se duplique para el alumno
-- Error: "La tarea 'Trabajo 1' ya existe en MATE"
-
-VALIDACIONES FRONTEND:
-- Campos obligatorios: Curso, Tarea, FechaEntrega
-- Formato fecha: DD/MM/AAAA (FechaEntrega y FechaAccion)
-- Nota: 0-20 (si se especifica)
-- Peso: 0-100 (si se especifica)
-
-COLORES DINÁMICOS EN NOTA:
-- >= 14: Verde (#28a745) - Aprobado con buena nota
-- 11-13: Amarillo (#ffc107) - Aprobado justo
-- < 11: Rojo (#dc3545) - Desaprobado
-
-DIFERENCIA vs EVALUACIONES:
-⚠️ Campo ÚNICO: FechaAccion (fecha en que se realizó la tarea)
-- Tabla tiene 8 columnas (eval tiene 7)
-- Formulario tiene 7 campos (eval tiene 6)
-
 CONECTA CON:
 - Parent: 4btabdeberes.html (contenedor)
 - Backend: wrappers student* en 1code.gs
 - Módulo: Student en 1student.gs
-
-🔑 IMPORTANTE:
-- Curso es FK → debe existir en hoja Cursos
-- Curso+Tarea DEBE ser único por alumno
-- FechaAccion representa cuándo se completó (puede ser antes/después de FechaEntrega)
-- Nota y Peso son opcionales (se completan después de la entrega)
 ******************************************
 -->
 <style>
@@ -478,7 +451,7 @@ CONECTA CON:
 <!-- CONTENEDOR DE TAREAS -->
 <!-- ========================================== -->
 <div class="tareas-container">
-  
+
   <!-- Header con título, filtro y botón agregar -->
   <div class="tareas-header">
     <h2>✏️ Mis Tareas</h2>
@@ -498,11 +471,11 @@ CONECTA CON:
   <!-- Formulario para agregar/editar tarea -->
   <div id="formTarea" class="form-tarea">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Tarea</h3>
-    
+
     <form id="tareaForm" onsubmit="handleSubmitTarea(event)">
       <input type="hidden" id="tareaRowNumber" value="">
       <input type="hidden" id="tareaModoEdicion" value="false">
-      
+
       <!-- Fila 1: Curso, Nombre, Fecha Entrega -->
       <div class="form-row">
         <div class="form-group">
@@ -514,10 +487,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Nombre de la Tarea <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="tareaTarea" 
-            placeholder="Ej: Trabajo de Investigación" 
+          <input
+            type="text"
+            id="tareaTarea"
+            placeholder="Ej: Trabajo de Investigación"
             required
           >
           <small>Nombre único por curso</small>
@@ -525,10 +498,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Fecha de Entrega <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="tareaFechaEntrega" 
-            placeholder="DD/MM/AAAA" 
+          <input
+            type="text"
+            id="tareaFechaEntrega"
+            placeholder="DD/MM/AAAA"
             required
           >
           <small>Fecha límite de entrega</small>
@@ -539,9 +512,9 @@ CONECTA CON:
       <div class="form-row">
         <div class="form-group">
           <label>Fecha de Realización (Opcional)</label>
-          <input 
-            type="text" 
-            id="tareaFechaAccion" 
+          <input
+            type="text"
+            id="tareaFechaAccion"
             placeholder="DD/MM/AAAA"
           >
           <small>Fecha en que se completó</small>
@@ -549,12 +522,12 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Nota (Opcional)</label>
-          <input 
-            type="number" 
-            id="tareaNota" 
-            placeholder="0 - 20" 
-            min="0" 
-            max="20" 
+          <input
+            type="number"
+            id="tareaNota"
+            placeholder="0 - 20"
+            min="0"
+            max="20"
             step="0.1"
           >
           <small>Calificación (0-20)</small>
@@ -562,12 +535,12 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Peso (Opcional)</label>
-          <input 
-            type="number" 
-            id="tareaPeso" 
-            placeholder="%" 
-            min="0" 
-            max="100" 
+          <input
+            type="number"
+            id="tareaPeso"
+            placeholder="%"
+            min="0"
+            max="100"
             step="1"
           >
           <small>Peso % (ej: 25)</small>
@@ -575,11 +548,11 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Semana (Opcional)</label>
-          <input 
-            type="number" 
-            id="tareaSem" 
-            placeholder="Nº semana" 
-            min="1" 
+          <input
+            type="number"
+            id="tareaSem"
+            placeholder="Nº semana"
+            min="1"
             step="1"
           >
           <small>Semana académica</small>
@@ -611,30 +584,57 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
+/**
+ * ==========================================
+ * [PBE][SCOPE] Sub-tab Tareas (V01.18)
+ * - Encapsulado para evitar colisión de variables globales entre subtabs.
+ * - Exporta solo handlers usados por atributos HTML (onclick/onchange/onsubmit).
+ * - Incluye guards para response null.
+ * - Init compatible con carga dinámica (lazy load).
+ * ==========================================
+ */
+(function PBE_TAREAS_MODULE() {
+  'use strict';
+
   /**
    * ==========================================
-   * VARIABLES LOCALES
+   * VARIABLES LOCALES (ENCAPSULADAS)
    * ==========================================
    */
   let tareasData = [];
   let cursosData = [];
   let tareasFiltradas = [];
 
+  // [INIT] Evita dobles inicializaciones si el subtab se inyecta más de una vez
+  let _initDone = false;
+
   /**
    * ==========================================
-   * INICIALIZACIÓN
+   * INICIALIZACIÓN (IDEMPOTENTE)
    * ==========================================
    */
-  window.addEventListener('load', function() {
+  function init() {
+    if (_initDone) return;
+
     // Verificar que currentUser esté disponible
     if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
       showAlert('error', 'Error: No se pudo identificar al usuario');
       return;
     }
 
+    _initDone = true;
     cargarCursos();
     cargarTareas();
-  });
+  }
+
+  // Caso 1: carga normal (al abrir la webapp)
+  window.addEventListener('load', init);
+
+  // Caso 2: carga dinámica (cuando el HTML se inyecta después del load)
+  // Si ya existe currentUser, inicializa de inmediato.
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    init();
+  }
 
   /**
    * ==========================================
@@ -649,10 +649,15 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    if (response.success) {
-      cursosData = response.data;
-      poblarDropdownCursos();
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
+      showAlert('error', 'Error al cargar cursos: ' + msg);
+      return;
     }
+
+    cursosData = response.data || [];
+    poblarDropdownCursos();
   }
 
   function poblarDropdownCursos() {
@@ -664,16 +669,18 @@ CONECTA CON:
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
 
     cursosData.forEach(function(curso) {
+      const label = (curso.Curso || '') + ' - ' + (curso.Completo || '');
+
       // Dropdown de formulario
       const option1 = document.createElement('option');
       option1.value = curso.Curso;
-      option1.textContent = curso.Curso + ' - ' + curso.Completo;
+      option1.textContent = label;
       selectCurso.appendChild(option1);
 
       // Dropdown de filtro
       const option2 = document.createElement('option');
       option2.value = curso.Curso;
-      option2.textContent = curso.Curso + ' - ' + curso.Completo;
+      option2.textContent = label;
       selectFiltro.appendChild(option2);
     });
   }
@@ -691,20 +698,23 @@ CONECTA CON:
   }
 
   function handleTareasLoaded(response) {
-    if (response.success) {
-      tareasData = response.data;
-      tareasFiltradas = tareasData;
-      
-      // Actualizar badge en contenedor padre (si existe)
-      if (typeof updateDeberesBadge === 'function') {
-        updateDeberesBadge('tareas', tareasData.length);
-      }
-      
-      renderTareasTable();
-    } else {
-      showAlert('error', 'Error al cargar tareas: ' + response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar las tareas.';
+      showAlert('error', 'Error al cargar tareas: ' + msg);
       renderEmptyState();
+      return;
     }
+
+    tareasData = response.data || [];
+    tareasFiltradas = tareasData;
+
+    // Actualizar badge en contenedor padre (si existe)
+    if (typeof updateDeberesBadge === 'function') {
+      updateDeberesBadge('tareas', tareasData.length);
+    }
+
+    renderTareasTable();
   }
 
   function handleTareasError(error) {
@@ -724,8 +734,8 @@ CONECTA CON:
     if (cursoSeleccionado === '') {
       tareasFiltradas = tareasData;
     } else {
-      tareasFiltradas = tareasData.filter(function(tarea) {
-        return tarea.Curso === cursoSeleccionado;
+      tareasFiltradas = tareasData.filter(function(t) {
+        return t.Curso === cursoSeleccionado;
       });
     }
 
@@ -740,7 +750,7 @@ CONECTA CON:
   function renderTareasTable() {
     const container = document.getElementById('tareasTableContainer');
 
-    if (tareasFiltradas.length === 0) {
+    if (!tareasFiltradas || tareasFiltradas.length === 0) {
       renderEmptyState();
       return;
     }
@@ -762,30 +772,33 @@ CONECTA CON:
         <tbody>
     `;
 
-    tareasFiltradas.forEach(function(tarea) {
-      const claseNota = obtenerClaseNota(tarea.Nota);
+    tareasFiltradas.forEach(function(t) {
+      const claseNota = obtenerClaseNota(t.Nota);
+
+      // Escape básico para evitar romper atributos onclick si hay comillas
+      const tareaSafe = String(t.Tarea || '').replace(/'/g, "\\'");
 
       html += `
         <tr>
-          <td><span class="curso-tag">${tarea.Curso}</span></td>
-          <td><strong>${tarea.Tarea}</strong></td>
-          <td class="fecha-cell">${tarea.FechaEntrega}</td>
-          <td class="fecha-cell">${tarea.FechaAccion || '-'}</td>
+          <td><span class="curso-tag">${t.Curso}</span></td>
+          <td><strong>${t.Tarea}</strong></td>
+          <td class="fecha-cell">${t.FechaEntrega}</td>
+          <td class="fecha-cell">${t.FechaAccion || '-'}</td>
           <td class="nota-cell ${claseNota}">
-            ${tarea.Nota ? tarea.Nota : '<span class="nota-pendiente">Pendiente</span>'}
+            ${t.Nota ? t.Nota : '<span class="nota-pendiente">Pendiente</span>'}
           </td>
-          <td class="peso-cell">${tarea.Peso ? tarea.Peso + '%' : '-'}</td>
-          <td class="sem-cell col-sem">${tarea.Sem || '-'}</td>
+          <td class="peso-cell">${t.Peso ? t.Peso + '%' : '-'}</td>
+          <td class="sem-cell col-sem">${t.Sem || '-'}</td>
           <td>
-            <button 
-              class="btn-icon" 
-              onclick="editarTarea(${tarea._rowNumber})"
+            <button
+              class="btn-icon"
+              onclick="editarTarea(${t._rowNumber})"
               title="Editar">
               ✏️
             </button>
-            <button 
-              class="btn-icon delete" 
-              onclick="confirmarEliminarTarea(${tarea._rowNumber}, '${tarea.Tarea}')"
+            <button
+              class="btn-icon delete"
+              onclick="confirmarEliminarTarea(${t._rowNumber}, '${tareaSafe}')"
               title="Eliminar">
               🗑️
             </button>
@@ -911,8 +924,8 @@ CONECTA CON:
     };
 
     if (esEdicion) {
-      params.rowNumber = parseInt(rowNumber);
-      
+      params.rowNumber = parseInt(rowNumber, 10);
+
       google.script.run
         .withSuccessHandler(handleTareaUpdated)
         .withFailureHandler(handleTareaError)
@@ -930,13 +943,16 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Tarea';
 
-    if (response.success) {
-      showAlert('success', '✓ Tarea agregada exitosamente');
-      cancelarFormTarea();
-      cargarTareas();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo agregar la tarea.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Tarea agregada exitosamente');
+    cancelarFormTarea();
+    cargarTareas();
   }
 
   function handleTareaUpdated(response) {
@@ -944,19 +960,22 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Tarea';
 
-    if (response.success) {
-      showAlert('success', '✓ Tarea actualizada exitosamente');
-      cancelarFormTarea();
-      cargarTareas();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo actualizar la tarea.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Tarea actualizada exitosamente');
+    cancelarFormTarea();
+    cargarTareas();
   }
 
   function handleTareaError(error) {
     console.error('Error:', error);
     showAlert('error', 'Error de conexión. Intenta nuevamente');
-    
+
     const btnSubmit = document.getElementById('btnSubmit');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Tarea';
@@ -968,19 +987,19 @@ CONECTA CON:
    * ==========================================
    */
   function editarTarea(rowNumber) {
-    const tarea = tareasData.find(t => t._rowNumber === rowNumber);
-    if (!tarea) return;
+    const t = tareasData.find(x => x._rowNumber === rowNumber);
+    if (!t) return;
 
     document.getElementById('formTitle').textContent = 'Editar Tarea';
     document.getElementById('tareaRowNumber').value = rowNumber;
     document.getElementById('tareaModoEdicion').value = 'true';
-    document.getElementById('tareaCurso').value = tarea.Curso;
-    document.getElementById('tareaTarea').value = tarea.Tarea;
-    document.getElementById('tareaFechaEntrega').value = tarea.FechaEntrega;
-    document.getElementById('tareaFechaAccion').value = tarea.FechaAccion || '';
-    document.getElementById('tareaNota').value = tarea.Nota || '';
-    document.getElementById('tareaPeso').value = tarea.Peso || '';
-    document.getElementById('tareaSem').value = tarea.Sem || '';
+    document.getElementById('tareaCurso').value = t.Curso;
+    document.getElementById('tareaTarea').value = t.Tarea;
+    document.getElementById('tareaFechaEntrega').value = t.FechaEntrega;
+    document.getElementById('tareaFechaAccion').value = t.FechaAccion || '';
+    document.getElementById('tareaNota').value = t.Nota || '';
+    document.getElementById('tareaPeso').value = t.Peso || '';
+    document.getElementById('tareaSem').value = t.Sem || '';
 
     document.getElementById('formTarea').classList.add('active');
     document.getElementById('tareaTarea').focus();
@@ -1005,12 +1024,15 @@ CONECTA CON:
   }
 
   function handleTareaDeleted(response) {
-    if (response.success) {
-      showAlert('success', '✓ Tarea eliminada exitosamente');
-      cargarTareas();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo eliminar la tarea.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Tarea eliminada exitosamente');
+    cargarTareas();
   }
 
   /**
@@ -1036,16 +1058,12 @@ CONECTA CON:
    */
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
-    
+
     const notaNum = parseFloat(nota);
-    
-    if (notaNum >= 14) {
-      return 'nota-alta';      // Verde
-    } else if (notaNum >= 11) {
-      return 'nota-media';     // Amarillo
-    } else {
-      return 'nota-baja';      // Rojo
-    }
+
+    if (notaNum >= 14) return 'nota-alta';   // Verde
+    if (notaNum >= 11) return 'nota-media';  // Amarillo
+    return 'nota-baja';                      // Rojo
   }
 
   /**
@@ -1063,6 +1081,18 @@ CONECTA CON:
    * LOG
    * ==========================================
    */
-  console.log('%c✏️ Sub-tab Tareas Cargado', 
-              'font-size: 11px; color: #667eea;');
+  console.log('%c✏️ Sub-tab Tareas Cargado', 'font-size: 11px; color: #667eea;');
+
+  /**
+   * ==========================================
+   * EXPORTS A WINDOW (solo lo necesario)
+   * ==========================================
+   */
+  window.aplicarFiltro = aplicarFiltro;
+  window.toggleFormAgregar = toggleFormAgregar;
+  window.handleSubmitTarea = handleSubmitTarea;
+  window.editarTarea = editarTarea;
+  window.confirmarEliminarTarea = confirmarEliminarTarea;
+  window.cancelarFormTarea = cancelarFormTarea;
+})();
 </script>
