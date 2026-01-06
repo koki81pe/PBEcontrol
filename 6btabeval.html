@@ -1,13 +1,23 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabeval.html - V01.17
+PBE CONTROL - 6btabeval.html - V01.18 GPT
 Sistema de Gestión Académica
-05/01/2026
+06/01/2026 - 14:00 (Perú UTC-5)
 
 DESCRIPCIÓN:
 Sub-tab de Evaluaciones con CRUD completo.
 Muestra lista de evaluaciones del estudiante con opciones
 para agregar, editar y eliminar.
+
+OBJETIVO DEL PATCH (V01.18):
+- Evitar colisión de variables globales entre subtabs (ej: cursosData)
+- Blindar handlers ante response null (evitar "Cannot read ... success")
+- Mantener HTML/CSS intactos; cambios solo en JS
+
+REGLAS TÉCNICAS:
+- [SCOPE] Todo el JS se encapsula en un módulo IIFE para no contaminar window
+- [EXPORT] Solo se exponen a window las funciones usadas en onclick/onchange/onsubmit
+- [NULL-GUARD] Nunca asumir que response existe o tiene .success
 
 FUNCIONALIDAD:
 - Cargar evaluaciones del estudiante (al iniciar)
@@ -17,14 +27,6 @@ FUNCIONALIDAD:
 - Filtrar por curso (dropdown)
 - Validación de unicidad Curso+NomEval
 
-CAMPOS DE LA EVALUACIÓN:
-- Curso: Dropdown de cursos del estudiante (FK) *obligatorio
-- NomEval: Nombre de la evaluación *obligatorio
-- FechaEval: Fecha de la evaluación (DD/MM/AAAA) *obligatorio
-- Nota: Calificación obtenida (0-20, decimal permitido) opcional
-- Peso: Peso en porcentaje (0-100) opcional
-- Sem: Número de semana opcional
-
 BACKEND:
 - studentObtenerEvaluaciones({ codeAlum })
 - studentObtenerCursos({ codeAlum }) - para dropdown
@@ -32,31 +34,10 @@ BACKEND:
 - studentActualizarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem, rowNumber })
 - studentEliminarEvaluacion({ rowNumber })
 
-VALIDACIONES BACKEND:
-- Backend valida que Curso+NomEval NO se duplique para el alumno
-- Error: "La evaluación 'Parcial 1' ya existe en MATE"
-
-VALIDACIONES FRONTEND:
-- Campos obligatorios: Curso, NomEval, FechaEval
-- Formato fecha: DD/MM/AAAA
-- Nota: 0-20 (si se especifica)
-- Peso: 0-100 (si se especifica)
-
-COLORES DINÁMICOS EN NOTA:
-- >= 14: Verde (#28a745) - Aprobado con buena nota
-- 11-13: Amarillo (#ffc107) - Aprobado justo
-- < 11: Rojo (#dc3545) - Desaprobado
-
 CONECTA CON:
 - Parent: 4btabdeberes.html (contenedor)
 - Backend: wrappers student* en 1code.gs
 - Módulo: Student en 1student.gs
-
-🔑 IMPORTANTE:
-- Curso es FK → debe existir en hoja Cursos
-- Curso+NomEval DEBE ser único por alumno
-- Nota y Peso son opcionales (se completan después de la evaluación)
-- Filtro por curso permite ver solo evaluaciones de un curso
 ******************************************
 -->
 <style>
@@ -468,7 +449,7 @@ CONECTA CON:
 <!-- CONTENEDOR DE EVALUACIONES -->
 <!-- ========================================== -->
 <div class="eval-container">
-  
+
   <!-- Header con título, filtro y botón agregar -->
   <div class="eval-header">
     <h2>📝 Mis Evaluaciones</h2>
@@ -488,11 +469,11 @@ CONECTA CON:
   <!-- Formulario para agregar/editar evaluación -->
   <div id="formEval" class="form-eval">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Evaluación</h3>
-    
+
     <form id="evalForm" onsubmit="handleSubmitEval(event)">
       <input type="hidden" id="evalRowNumber" value="">
       <input type="hidden" id="evalModoEdicion" value="false">
-      
+
       <!-- Fila 1: Curso, Nombre, Fecha -->
       <div class="form-row">
         <div class="form-group">
@@ -504,10 +485,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Nombre de la Evaluación <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="evalNomEval" 
-            placeholder="Ej: Parcial 1, Examen Final" 
+          <input
+            type="text"
+            id="evalNomEval"
+            placeholder="Ej: Parcial 1, Examen Final"
             required
           >
           <small>Nombre único por curso</small>
@@ -515,10 +496,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Fecha de Evaluación <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="evalFechaEval" 
-            placeholder="DD/MM/AAAA" 
+          <input
+            type="text"
+            id="evalFechaEval"
+            placeholder="DD/MM/AAAA"
             required
           >
         </div>
@@ -528,12 +509,12 @@ CONECTA CON:
       <div class="form-row">
         <div class="form-group">
           <label>Nota (Opcional)</label>
-          <input 
-            type="number" 
-            id="evalNota" 
-            placeholder="0 - 20" 
-            min="0" 
-            max="20" 
+          <input
+            type="number"
+            id="evalNota"
+            placeholder="0 - 20"
+            min="0"
+            max="20"
             step="0.1"
           >
           <small>Calificación obtenida (0-20)</small>
@@ -541,12 +522,12 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Peso (Opcional)</label>
-          <input 
-            type="number" 
-            id="evalPeso" 
-            placeholder="%" 
-            min="0" 
-            max="100" 
+          <input
+            type="number"
+            id="evalPeso"
+            placeholder="%"
+            min="0"
+            max="100"
             step="1"
           >
           <small>Peso en porcentaje (ej: 30)</small>
@@ -554,11 +535,11 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Semana (Opcional)</label>
-          <input 
-            type="number" 
-            id="evalSem" 
-            placeholder="Número de semana" 
-            min="1" 
+          <input
+            type="number"
+            id="evalSem"
+            placeholder="Número de semana"
+            min="1"
             step="1"
           >
           <small>Número de semana académica</small>
@@ -590,9 +571,20 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
+/**
+ * ==========================================
+ * [PBE][SCOPE] Sub-tab Evaluaciones (V01.18)
+ * - Encapsulado para evitar colisión de variables globales entre subtabs.
+ * - Exporta solo handlers usados por atributos HTML (onclick/onchange/onsubmit).
+ * - Incluye guards para response null.
+ * ==========================================
+ */
+(function PBE_EVAL_MODULE() {
+  'use strict';
+
   /**
    * ==========================================
-   * VARIABLES LOCALES
+   * VARIABLES LOCALES (ENCAPSULADAS)
    * ==========================================
    */
   let evaluacionesData = [];
@@ -628,10 +620,15 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    if (response.success) {
-      cursosData = response.data;
-      poblarDropdownCursos();
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
+      showAlert('error', 'Error al cargar cursos: ' + msg);
+      return;
     }
+
+    cursosData = response.data || [];
+    poblarDropdownCursos();
   }
 
   function poblarDropdownCursos() {
@@ -670,20 +667,23 @@ CONECTA CON:
   }
 
   function handleEvaluacionesLoaded(response) {
-    if (response.success) {
-      evaluacionesData = response.data;
-      evaluacionesFiltradas = evaluacionesData;
-      
-      // Actualizar badge en contenedor padre (si existe)
-      if (typeof updateDeberesBadge === 'function') {
-        updateDeberesBadge('eval', evaluacionesData.length);
-      }
-      
-      renderEvalTable();
-    } else {
-      showAlert('error', 'Error al cargar evaluaciones: ' + response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar las evaluaciones.';
+      showAlert('error', 'Error al cargar evaluaciones: ' + msg);
       renderEmptyState();
+      return;
     }
+
+    evaluacionesData = response.data || [];
+    evaluacionesFiltradas = evaluacionesData;
+
+    // Actualizar badge en contenedor padre (si existe)
+    if (typeof updateDeberesBadge === 'function') {
+      updateDeberesBadge('eval', evaluacionesData.length);
+    }
+
+    renderEvalTable();
   }
 
   function handleEvaluacionesError(error) {
@@ -703,8 +703,8 @@ CONECTA CON:
     if (cursoSeleccionado === '') {
       evaluacionesFiltradas = evaluacionesData;
     } else {
-      evaluacionesFiltradas = evaluacionesData.filter(function(eval) {
-        return eval.Curso === cursoSeleccionado;
+      evaluacionesFiltradas = evaluacionesData.filter(function(ev) {
+        return ev.Curso === cursoSeleccionado;
       });
     }
 
@@ -740,29 +740,29 @@ CONECTA CON:
         <tbody>
     `;
 
-    evaluacionesFiltradas.forEach(function(eval) {
-      const claseNota = obtenerClaseNota(eval.Nota);
+    evaluacionesFiltradas.forEach(function(ev) {
+      const claseNota = obtenerClaseNota(ev.Nota);
 
       html += `
         <tr>
-          <td><span class="curso-tag">${eval.Curso}</span></td>
-          <td><strong>${eval.NomEval}</strong></td>
-          <td>${eval.FechaEval}</td>
+          <td><span class="curso-tag">${ev.Curso}</span></td>
+          <td><strong>${ev.NomEval}</strong></td>
+          <td>${ev.FechaEval}</td>
           <td class="nota-cell ${claseNota}">
-            ${eval.Nota ? eval.Nota : '<span class="nota-pendiente">Pendiente</span>'}
+            ${ev.Nota ? ev.Nota : '<span class="nota-pendiente">Pendiente</span>'}
           </td>
-          <td class="peso-cell">${eval.Peso ? eval.Peso + '%' : '-'}</td>
-          <td class="sem-cell col-sem">${eval.Sem || '-'}</td>
+          <td class="peso-cell">${ev.Peso ? ev.Peso + '%' : '-'}</td>
+          <td class="sem-cell col-sem">${ev.Sem || '-'}</td>
           <td>
-            <button 
-              class="btn-icon" 
-              onclick="editarEval(${eval._rowNumber})"
+            <button
+              class="btn-icon"
+              onclick="editarEval(${ev._rowNumber})"
               title="Editar">
               ✏️
             </button>
-            <button 
-              class="btn-icon delete" 
-              onclick="confirmarEliminarEval(${eval._rowNumber}, '${eval.NomEval}')"
+            <button
+              class="btn-icon delete"
+              onclick="confirmarEliminarEval(${ev._rowNumber}, '${ev.NomEval}')"
               title="Eliminar">
               🗑️
             </button>
@@ -880,8 +880,8 @@ CONECTA CON:
     };
 
     if (esEdicion) {
-      params.rowNumber = parseInt(rowNumber);
-      
+      params.rowNumber = parseInt(rowNumber, 10);
+
       google.script.run
         .withSuccessHandler(handleEvalUpdated)
         .withFailureHandler(handleEvalError)
@@ -899,13 +899,16 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Evaluación';
 
-    if (response.success) {
-      showAlert('success', '✓ Evaluación agregada exitosamente');
-      cancelarFormEval();
-      cargarEvaluaciones();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo agregar la evaluación.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Evaluación agregada exitosamente');
+    cancelarFormEval();
+    cargarEvaluaciones();
   }
 
   function handleEvalUpdated(response) {
@@ -913,19 +916,22 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Evaluación';
 
-    if (response.success) {
-      showAlert('success', '✓ Evaluación actualizada exitosamente');
-      cancelarFormEval();
-      cargarEvaluaciones();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo actualizar la evaluación.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Evaluación actualizada exitosamente');
+    cancelarFormEval();
+    cargarEvaluaciones();
   }
 
   function handleEvalError(error) {
     console.error('Error:', error);
     showAlert('error', 'Error de conexión. Intenta nuevamente');
-    
+
     const btnSubmit = document.getElementById('btnSubmit');
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Evaluación';
@@ -937,18 +943,18 @@ CONECTA CON:
    * ==========================================
    */
   function editarEval(rowNumber) {
-    const eval = evaluacionesData.find(e => e._rowNumber === rowNumber);
-    if (!eval) return;
+    const ev = evaluacionesData.find(e => e._rowNumber === rowNumber);
+    if (!ev) return;
 
     document.getElementById('formTitle').textContent = 'Editar Evaluación';
     document.getElementById('evalRowNumber').value = rowNumber;
     document.getElementById('evalModoEdicion').value = 'true';
-    document.getElementById('evalCurso').value = eval.Curso;
-    document.getElementById('evalNomEval').value = eval.NomEval;
-    document.getElementById('evalFechaEval').value = eval.FechaEval;
-    document.getElementById('evalNota').value = eval.Nota || '';
-    document.getElementById('evalPeso').value = eval.Peso || '';
-    document.getElementById('evalSem').value = eval.Sem || '';
+    document.getElementById('evalCurso').value = ev.Curso;
+    document.getElementById('evalNomEval').value = ev.NomEval;
+    document.getElementById('evalFechaEval').value = ev.FechaEval;
+    document.getElementById('evalNota').value = ev.Nota || '';
+    document.getElementById('evalPeso').value = ev.Peso || '';
+    document.getElementById('evalSem').value = ev.Sem || '';
 
     document.getElementById('formEval').classList.add('active');
     document.getElementById('evalNomEval').focus();
@@ -973,12 +979,15 @@ CONECTA CON:
   }
 
   function handleEvalDeleted(response) {
-    if (response.success) {
-      showAlert('success', '✓ Evaluación eliminada exitosamente');
-      cargarEvaluaciones();
-    } else {
-      showAlert('error', response.error);
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo eliminar la evaluación.';
+      showAlert('error', msg);
+      return;
     }
+
+    showAlert('success', '✓ Evaluación eliminada exitosamente');
+    cargarEvaluaciones();
   }
 
   /**
@@ -1004,16 +1013,12 @@ CONECTA CON:
    */
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
-    
+
     const notaNum = parseFloat(nota);
-    
-    if (notaNum >= 14) {
-      return 'nota-alta';      // Verde
-    } else if (notaNum >= 11) {
-      return 'nota-media';     // Amarillo
-    } else {
-      return 'nota-baja';      // Rojo
-    }
+
+    if (notaNum >= 14) return 'nota-alta';      // Verde
+    if (notaNum >= 11) return 'nota-media';     // Amarillo
+    return 'nota-baja';                         // Rojo
   }
 
   /**
@@ -1031,6 +1036,18 @@ CONECTA CON:
    * LOG
    * ==========================================
    */
-  console.log('%c📝 Sub-tab Evaluaciones Cargado', 
-              'font-size: 11px; color: #667eea;');
+  console.log('%c📝 Sub-tab Evaluaciones Cargado', 'font-size: 11px; color: #667eea;');
+
+  /**
+   * ==========================================
+   * EXPORTS A WINDOW (solo lo necesario)
+   * ==========================================
+   */
+  window.aplicarFiltro = aplicarFiltro;
+  window.toggleFormAgregar = toggleFormAgregar;
+  window.handleSubmitEval = handleSubmitEval;
+  window.editarEval = editarEval;
+  window.confirmarEliminarEval = confirmarEliminarEval;
+  window.cancelarFormEval = cancelarFormEval;
+})();
 </script>
