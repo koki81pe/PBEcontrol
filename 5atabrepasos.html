@@ -1,62 +1,17 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabrepasos.html - V01.18 CLAUDE
+PBE CONTROL - 5atabrepasos.html - V01.19 GPT EXTRA
 Sistema de Gestión Académica
-05/01/2026
+06/01/2026
 
-CAMBIOS V01.18 CLAUDE:
-- CORRECCIÓN CRÍTICA: Encapsulado en IIFE para evitar colisión de variables
-- Variables renombradas: repasosData (antes cursosData colisionaba con 5atabcursos)
-- Eliminado window.addEventListener('load')
-- Inicialización directa (currentUser ya existe)
-- Funciones públicas expuestas en window.RepasosModule
-
-CAMBIOS V01.17:
-- Versión estable previa
-
-DESCRIPCIÓN:
-Sub-tab de Repasos con CRUD completo.
-Muestra lista de repasos organizados por curso con
-estados (OK/Falta) y marca visual para evaluados.
-
-FUNCIONALIDAD:
-- Cargar repasos del estudiante (al iniciar)
-- Agregar nuevo repaso (curso, tema, fechas, estado)
-- Editar repaso existente
-- Eliminar repaso (con confirmación)
-- Filtrar por curso (dropdown)
-- Marcar como evaluado (cambia fondo a rosado)
-
-CAMPOS DEL REPASO:
-- Curso: Dropdown de cursos del estudiante (FK)
-- Tema: Nombre del tema repasado
-- FechaClase: Fecha de la clase original (DD/MM/AAAA)
-- FechaRep: Fecha del repaso realizado (DD/MM/AAAA)
-- EstadoRep: Dropdown (OK, Falta)
-- Detalle: Observaciones adicionales (opcional)
-- Evaluado: "Si" o vacío - marca si fue evaluado
-
-BACKEND:
-- studentObtenerRepasos({ codeAlum })
-- studentObtenerCursos({ codeAlum }) - para dropdown
-- studentAgregarRepaso({ codeAlum, curso, tema, fechaClase, fechaRep, estadoRep, detalle, evaluado })
-- studentActualizarRepaso({ codeAlum, curso, tema, fechaClase, fechaRep, estadoRep, detalle, evaluado, rowNumber })
-- studentEliminarRepaso({ rowNumber })
-
-REGLA VISUAL CRÍTICA:
-Si Evaluado = "Si" → Fondo ROSADO (#FFE6E6)
-Esto resalta visualmente los temas que fueron evaluados.
-
-CONECTA CON:
-- Parent: 4atabcursosyrep.html (contenedor)
-- Backend: wrappers student* en 1code.gs
-- Módulo: Student en 1student.gs
-
-🔑 IMPORTANTE:
-- Curso es FK → debe existir en hoja Cursos
-- EstadoRep solo puede ser "OK" o "Falta"
-- Fondo rosado (#FFE6E6) para evaluados es crítico
-- Filtro por curso permite ver solo repasos de un curso
+PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
+- [NULL-GUARD] estandarizado: if (!response || response.success !== true) en todos los handlers
+- [ESCAPE HTML] escHtml() para render seguro (tema/detalle/curso/fechas/estado)
+- [ESCAPE onclick] escOnclickSingleQuote() para evitar romper onclick por comillas simples
+- [SANITIZE ESTADO] sanitizeEstado() para asegurar OK/Falta y CSS consistente
+- [ROWNUMBER GUARD] validación de rowNumber antes de actualizar/eliminar
+- [PARENT BADGE] updateDeberesBadge('repasos', n) si existe (coherencia con panel)
+- [INIT] idempotente y lazy-load ready (doble disparador + _initDone)
 ******************************************
 -->
 <style>
@@ -211,14 +166,8 @@ CONECTA CON:
   }
 
   @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .form-row {
@@ -418,53 +367,35 @@ CONECTA CON:
      RESPONSIVE
      ========================================== */
   @media (max-width: 768px) {
-    .repasos-container {
-      padding: 16px;
-    }
+    .repasos-container { padding: 16px; }
 
     .repasos-header {
       flex-direction: column;
       align-items: flex-start;
     }
 
-    .header-actions {
-      width: 100%;
-    }
+    .header-actions { width: 100%; }
 
     .btn-agregar,
-    .filtro-container {
-      width: 100%;
-    }
+    .filtro-container { width: 100%; }
 
     .filtro-container {
       flex-direction: column;
       align-items: flex-start;
     }
 
-    .filtro-container select {
-      width: 100%;
-    }
+    .filtro-container select { width: 100%; }
 
-    .form-row {
-      grid-template-columns: 1fr;
-    }
+    .form-row { grid-template-columns: 1fr; }
 
-    .form-actions {
-      flex-direction: column;
-    }
+    .form-actions { flex-direction: column; }
 
-    .form-actions .btn {
-      width: 100%;
-    }
+    .form-actions .btn { width: 100%; }
 
-    .repasos-table {
-      font-size: 13px;
-    }
+    .repasos-table { font-size: 13px; }
 
     .repasos-table th,
-    .repasos-table td {
-      padding: 8px;
-    }
+    .repasos-table td { padding: 8px; }
   }
 </style>
 
@@ -472,7 +403,7 @@ CONECTA CON:
 <!-- CONTENEDOR DE REPASOS -->
 <!-- ========================================== -->
 <div class="repasos-container">
-  
+
   <!-- Header con título, filtro y botón agregar -->
   <div class="repasos-header">
     <h2>🔄 Mis Repasos</h2>
@@ -492,11 +423,11 @@ CONECTA CON:
   <!-- Formulario para agregar/editar repaso -->
   <div id="formRepaso" class="form-repaso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
-    
+
     <form id="repasoForm" onsubmit="RepasosModule.handleSubmitRepaso(event)">
       <input type="hidden" id="repasoRowNumber" value="">
       <input type="hidden" id="repasoModoEdicion" value="false">
-      
+
       <div class="form-row">
         <div class="form-group">
           <label>Curso <span class="required">*</span></label>
@@ -507,10 +438,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Tema <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="repasoTema" 
-            placeholder="Ej: Funciones cuadráticas" 
+          <input
+            type="text"
+            id="repasoTema"
+            placeholder="Ej: Funciones cuadráticas"
             required
           >
         </div>
@@ -528,10 +459,10 @@ CONECTA CON:
       <div class="form-row">
         <div class="form-group">
           <label>Fecha de Clase <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="repasoFechaClase" 
-            placeholder="DD/MM/AAAA" 
+          <input
+            type="text"
+            id="repasoFechaClase"
+            placeholder="DD/MM/AAAA"
             required
           >
           <small style="color: #666; font-size: 12px;">Fecha de la clase original</small>
@@ -539,10 +470,10 @@ CONECTA CON:
 
         <div class="form-group">
           <label>Fecha de Repaso <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="repasoFechaRep" 
-            placeholder="DD/MM/AAAA" 
+          <input
+            type="text"
+            id="repasoFechaRep"
+            placeholder="DD/MM/AAAA"
             required
           >
           <small style="color: #666; font-size: 12px;">Fecha en que se repasó</small>
@@ -552,17 +483,17 @@ CONECTA CON:
       <div class="form-row">
         <div class="form-group">
           <label>Detalle (Opcional)</label>
-          <textarea 
-            id="repasoDetalle" 
+          <textarea
+            id="repasoDetalle"
             placeholder="Observaciones adicionales sobre el repaso..."
           ></textarea>
         </div>
       </div>
 
       <div class="form-group-checkbox">
-        <input 
-          type="checkbox" 
-          id="repasoEvaluado" 
+        <input
+          type="checkbox"
+          id="repasoEvaluado"
           value="Si"
         >
         <label for="repasoEvaluado">
@@ -595,47 +526,80 @@ CONECTA CON:
 <!-- JAVASCRIPT -->
 <!-- ========================================== -->
 <script>
-(function() {
+(function PBE_REPASOS_MODULE() {
   'use strict';
-  
-  /**
-   * ==========================================
-   * MÓDULO ENCAPSULADO - REPASOS
-   * ==========================================
-   * V01.18 CLAUDE:
-   * - Encapsulado en IIFE para evitar colisiones
-   * - Variables privadas (repasosData, cursosListaData)
-   * - NO colisiona con cursosData de 5atabcursos.html
-   */
 
-  // Variables privadas del módulo
+  // Estado privado del módulo
   let repasosData = [];
-  let cursosListaData = []; // ← Renombrado para evitar colisión
+  let cursosListaData = [];
   let repasosFiltrados = [];
 
+  // [INIT] Evita dobles inicializaciones si el subtab se inyecta más de una vez
+  let _initDone = false;
+
   /**
    * ==========================================
-   * INICIALIZACIÓN DIRECTA
+   * UTILIDADES DE HARDENING
+   * ========================================== */
+  function escHtml(value) {
+    const s = String(value == null ? '' : value);
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Para parámetros dentro de onclick="... 'AQUI' ..."
+  function escOnclickSingleQuote(value) {
+    const s = String(value == null ? '' : value);
+    // Escapa backslash y comilla simple (mínimo necesario para JS string literal dentro de atributo HTML)
+    return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function sanitizeEstado(value) {
+    const s = String(value == null ? '' : value).trim().toUpperCase();
+    if (s === 'OK') return 'OK';
+    if (s === 'FALTA') return 'Falta';
+    // fallback conservador
+    return 'Falta';
+  }
+
+  function toSafeRowNumber(value) {
+    const n = parseInt(String(value), 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  /**
    * ==========================================
-   */
-  function inicializar() {
-    // Verificar que currentUser existe
-    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-      console.error('✗ currentUser no está disponible');
+   * INICIALIZACIÓN (IDEMPOTENTE + LAZY LOAD READY)
+   * ========================================== */
+  function init() {
+    if (_initDone) return;
+
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.codeAlum) {
       mostrarError('Error: No se pudo identificar al usuario');
       return;
     }
-    
-    console.log('✓ currentUser disponible en Repasos:', currentUser.codeAlum);
+
+    _initDone = true;
     cargarCursos();
     cargarRepasos();
+  }
+
+  // Caso 1: carga normal (al abrir la webapp)
+  window.addEventListener('load', init);
+
+  // Caso 2: carga dinámica (cuando el HTML se inyecta después del load)
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    init();
   }
 
   /**
    * ==========================================
    * CARGAR CURSOS (para dropdown)
-   * ==========================================
-   */
+   * ========================================== */
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -644,36 +608,40 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    if (!response) {
-      console.error('Response es null en cargarCursos');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      // No bloquea la UI: el subtab puede funcionar sin dropdown completo (pero avisamos)
+      console.error('Error cargarCursos:', response);
       return;
     }
 
-    if (response.success) {
-      cursosListaData = response.data;
-      poblarDropdownCursos();
-    }
+    cursosListaData = response.data || [];
+    poblarDropdownCursos();
   }
 
   function poblarDropdownCursos() {
     const selectCurso = document.getElementById('repasoCurso');
     const selectFiltro = document.getElementById('filtroCurso');
 
-    // Limpiar opciones excepto la primera
+    if (!selectCurso || !selectFiltro) return;
+
     selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
 
     cursosListaData.forEach(function(curso) {
+      const cursoVal = String((curso && curso.Curso) || '');
+      const completoVal = String((curso && curso.Completo) || '');
+
       // Dropdown de formulario
       const option1 = document.createElement('option');
-      option1.value = curso.Curso;
-      option1.textContent = curso.Curso + ' - ' + curso.Completo;
+      option1.value = cursoVal;
+      option1.textContent = cursoVal + (completoVal ? ' - ' + completoVal : '');
       selectCurso.appendChild(option1);
 
       // Dropdown de filtro
       const option2 = document.createElement('option');
-      option2.value = curso.Curso;
-      option2.textContent = curso.Curso + ' - ' + curso.Completo;
+      option2.value = cursoVal;
+      option2.textContent = cursoVal + (completoVal ? ' - ' + completoVal : '');
       selectFiltro.appendChild(option2);
     });
   }
@@ -681,8 +649,7 @@ CONECTA CON:
   /**
    * ==========================================
    * CARGAR REPASOS
-   * ==========================================
-   */
+   * ========================================== */
   function cargarRepasos() {
     google.script.run
       .withSuccessHandler(handleRepasosLoaded)
@@ -691,21 +658,23 @@ CONECTA CON:
   }
 
   function handleRepasosLoaded(response) {
-    if (!response) {
-      console.error('Response es null en cargarRepasos');
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudieron cargar los repasos.';
+      mostrarError('Error al cargar repasos: ' + msg);
       renderEmptyState();
       return;
     }
 
-    if (response.success) {
-      repasosData = response.data;
-      repasosFiltrados = repasosData;
-      renderRepasosTable();
-    } else {
-      mostrarError('Error al cargar repasos: ' + response.error);
-      renderEmptyState();
+    repasosData = response.data || [];
+    repasosFiltrados = repasosData;
+
+    // [PARENT BADGE] Notificar al contenedor padre (si existe)
+    if (typeof updateDeberesBadge === 'function') {
+      updateDeberesBadge('repasos', repasosData.length);
     }
+
+    renderRepasosTable();
   }
 
   function handleRepasosError(error) {
@@ -717,16 +686,16 @@ CONECTA CON:
   /**
    * ==========================================
    * APLICAR FILTRO
-   * ==========================================
-   */
+   * ========================================== */
   function aplicarFiltro() {
-    const cursoSeleccionado = document.getElementById('filtroCurso').value;
+    const el = document.getElementById('filtroCurso');
+    const cursoSeleccionado = el ? el.value : '';
 
-    if (cursoSeleccionado === '') {
+    if (!cursoSeleccionado) {
       repasosFiltrados = repasosData;
     } else {
-      repasosFiltrados = repasosData.filter(function(repaso) {
-        return repaso.Curso === cursoSeleccionado;
+      repasosFiltrados = (repasosData || []).filter(function(repaso) {
+        return String((repaso && repaso.Curso) || '') === String(cursoSeleccionado);
       });
     }
 
@@ -736,12 +705,12 @@ CONECTA CON:
   /**
    * ==========================================
    * RENDERIZAR TABLA
-   * ==========================================
-   */
+   * ========================================== */
   function renderRepasosTable() {
     const container = document.getElementById('repasosTableContainer');
+    if (!container) return;
 
-    if (repasosFiltrados.length === 0) {
+    if (!repasosFiltrados || repasosFiltrados.length === 0) {
       renderEmptyState();
       return;
     }
@@ -763,29 +732,43 @@ CONECTA CON:
     `;
 
     repasosFiltrados.forEach(function(repaso) {
-      // ⚠️ CRÍTICO: Clase "evaluado" para fondo rosado
-      const claseEvaluado = repaso.Evaluado === 'Si' ? 'evaluado' : '';
-      const badgeEvaluado = repaso.Evaluado === 'Si' ? '<span class="badge badge-evaluado">EVALUADO</span>' : '';
-      const estadoBadge = repaso.EstadoRep === 'OK' ? 'badge-ok' : 'badge-falta';
+      const curso = escHtml((repaso && repaso.Curso) || '');
+      const tema = escHtml((repaso && repaso.Tema) || '');
+      const fechaClase = escHtml((repaso && repaso.FechaClase) || '');
+      const fechaRep = escHtml((repaso && repaso.FechaRep) || '');
+      const detalle = escHtml((repaso && repaso.Detalle) || '-') || '-';
+
+      const evaluado = String((repaso && repaso.Evaluado) || '') === 'Si';
+      const claseEvaluado = evaluado ? 'evaluado' : '';
+      const badgeEvaluado = evaluado ? '<span class="badge badge-evaluado">EVALUADO</span>' : '';
+
+      const estado = sanitizeEstado((repaso && repaso.EstadoRep) || '');
+      const estadoBadge = estado === 'OK' ? 'badge-ok' : 'badge-falta';
+
+      const rowNumber = toSafeRowNumber(repaso && repaso._rowNumber);
+      const rowNumberSafe = rowNumber != null ? rowNumber : -1;
+
+      // Para confirm() en onclick con comillas simples
+      const temaOnclickSafe = escOnclickSingleQuote((repaso && repaso.Tema) || '');
 
       html += `
         <tr class="${claseEvaluado}">
-          <td><strong>${repaso.Curso}</strong></td>
-          <td>${repaso.Tema}${badgeEvaluado}</td>
-          <td>${repaso.FechaClase}</td>
-          <td>${repaso.FechaRep}</td>
-          <td><span class="badge ${estadoBadge}">${repaso.EstadoRep}</span></td>
-          <td>${repaso.Detalle || '-'}</td>
+          <td><strong>${curso}</strong></td>
+          <td>${tema}${badgeEvaluado}</td>
+          <td>${fechaClase}</td>
+          <td>${fechaRep}</td>
+          <td><span class="badge ${estadoBadge}">${escHtml(estado)}</span></td>
+          <td>${detalle}</td>
           <td>
-            <button 
-              class="btn-icon" 
-              onclick="RepasosModule.editarRepaso(${repaso._rowNumber})"
+            <button
+              class="btn-icon"
+              onclick="RepasosModule.editarRepaso(${rowNumberSafe})"
               title="Editar">
               ✏️
             </button>
-            <button 
-              class="btn-icon delete" 
-              onclick="RepasosModule.confirmarEliminarRepaso(${repaso._rowNumber}, '${repaso.Tema}')"
+            <button
+              class="btn-icon delete"
+              onclick="RepasosModule.confirmarEliminarRepaso(${rowNumberSafe}, '${temaOnclickSafe}')"
               title="Eliminar">
               🗑️
             </button>
@@ -804,7 +787,10 @@ CONECTA CON:
 
   function renderEmptyState() {
     const container = document.getElementById('repasosTableContainer');
-    const filtroActivo = document.getElementById('filtroCurso').value !== '';
+    if (!container) return;
+
+    const filtroEl = document.getElementById('filtroCurso');
+    const filtroActivo = filtroEl ? (filtroEl.value !== '') : false;
 
     if (filtroActivo) {
       container.innerHTML = `
@@ -831,18 +817,21 @@ CONECTA CON:
   /**
    * ==========================================
    * TOGGLE FORMULARIO
-   * ==========================================
-   */
+   * ========================================== */
   function toggleFormAgregar() {
     const form = document.getElementById('formRepaso');
+    if (!form) return;
+
     const isActive = form.classList.contains('active');
 
     if (isActive) {
       form.classList.remove('active');
     } else {
       resetFormRepaso();
-      document.getElementById('formTitle').textContent = 'Agregar Nuevo Repaso';
-      document.getElementById('repasoModoEdicion').value = 'false';
+      const titleEl = document.getElementById('formTitle');
+      if (titleEl) titleEl.textContent = 'Agregar Nuevo Repaso';
+      const modoEl = document.getElementById('repasoModoEdicion');
+      if (modoEl) modoEl.value = 'false';
       form.classList.add('active');
     }
   }
@@ -850,20 +839,24 @@ CONECTA CON:
   /**
    * ==========================================
    * SUBMIT FORMULARIO
-   * ==========================================
-   */
+   * ========================================== */
   function handleSubmitRepaso(event) {
     event.preventDefault();
 
-    const curso = document.getElementById('repasoCurso').value;
-    const tema = document.getElementById('repasoTema').value.trim();
-    const fechaClase = document.getElementById('repasoFechaClase').value.trim();
-    const fechaRep = document.getElementById('repasoFechaRep').value.trim();
-    const estadoRep = document.getElementById('repasoEstadoRep').value;
-    const detalle = document.getElementById('repasoDetalle').value.trim();
-    const evaluado = document.getElementById('repasoEvaluado').checked ? 'Si' : '';
-    const rowNumber = document.getElementById('repasoRowNumber').value;
-    const esEdicion = document.getElementById('repasoModoEdicion').value === 'true';
+    const curso = document.getElementById('repasoCurso') ? document.getElementById('repasoCurso').value : '';
+    const temaRaw = document.getElementById('repasoTema') ? document.getElementById('repasoTema').value : '';
+    const fechaClaseRaw = document.getElementById('repasoFechaClase') ? document.getElementById('repasoFechaClase').value : '';
+    const fechaRepRaw = document.getElementById('repasoFechaRep') ? document.getElementById('repasoFechaRep').value : '';
+    const estadoRep = document.getElementById('repasoEstadoRep') ? document.getElementById('repasoEstadoRep').value : '';
+    const detalleRaw = document.getElementById('repasoDetalle') ? document.getElementById('repasoDetalle').value : '';
+    const evaluado = document.getElementById('repasoEvaluado') ? (document.getElementById('repasoEvaluado').checked ? 'Si' : '') : '';
+    const rowNumberStr = document.getElementById('repasoRowNumber') ? document.getElementById('repasoRowNumber').value : '';
+    const esEdicion = document.getElementById('repasoModoEdicion') ? (document.getElementById('repasoModoEdicion').value === 'true') : false;
+
+    const tema = String(temaRaw || '').trim();
+    const fechaClase = String(fechaClaseRaw || '').trim();
+    const fechaRep = String(fechaRepRaw || '').trim();
+    const detalle = String(detalleRaw || '').trim();
 
     if (!curso || !tema || !fechaClase || !fechaRep || !estadoRep) {
       mostrarError('Completa todos los campos obligatorios');
@@ -877,8 +870,10 @@ CONECTA CON:
     }
 
     const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+    }
 
     const params = {
       codeAlum: currentUser.codeAlum,
@@ -892,8 +887,19 @@ CONECTA CON:
     };
 
     if (esEdicion) {
-      params.rowNumber = parseInt(rowNumber);
-      
+      const rn = toSafeRowNumber(rowNumberStr);
+      // [ROWNUMBER GUARD]
+      if (rn == null) {
+        mostrarError('Error: No se pudo identificar la fila a actualizar (rowNumber inválido).');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Guardar Repaso';
+        }
+        return;
+      }
+
+      params.rowNumber = rn;
+
       google.script.run
         .withSuccessHandler(handleRepasoUpdated)
         .withFailureHandler(handleRepasoError)
@@ -908,138 +914,167 @@ CONECTA CON:
 
   function handleRepasoAdded(response) {
     const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Repaso';
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Guardar Repaso';
+    }
 
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo agregar el repaso.';
+      mostrarError(msg);
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Repaso agregado exitosamente');
-      cancelarFormRepaso();
-      cargarRepasos();
-    } else {
-      mostrarError(response.error);
-    }
+    mostrarExito('✓ Repaso agregado exitosamente');
+    cancelarFormRepaso();
+    cargarRepasos();
   }
 
   function handleRepasoUpdated(response) {
     const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Repaso';
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Guardar Repaso';
+    }
 
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo actualizar el repaso.';
+      mostrarError(msg);
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Repaso actualizado exitosamente');
-      cancelarFormRepaso();
-      cargarRepasos();
-    } else {
-      mostrarError(response.error);
-    }
+    mostrarExito('✓ Repaso actualizado exitosamente');
+    cancelarFormRepaso();
+    cargarRepasos();
   }
 
   function handleRepasoError(error) {
     console.error('Error:', error);
     mostrarError('Error de conexión. Intenta nuevamente');
-    
+
     const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Repaso';
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Guardar Repaso';
+    }
   }
 
   /**
    * ==========================================
    * EDITAR REPASO
-   * ==========================================
-   */
+   * ========================================== */
   function editarRepaso(rowNumber) {
-    const repaso = repasosData.find(r => r._rowNumber === rowNumber);
+    const rn = toSafeRowNumber(rowNumber);
+    if (rn == null) {
+      mostrarError('Error: rowNumber inválido para editar.');
+      return;
+    }
+
+    const repaso = (repasosData || []).find(r => toSafeRowNumber(r && r._rowNumber) === rn);
     if (!repaso) return;
 
-    document.getElementById('formTitle').textContent = 'Editar Repaso';
-    document.getElementById('repasoRowNumber').value = rowNumber;
-    document.getElementById('repasoModoEdicion').value = 'true';
-    document.getElementById('repasoCurso').value = repaso.Curso;
-    document.getElementById('repasoTema').value = repaso.Tema;
-    document.getElementById('repasoFechaClase').value = repaso.FechaClase;
-    document.getElementById('repasoFechaRep').value = repaso.FechaRep;
-    document.getElementById('repasoEstadoRep').value = repaso.EstadoRep;
-    document.getElementById('repasoDetalle').value = repaso.Detalle || '';
-    document.getElementById('repasoEvaluado').checked = repaso.Evaluado === 'Si';
+    const titleEl = document.getElementById('formTitle');
+    if (titleEl) titleEl.textContent = 'Editar Repaso';
 
-    document.getElementById('formRepaso').classList.add('active');
-    document.getElementById('repasoTema').focus();
+    document.getElementById('repasoRowNumber').value = rn;
+    document.getElementById('repasoModoEdicion').value = 'true';
+    document.getElementById('repasoCurso').value = repaso.Curso || '';
+    document.getElementById('repasoTema').value = repaso.Tema || '';
+    document.getElementById('repasoFechaClase').value = repaso.FechaClase || '';
+    document.getElementById('repasoFechaRep').value = repaso.FechaRep || '';
+    document.getElementById('repasoEstadoRep').value = repaso.EstadoRep || '';
+    document.getElementById('repasoDetalle').value = repaso.Detalle || '';
+    document.getElementById('repasoEvaluado').checked = String(repaso.Evaluado || '') === 'Si';
+
+    const form = document.getElementById('formRepaso');
+    if (form) form.classList.add('active');
+
+    const temaEl = document.getElementById('repasoTema');
+    if (temaEl) temaEl.focus();
   }
 
   /**
    * ==========================================
    * ELIMINAR REPASO
-   * ==========================================
-   */
+   * ========================================== */
   function confirmarEliminarRepaso(rowNumber, tema) {
-    if (confirm('¿Eliminar el repaso "' + tema + '"?\n\nEsta acción no se puede deshacer.')) {
-      eliminarRepaso(rowNumber);
+    const rn = toSafeRowNumber(rowNumber);
+    // [ROWNUMBER GUARD]
+    if (rn == null) {
+      mostrarError('Error: rowNumber inválido para eliminar.');
+      return;
+    }
+
+    const temaMsg = String(tema == null ? '' : tema);
+    if (confirm('¿Eliminar el repaso "' + temaMsg + '"?\n\nEsta acción no se puede deshacer.')) {
+      eliminarRepaso(rn);
     }
   }
 
   function eliminarRepaso(rowNumber) {
-    google.script.run
-      .withSuccessHandler(handleRepasoDeleted)
-      .withFailureHandler(handleRepasoError)
-      .studentEliminarRepaso({ rowNumber: rowNumber });
-  }
-
-  function handleRepasoDeleted(response) {
-    if (!response) {
-      mostrarError('Error: No se recibió respuesta del servidor');
+    const rn = toSafeRowNumber(rowNumber);
+    // [ROWNUMBER GUARD]
+    if (rn == null) {
+      mostrarError('Error: rowNumber inválido para eliminar.');
       return;
     }
 
-    if (response.success) {
-      mostrarExito('✓ Repaso eliminado exitosamente');
-      cargarRepasos();
-    } else {
-      mostrarError(response.error);
+    google.script.run
+      .withSuccessHandler(handleRepasoDeleted)
+      .withFailureHandler(handleRepasoError)
+      .studentEliminarRepaso({ rowNumber: rn });
+  }
+
+  function handleRepasoDeleted(response) {
+    // [PBE][NULL-GUARD]
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo eliminar el repaso.';
+      mostrarError(msg);
+      return;
     }
+
+    mostrarExito('✓ Repaso eliminado exitosamente');
+    cargarRepasos();
   }
 
   /**
    * ==========================================
    * RESET Y CANCELAR FORMULARIO
-   * ==========================================
-   */
+   * ========================================== */
   function resetFormRepaso() {
-    document.getElementById('repasoForm').reset();
-    document.getElementById('repasoRowNumber').value = '';
-    document.getElementById('repasoModoEdicion').value = 'false';
-    document.getElementById('repasoEvaluado').checked = false;
+    const form = document.getElementById('repasoForm');
+    if (form) form.reset();
+
+    const rn = document.getElementById('repasoRowNumber');
+    if (rn) rn.value = '';
+
+    const modo = document.getElementById('repasoModoEdicion');
+    if (modo) modo.value = 'false';
+
+    const evalEl = document.getElementById('repasoEvaluado');
+    if (evalEl) evalEl.checked = false;
   }
 
   function cancelarFormRepaso() {
-    document.getElementById('formRepaso').classList.remove('active');
+    const form = document.getElementById('formRepaso');
+    if (form) form.classList.remove('active');
     resetFormRepaso();
   }
 
   /**
    * ==========================================
    * UTILIDADES
-   * ==========================================
-   */
+   * ========================================== */
   function handleError(error) {
     console.error('Error:', error);
     mostrarError('Error de conexión');
   }
 
   function validarFecha(fecha) {
-    // Valida formato DD/MM/AAAA
     const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-    return regex.test(fecha);
+    return regex.test(String(fecha || '').trim());
   }
 
   function mostrarExito(mensaje) {
@@ -1061,8 +1096,7 @@ CONECTA CON:
   /**
    * ==========================================
    * API PÚBLICA DEL MÓDULO
-   * ==========================================
-   */
+   * ========================================== */
   window.RepasosModule = {
     aplicarFiltro: aplicarFiltro,
     toggleFormAgregar: toggleFormAgregar,
@@ -1072,15 +1106,6 @@ CONECTA CON:
     cancelarFormRepaso: cancelarFormRepaso
   };
 
-  /**
-   * ==========================================
-   * INICIAR AL CARGAR EL SCRIPT
-   * ==========================================
-   */
-  inicializar();
-
-  console.log('%c🔄 Sub-tab Repasos V01.18 CLAUDE Cargado', 
-              'font-size: 11px; color: #667eea;');
-
+  console.log('%c🔄 Sub-tab Repasos V01.19 GPT EXTRA Cargado', 'font-size: 11px; color: #667eea;');
 })();
 </script>
