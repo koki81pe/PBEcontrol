@@ -1,8 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.18 CLAUDE
+PBE CONTROL - 5atabcursos.html - V01.19 CLAUDE
 Sistema de Gestión Académica
 05/01/2026
+
+CAMBIOS V01.19 CLAUDE:
+- CORRECCIÓN CRÍTICA: Eliminado setTimeout innecesario
+- currentUser ahora se inicializa ANTES en 3panelstudent.html (V01.19)
+- Simplificación: inicializar() ahora llama directamente a cargarCursos()
+- MANTIENE: IIFE para encapsulación y evitar colisiones
 
 CAMBIOS V01.18 CLAUDE:
 - CORRECCIÓN: Eliminado window.addEventListener('load')
@@ -434,49 +440,40 @@ CONECTA CON:
    * ==========================================
    * MÓDULO ENCAPSULADO - CURSOS
    * ==========================================
-   * CORRECCIÓN V01.18 CLAUDE:
-   * - Encapsulado en IIFE para evitar colisiones
-   * - Variables privadas (cursosData, modoEdicion)
-   * - Funciones públicas expuestas en CursosModule
+   * V01.19 CLAUDE:
+   * - MANTIENE encapsulación IIFE (evita colisiones)
+   * - ELIMINA setTimeout innecesario
+   * - currentUser YA existe cuando este script se ejecuta
    */
 
   // Variables privadas del módulo
   let cursosData = [];
   let modoEdicion = false;
-  let intentosEspera = 0;
-  const MAX_INTENTOS = 20; // 20 intentos = 2 segundos máximo
 
   /**
    * ==========================================
-   * INICIALIZACIÓN CON ESPERA SIMPLE
+   * INICIALIZACIÓN DIRECTA
    * ==========================================
-   * CORRECCIÓN V01.18 CLAUDE:
-   * Patrón simple de espera para currentUser
-   * No usa window.load, sino setTimeout recursivo
+   * V01.19 CLAUDE:
+   * Ya NO necesitamos setTimeout porque currentUser
+   * se inicializa ANTES en 3panelstudent.html (V01.19)
    */
   function inicializar() {
-    // Verificar si currentUser está disponible
-    if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
-      console.log('✓ currentUser disponible:', currentUser.codeAlum);
-      cargarCursos();
-    } else {
-      // Esperar un poco más y reintentar
-      intentosEspera++;
-      
-      if (intentosEspera < MAX_INTENTOS) {
-        setTimeout(inicializar, 100); // Reintentar cada 100ms
-      } else {
-        console.error('✗ currentUser no se inicializó a tiempo');
-        mostrarError('No se pudo identificar al usuario. Recarga la página.');
-      }
+    // Verificar que currentUser existe
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+      console.error('✗ currentUser no está disponible');
+      mostrarError('Error: No se pudo identificar al usuario');
+      return;
     }
+    
+    console.log('✓ currentUser disponible:', currentUser.codeAlum);
+    cargarCursos();
   }
 
   /**
    * ==========================================
-   * CARGAR CURSOS - SIMPLE
+   * CARGAR CURSOS
    * ==========================================
-   * Busca con codeAlum → Muestra datos
    */
   function cargarCursos() {
     google.script.run
@@ -486,7 +483,7 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    // CORRECCIÓN V01.18 CLAUDE: Validar response null
+    // Validar response null
     if (!response) {
       console.error('Response es null');
       mostrarError('Error: No se recibió respuesta del servidor');
@@ -651,7 +648,6 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
-    // CORRECCIÓN V01.18 CLAUDE: Validar response null
     if (!response) {
       mostrarError('Error: No se recibió respuesta del servidor');
       return;
@@ -671,7 +667,6 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Curso';
 
-    // CORRECCIÓN V01.18 CLAUDE: Validar response null
     if (!response) {
       mostrarError('Error: No se recibió respuesta del servidor');
       return;
@@ -734,7 +729,6 @@ CONECTA CON:
   }
 
   function handleCursoDeleted(response) {
-    // CORRECCIÓN V01.18 CLAUDE: Validar response null
     if (!response) {
       mostrarError('Error: No se recibió respuesta del servidor');
       return;
@@ -790,6 +784,7 @@ CONECTA CON:
    * ==========================================
    * API PÚBLICA DEL MÓDULO
    * ==========================================
+   * Expone funciones necesarias para onclick del HTML
    */
   window.CursosModule = {
     toggleFormAgregar: toggleFormAgregar,
@@ -806,7 +801,7 @@ CONECTA CON:
    */
   inicializar();
 
-  console.log('%c📚 Sub-tab Cursos V01.18 CLAUDE Cargado', 
+  console.log('%c📚 Sub-tab Cursos V01.19 CLAUDE Cargado', 
               'font-size: 11px; color: #667eea;');
 
 })();
