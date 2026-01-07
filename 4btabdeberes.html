@@ -1,8 +1,8 @@
 <!--
 ******************************************
-PBE CONTROL - 4btabdeberes.html - V01.17
+PBE CONTROL - 4btabdeberes.html - V01.18 CLAUDE
 Sistema de Gestión Académica
-04/01/2026
+07/01/2026
 
 DESCRIPCIÓN:
 Contenedor para los sub-tabs de Deberes.
@@ -51,6 +51,12 @@ FUNCIONES GLOBALES DISPONIBLES:
 - Cada sub-tab es independiente
 - Vista "Todos" unifica las otras 3 vistas
 - Lecturas muestran barra de progreso (PagActual/CantPag)
+
+🔧 CAMBIOS V01.18 CLAUDE:
+- FIX: Corregidos selectores (eliminado #tab-deberes inexistente)
+- FIX: Agregada activación directa de módulos (LecturasModule, TareasModule, etc.)
+- FIX: Patrón igual que 4atabcursosyrep.html para consistencia
+- MEJORA: Lazy-init de módulos solo en primera activación
 ******************************************
 -->
 <style>
@@ -217,17 +223,31 @@ FUNCIONES GLOBALES DISPONIBLES:
 <script>
   /**
    * ==========================================
+   * CONTROL DE LAZY-INIT PARA MÓDULOS
+   * ==========================================
+   */
+  var deberesSubtabsLoaded = {
+    todos: false,
+    eval: false,
+    tareas: false,
+    lecturas: false
+  };
+
+  /**
+   * ==========================================
    * NAVEGACIÓN ENTRE SUB-TABS DEBERES
    * ==========================================
    */
   function switchSubTabDeberes(subTabName) {
+    console.log('[4btabdeberes] 🔄 switchSubTabDeberes llamada con:', subTabName);
+
     // Ocultar todos los sub-tabs
-    document.querySelectorAll('#tab-deberes .subtab-content').forEach(function(content) {
+    document.querySelectorAll('.subtab-content').forEach(function(content) {
       content.classList.remove('active');
     });
 
     // Desactivar todos los botones
-    document.querySelectorAll('#tab-deberes .subtab-btn').forEach(function(btn) {
+    document.querySelectorAll('.subtab-btn').forEach(function(btn) {
       btn.classList.remove('active');
     });
 
@@ -235,15 +255,46 @@ FUNCIONES GLOBALES DISPONIBLES:
     const selectedTab = document.getElementById('subtab-' + subTabName);
     if (selectedTab) {
       selectedTab.classList.add('active');
+      console.log('[4btabdeberes] ✅ Sub-tab activado:', subTabName);
+    } else {
+      console.error('[4btabdeberes] ❌ No se encontró elemento: subtab-' + subTabName);
     }
 
     // Activar botón correspondiente
     const selectedBtn = document.getElementById('btn-subtab-' + subTabName);
     if (selectedBtn) {
       selectedBtn.classList.add('active');
+    } else {
+      console.error('[4btabdeberes] ❌ No se encontró botón: btn-subtab-' + subTabName);
     }
 
     console.log('Sub-tab Deberes cambiado a:', subTabName);
+
+    // ==========================================
+    // ACTIVACIÓN DIRECTA DE MÓDULOS (LAZY-INIT)
+    // ==========================================
+    // Solo inicializar el módulo la PRIMERA vez que se activa el sub-tab
+    if (!deberesSubtabsLoaded[subTabName]) {
+      deberesSubtabsLoaded[subTabName] = true;
+
+      if (subTabName === 'lecturas' && window.LecturasModule) {
+        console.log('[4btabdeberes] 📖 Inicializando LecturasModule...');
+        window.LecturasModule.init();
+      } else if (subTabName === 'tareas' && window.TareasModule) {
+        console.log('[4btabdeberes] ✏️ Inicializando TareasModule...');
+        window.TareasModule.init();
+      } else if (subTabName === 'eval' && window.EvalModule) {
+        console.log('[4btabdeberes] 📝 Inicializando EvalModule...');
+        window.EvalModule.init();
+      } else if (subTabName === 'todos' && window.TodosModule) {
+        console.log('[4btabdeberes] 📋 Inicializando TodosModule...');
+        window.TodosModule.init();
+      } else {
+        console.warn('[4btabdeberes] ⚠️ Módulo no encontrado para:', subTabName);
+      }
+    } else {
+      console.log('[4btabdeberes] ℹ️ Módulo ya inicializado:', subTabName);
+    }
   }
 
   /**
@@ -365,12 +416,23 @@ FUNCIONES GLOBALES DISPONIBLES:
 
   /**
    * ==========================================
+   * AUTO-ACTIVAR SUB-TAB POR DEFECTO
+   * ==========================================
+   */
+  setTimeout(function() {
+    console.log('[4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos');
+    switchSubTabDeberes('todos');
+  }, 100);
+
+  /**
+   * ==========================================
    * LOG DE DEPURACIÓN
    * ==========================================
    */
-  console.log('%c📝 Tab Deberes Cargado', 
+  console.log('%c📝 Tab Deberes Cargado [V01.18 CLAUDE]', 
               'font-size: 12px; font-weight: bold; color: #667eea;');
   console.log('Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas');
   console.log('Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha');
   console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+  console.log('Lazy-init habilitado para todos los sub-tabs');
 </script>
