@@ -1,8 +1,13 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabtodos.html - V01.19 CLAUDE
+PBE CONTROL - 6btabtodos.html - V01.20 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
+
+CAMBIOS V01.20 CLAUDE:
+✅ FIX CRÍTICO: Filtro ahora acepta '', 'todos', o null como "mostrar todo"
+✅ FIX: Mismo patrón que Lecturas - resuelve "0 de 9 filtrados"
+✅ Aplica a filtroTipo, filtroCurso y filtroFecha
 
 CAMBIOS V01.19 CLAUDE:
 ✅ FIX CRÍTICO: Retry logic robusto (5 intentos, 200ms)
@@ -762,6 +767,9 @@ DEPENDENCIAS:
         console.log('📋 Tabla renderizada con', state.deberesFiltrados.length, 'deberes');
       }
 
+      // ==========================================
+      // V01.20 CLAUDE: FILTROS CON FIX CRÍTICO
+      // ==========================================
       function aplicarFiltros() {
         const filtroTipoEl = document.getElementById('filtroTipo');
         const filtroCursoEl = document.getElementById('filtroCurso');
@@ -774,10 +782,11 @@ DEPENDENCIAS:
         console.log('📋 Aplicando filtros - Tipo:', filtroTipo, 'Curso:', filtroCurso, 'Fecha:', filtroFecha);
 
         state.deberesFiltrados = state.todosLosDeberes.filter(deber => {
-          if (filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
-          if (filtroCurso !== 'todos' && deber.curso !== filtroCurso) return false;
+          // ✅ FIX V01.20: Acepta '', 'todos', o null como "mostrar todo"
+          if (filtroTipo && filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
+          if (filtroCurso && filtroCurso !== 'todos' && deber.curso !== filtroCurso) return false;
 
-          if (filtroFecha !== 'todos') {
+          if (filtroFecha && filtroFecha !== 'todos') {
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
@@ -897,7 +906,7 @@ DEPENDENCIAS:
         }
       }, 150);
 
-      console.log('%c📋 TodosModule V01.19 CLAUDE cargado',
+      console.log('%c📋 TodosModule V01.20 CLAUDE cargado',
         'font-size:11px;color:#667eea;font-weight:bold');
 
     })();
