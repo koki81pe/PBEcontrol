@@ -1,8 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 6btablecturas.html - V01.19 CLAUDE
+PBE CONTROL - 6btablecturas.html - V01.20 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
+
+CAMBIOS V01.20 CLAUDE:
+✅ FIX CRÍTICO: Filtro ahora acepta '', 'todos', o null como "mostrar todo"
+✅ FIX: Lógica más robusta para filtro por defecto
+✅ Resuelve bug donde lecturas no se mostraban (0 de 2 filtradas)
+✅ Agregada función inicializar() al API pública (window.LecturasModule.inicializar)
 
 CAMBIOS V01.19 CLAUDE:
 ✅ FIX CRÍTICO: Agregado retry logic (5 intentos)
@@ -628,18 +634,23 @@ BACKEND:
     }
 
     // ========================================
-    // FILTRO
+    // FILTRO - V01.20 CLAUDE: FIX CRÍTICO
     // ========================================
     function aplicarFiltro() {
       const filtroSelect = document.getElementById('filtroCurso');
-      const filtroCurso = filtroSelect ? filtroSelect.value : 'todos';
+      const filtroCurso = filtroSelect ? filtroSelect.value : '';
 
-      if (filtroCurso === 'todos') {
+      console.log('📖 Aplicando filtro. Valor actual:', filtroCurso);
+
+      // ✅ FIX V01.20: Acepta '', 'todos', o null como "mostrar todo"
+      if (!filtroCurso || filtroCurso === 'todos' || filtroCurso === '') {
         lecturasFiltradas = lecturasData;
+        console.log('📖 Mostrando TODAS las lecturas:', lecturasData.length);
       } else {
         lecturasFiltradas = lecturasData.filter(function(lectura) {
           return String(lectura && lectura.Curso ? lectura.Curso : '') === String(filtroCurso);
         });
+        console.log('📖 Filtradas por curso "' + filtroCurso + '":', lecturasFiltradas.length);
       }
 
       console.log('📖 Filtradas:', lecturasFiltradas.length, 'de', lecturasData.length);
@@ -667,7 +678,7 @@ BACKEND:
         const text = estadoVacio.querySelector('.estado-vacio-text');
         const sub = estadoVacio.querySelector('.estado-vacio-subtext');
 
-        if (filtroCurso !== 'todos') {
+        if (filtroCurso && filtroCurso !== 'todos' && filtroCurso !== '') {
           if (icon) icon.textContent = '🔍';
           if (text) text.textContent = 'No hay lecturas para el curso seleccionado';
           if (sub) sub.textContent = 'Prueba otro curso o vuelve a "Todos los cursos".';
@@ -1148,6 +1159,7 @@ BACKEND:
     // API pública
     // ========================================
     window.LecturasModule = {
+      inicializar: inicializar,
       aplicarFiltro: aplicarFiltro,
       toggleFormAgregar: toggleFormAgregar,
       handleSubmitLectura: handleSubmitLectura,
@@ -1170,7 +1182,7 @@ BACKEND:
       }
     }, 150);
 
-    console.log('%c📖 LecturasModule V01.19 CLAUDE cargado',
+    console.log('%c📖 LecturasModule V01.20 CLAUDE cargado',
       'font-size:11px;color:#667eea;font-weight:bold');
 
   })();
