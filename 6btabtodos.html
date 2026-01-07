@@ -1,8 +1,22 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabtodos.html - V01.18
+PBE CONTROL - 6btabtodos.html - V01.19 CLAUDE
 Sistema de Gestión Académica
-06/01/2026
+07/01/2026
+
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: Retry logic robusto (5 intentos, 200ms)
+✅ FIX CRÍTICO: Auto-init con setTimeout(150ms) en lugar de DOMContentLoaded
+✅ FIX CRÍTICO: Init tracking con _initDone para evitar reinicialización
+✅ FIX: API pública expone inicializar() para llamada desde padre
+✅ MEJORA: Logs exhaustivos con prefijo 📋 para debugging
+✅ Compatible con patrón de Lecturas y Cursos
+
+CAMBIOS V01.18:
+- Encapsulado en IIFE
+- API pública única: window.TodosModule
+- CSS scopeado para evitar colisiones
+- Fallbacks definidos solo si no existen globalmente
 
 DESCRIPCIÓN:
 Sub-tab "Todos" (vista unificada) que consolida Evaluaciones, Tareas y Lecturas
@@ -26,15 +40,10 @@ DEPENDENCIAS:
 - Opcional: showAlert(type, message) (fallback local)
 - Opcional: parseFechaDD_MM_AAAA(fechaStr) (fallback local)
 
-ENCAPSULADO / ANTICOLISIÓN (V01.18):
-- Todas las funciones y variables quedan dentro de TodosModule
-- Handlers inline llaman a TodosModule.*
-- CSS scopeado bajo .todos-container para reducir colisión con otros sub-tabs
-- Fallbacks definidos solo si no existen globalmente
-
 🔑 IMPORTANTE:
 - Validar currentUser antes de operar
 - Mostrar errores de forma amigable
+- Usar retry logic para timing de inicialización
 ******************************************
 -->
 <!DOCTYPE html>
@@ -205,6 +214,11 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
     }
 
     .todos-container .badge-evaluacion {
+      background: #fee;
+      color: #dc3545;
+    }
+
+    .todos-container .badge-evaluación {
       background: #fee;
       color: #dc3545;
     }
@@ -540,8 +554,49 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
       const state = {
         todosLosDeberes: [],
-        deberesFiltrados: []
+        deberesFiltrados: [],
+        _initDone: false,
+        _retryCount: 0
       };
+
+      const MAX_RETRIES = 5;
+
+      // ==========================================
+      // V01.19 CLAUDE: INIT CON RETRY LOGIC
+      // ==========================================
+      function inicializar() {
+        console.log('📋 TodosModule.inicializar() llamado (intento ' + (state._retryCount + 1) + ')');
+
+        if (state._initDone) {
+          console.log('📋 TodosModule ya inicializado, ignorando');
+          return;
+        }
+
+        // Validación con retry
+        if (typeof currentUser === 'undefined' || !currentUser) {
+          console.warn('📋 currentUser no disponible aún, reintentando...');
+          
+          if (state._retryCount < MAX_RETRIES) {
+            state._retryCount++;
+            setTimeout(inicializar, 200);
+          } else {
+            console.error('📋 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+            setEstadoError('Usuario no disponible', 'Recarga la página');
+          }
+          return;
+        }
+
+        if (!currentUser.codeAlum) {
+          console.error('📋 currentUser.codeAlum vacío:', currentUser);
+          setEstadoError('Código de alumno no disponible', 'Recarga la página');
+          return;
+        }
+
+        state._initDone = true;
+        console.log('📋 TodosModule inicializado para:', currentUser.codeAlum);
+
+        cargarDeberes();
+      }
 
       function setEstadoError(titulo, subtitulo) {
         const loading = document.getElementById('loadingDeberes');
@@ -624,6 +679,8 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
           option.textContent = curso;
           selectCurso.appendChild(option);
         });
+
+        console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos');
       }
 
       function renderizarTabla() {
@@ -636,6 +693,7 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         if (state.deberesFiltrados.length === 0) {
           tabla.style.display = 'none';
           estadoVacio.style.display = 'block';
+          console.log('📋 No hay deberes para mostrar (filtrados: 0)');
           return;
         }
 
@@ -652,7 +710,7 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
           // Tipo
           html += '<td>';
-          const tipoLower = String(deber.tipo || '').toLowerCase();
+          const tipoLower = String(deber.tipo || '').toLowerCase().replace(/ó/g, 'o').replace(/í/g, 'i');
           html += '<span class="badge-tipo badge-' + tipoLower + '">';
           html += (deber.tipo || '-');
           html += '</span>';
@@ -701,6 +759,7 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         });
 
         tbody.innerHTML = html;
+        console.log('📋 Tabla renderizada con', state.deberesFiltrados.length, 'deberes');
       }
 
       function aplicarFiltros() {
@@ -711,6 +770,8 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         const filtroTipo = filtroTipoEl ? filtroTipoEl.value : 'todos';
         const filtroCurso = filtroCursoEl ? filtroCursoEl.value : 'todos';
         const filtroFecha = filtroFechaEl ? filtroFechaEl.value : 'todos';
+
+        console.log('📋 Aplicando filtros - Tipo:', filtroTipo, 'Curso:', filtroCurso, 'Fecha:', filtroFecha);
 
         state.deberesFiltrados = state.todosLosDeberes.filter(deber => {
           if (filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
@@ -738,11 +799,14 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
           return true;
         });
 
+        console.log('📋 Filtrados:', state.deberesFiltrados.length, 'de', state.todosLosDeberes.length);
         renderizarTabla();
       }
 
       function cargarDeberes() {
-        if (typeof window.currentUser === 'undefined' || !window.currentUser.codeAlum) {
+        console.log('📋 Cargando deberes para:', currentUser.codeAlum);
+
+        if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
           window.showAlert('error', 'No se pudo identificar al usuario');
           setEstadoError('Error al cargar usuario', 'Por favor, recarga la página');
           return;
@@ -758,67 +822,83 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
         google.script.run
           .withSuccessHandler(function(response) {
+            console.log('📋 Respuesta del backend:', response);
             if (loading) loading.style.display = 'none';
 
-            if (response && response.success) {
-              state.todosLosDeberes = Array.isArray(response.data) ? response.data : [];
+            if (!response) {
+              console.error('📋 Response es NULL');
+              setEstadoError('Error', 'El servidor retornó NULL');
+              return;
+            }
 
-              // Ordenamiento por fecha (más próxima primero)
-              state.todosLosDeberes.sort(function(a, b) {
-                if (!a.fecha) return 1;
-                if (!b.fecha) return -1;
-                const fechaA = parsearFecha(a.fecha);
-                const fechaB = parsearFecha(b.fecha);
-                if (!fechaA) return 1;
-                if (!fechaB) return -1;
-                return fechaA - fechaB;
-              });
+            if (response.success !== true) {
+              console.error('📋 Response no exitoso:', response.error);
+              window.showAlert('error', response.error || 'Error al cargar deberes');
+              setEstadoError('Error', response.error || 'No se pudieron cargar los deberes');
+              return;
+            }
 
-              if (state.todosLosDeberes.length === 0) {
-                if (estadoVacio) estadoVacio.style.display = 'block';
-              } else {
-                cargarCursosEnFiltro();
-                aplicarFiltros();
-              }
+            if (!Array.isArray(response.data)) {
+              console.error('📋 response.data no es array:', response.data);
+              setEstadoError('Error', 'Formato de respuesta inválido');
+              return;
+            }
+
+            state.todosLosDeberes = response.data;
+            console.log('📋 Deberes cargados:', state.todosLosDeberes.length);
+
+            // Ordenamiento por fecha (más próxima primero)
+            state.todosLosDeberes.sort(function(a, b) {
+              if (!a.fecha) return 1;
+              if (!b.fecha) return -1;
+              const fechaA = parsearFecha(a.fecha);
+              const fechaB = parsearFecha(b.fecha);
+              if (!fechaA) return 1;
+              if (!fechaB) return -1;
+              return fechaA - fechaB;
+            });
+
+            console.log('📋 Deberes ordenados por fecha');
+
+            if (state.todosLosDeberes.length === 0) {
+              if (estadoVacio) estadoVacio.style.display = 'block';
+              console.log('📋 No hay deberes en el sistema');
             } else {
-              window.showAlert('error', (response && response.error) ? response.error : 'Error al cargar deberes');
-              setEstadoError('Error', 'No se pudieron cargar los deberes. Intenta nuevamente.');
+              cargarCursosEnFiltro();
+              aplicarFiltros();
             }
           })
           .withFailureHandler(function(error) {
             if (loading) loading.style.display = 'none';
             window.showAlert('error', 'Error de conexión al cargar deberes');
-            console.error('[6btabtodos] Error:', error);
+            console.error('📋 Error de conexión:', error);
             setEstadoError('Error de conexión', 'No se pudo cargar la información. Reintenta.');
           })
-          .studentObtenerTodosDeberes({ codeAlum: window.currentUser.codeAlum });
+          .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
       }
 
-      function init() {
-        // Validación robusta de currentUser con retry (alineado con lo que vienes usando)
-        if (typeof window.currentUser !== 'undefined' && window.currentUser.codeAlum) {
-          cargarDeberes();
-        } else {
-          setTimeout(function() {
-            if (typeof window.currentUser !== 'undefined' && window.currentUser.codeAlum) {
-              cargarDeberes();
-            } else {
-              console.error('[6btabtodos] currentUser no disponible');
-              setEstadoError('Error al cargar usuario', 'Por favor, recarga la página');
-            }
-          }, 100);
-        }
-      }
-
-      // Exponer API mínima
+      // Exponer API pública
       window.TodosModule = {
-        init,
-        cargarDeberes,
-        aplicarFiltros
+        inicializar: inicializar,
+        cargarDeberes: cargarDeberes,
+        aplicarFiltros: aplicarFiltros
       };
 
-      // Auto-init
-      window.addEventListener('DOMContentLoaded', init);
+      // ==========================================
+      // V01.19 CLAUDE: AUTO-INIT CON RETRY
+      // ==========================================
+      setTimeout(function() {
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+          console.log('📋 currentUser detectado, auto-inicializando...');
+          inicializar();
+        } else {
+          console.log('📋 currentUser no disponible, iniciando retry logic...');
+          inicializar();
+        }
+      }, 150);
+
+      console.log('%c📋 TodosModule V01.19 CLAUDE cargado',
+        'font-size:11px;color:#667eea;font-weight:bold');
 
     })();
   </script>
