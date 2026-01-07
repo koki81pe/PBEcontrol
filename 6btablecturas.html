@@ -1,78 +1,35 @@
 <!--
 ******************************************
-PBE CONTROL - 6btablecturas.html - V01.17
+PBE CONTROL - 6btablecturas.html - V01.18 GPT EXTRA
 Sistema de Gestión Académica
-05/01/2026
+06/01/2026
 
-DESCRIPCIÓN:
-Sub-tab de Lecturas con gestión completa (CRUD) de lecturas
-asignadas al estudiante. Incluye barra de progreso visual para
-seguimiento de páginas leídas.
+OBJETIVO DE ESTA VERSIÓN:
+Actualizar el archivo V01.17 SIN CAMBIAR la UI ni el backend esperado,
+pero endureciendo el frontend para evitar fallos silenciosos, colisiones
+entre sub-tabs y problemas típicos de render/handlers.
 
-FUNCIONALIDAD:
-- Listar todas las lecturas del estudiante
-- Filtrar lecturas por curso
-- Agregar nueva lectura con validación
-- Editar lectura existente
-- Eliminar lectura con confirmación
-- Visualización de progreso mediante barra (PagActual/CantPag)
-- Colores dinámicos en notas (verde/amarillo/rojo)
-- Estados: loading, vacío, error
+CAMBIOS PRINCIPALES (vs V01.17):
+- Encapsulado en IIFE para evitar colisión de variables/funciones en sub-tabs
+- API pública única: window.LecturasModule (sin funciones globales genéricas)
+- Compatibilidad con HTML existente:
+  - Se actualizan los onclick/onsubmit/onchange a LecturasModule.*
+- Eliminado retry con DOMContentLoaded + setTimeout:
+  - Inicialización directa con guard de currentUser
+- Null-guard sistemático en respuestas backend
+- Sanitización de salida en render (evita inyección/ruptura de DOM)
+- Guard de rowNumber en editar/eliminar/actualizar
+- Empty state contextual según filtro (todos vs curso específico)
+- Manejo de errores amigable (sin error.toString()), logs a consola
+- Mantiene showAlert fallback si no existe globalmente
 
-CAMPOS DE LECTURA:
-- Curso: Curso al que pertenece la lectura (FK) *required
-- Lectura: Título del libro/texto *required
-- CantPag: Total de páginas del libro *required
-- PagActual: Páginas leídas hasta ahora *required (default: 0)
-- FechaInicio: Fecha de inicio de lectura (DD/MM/AAAA) *required
-- FechaFin: Fecha programada de finalización (DD/MM/AAAA) *required
-- FechaEval: Fecha de evaluación sobre la lectura (DD/MM/AAAA) optional
-- Nota: Calificación obtenida (0-20) optional
-- Peso: Porcentaje de peso en la nota final (0-100) optional
-- Sem: Número de semana (1-52) optional
-
-BACKEND:
+BACKEND (NO SE CAMBIA):
+- studentObtenerCursos({ codeAlum })
 - studentObtenerLecturas({ codeAlum })
 - studentAgregarLectura({ codeAlum, curso, lectura, cantPag, pagActual, ... })
 - studentActualizarLectura({ codeAlum, rowNumber, curso, lectura, ... })
 - studentEliminarLectura({ rowNumber })
 
-VALIDACIONES BACKEND:
-- Curso + Lectura DEBE ser único por estudiante
-- Error: "La lectura '[título]' ya existe en [curso]"
-
-VALIDACIONES FRONTEND:
-- Campos obligatorios: Curso, Lectura, CantPag, PagActual, FechaInicio, FechaFin
-- Formato de fecha: DD/MM/AAAA (regex)
-- CantPag: Número entero > 0
-- PagActual: 0 ≤ PagActual ≤ CantPag
-- Nota: 0-20 (decimal, 2 decimales max)
-- Peso: 0-100 (entero)
-- Sem: Entero > 0
-
-COLORES DINÁMICOS:
-- Nota >= 14: Verde (#28a745)
-- Nota 11-13: Amarillo (#ffc107)
-- Nota < 11: Rojo (#dc3545)
-
-DIFERENCIA vs EVALUACIONES/TAREAS:
-⚠️ BARRA DE PROGRESO VISUAL
-- Cálculo: (PagActual / CantPag) × 100
-- Gradiente: linear-gradient(90deg, #667eea 0%, #764ba2 100%)
-- Altura: 20px en tabla, 8px en vista Todos
-- Muestra porcentaje en texto junto a la barra
-
-CONECTA CON:
-- Parent: 4btabdeberes.html (contenedor con sub-tabs)
-- Backend: studentObtenerLecturas, studentAgregarLectura, etc. (1code.gs)
-- Module: Student.obtenerLecturas, Student.agregarLectura (1student.gs)
-
-🔑 IMPORTANTE:
-- Validar currentUser antes de cualquier operación
-- Mostrar errores de forma amigable (NUNCA error.toString())
-- La barra de progreso es el elemento diferenciador clave
-- PagActual es actualizable (permite marcar progreso)
-- Responsive: Ocultar columna Semana en mobile
 ******************************************
 -->
 <!DOCTYPE html>
@@ -85,650 +42,231 @@ CONECTA CON:
        6BTABLECTURAS.HTML - ESTILOS
        Gestión de Lecturas con Barra de Progreso
        ========================================== */
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    /* ==========================================
-       CONTENEDOR PRINCIPAL
-       ========================================== */
-    
-    .lecturas-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    
-    /* ==========================================
-       HEADER
-       ========================================== */
-    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .lecturas-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
     .lecturas-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 16px;
     }
-    
+
     .lecturas-header h2 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 24px; font-weight: 600; color: #333;
+      display: flex; align-items: center; gap: 10px;
     }
-    
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    
-    /* ==========================================
-       FILTROS
-       ========================================== */
-    
-    .filtro-container {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .filtro-container label {
-      font-size: 14px;
-      color: #666;
-      font-weight: 500;
-    }
-    
+
+    .header-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    .filtro-container { display: flex; gap: 8px; align-items: center; }
+    .filtro-container label { font-size: 14px; color: #666; font-weight: 500; }
+
     .filtro-container select {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      background: white;
-      cursor: pointer;
-      min-width: 180px;
+      padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 14px; background: white; cursor: pointer; min-width: 180px;
     }
-    
     .filtro-container select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    
-    /* ==========================================
-       BOTONES
-       ========================================== */
-    
+
     .btn-agregar {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
+      color: white; border: none; padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
       box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      transition: all 0.3s; display: flex; align-items: center; gap: 8px;
     }
-    
-    .btn-agregar:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    
-    .btn-agregar:active {
-      transform: translateY(0);
-    }
-    
-    /* ==========================================
-       FORMULARIO
-       ========================================== */
-    
+    .btn-agregar:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+    .btn-agregar:active { transform: translateY(0); }
+
     .form-lectura {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: none;
+      background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;
     }
-    
-    .form-lectura.active {
-      display: block;
-      animation: slideDown 0.3s ease-out;
-    }
-    
+    .form-lectura.active { display: block; animation: slideDown 0.3s ease-out; }
     @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    
+
     .form-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid #e0e0e0;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0;
     }
-    
-    .form-header h3 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-    }
-    
+    .form-header h3 { font-size: 18px; font-weight: 600; color: #333; }
+
     .btn-cerrar-form {
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      color: #999;
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all 0.2s;
+      background: transparent; border: none; font-size: 24px; color: #999;
+      cursor: pointer; padding: 0; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; transition: all 0.2s;
     }
-    
-    .btn-cerrar-form:hover {
-      background: #f0f0f0;
-      color: #333;
+    .btn-cerrar-form:hover { background: #f0f0f0; color: #333; }
+
+    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+    .form-row.full-width { grid-template-columns: 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 14px; font-weight: 600; color: #333; }
+    .form-group label .required { color: #dc3545; margin-left: 4px; }
+
+    .form-group input, .form-group select {
+      padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 14px; font-family: inherit; transition: border-color 0.2s;
     }
-    
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-bottom: 16px;
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    
-    .form-row.full-width {
-      grid-template-columns: 1fr;
-    }
-    
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    
-    .form-group label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-    }
-    
-    .form-group label .required {
-      color: #dc3545;
-      margin-left: 4px;
-    }
-    
-    .form-group input,
-    .form-group select {
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-    
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .form-group input::placeholder {
-      color: #999;
-    }
-    
-    .form-group small {
-      font-size: 12px;
-      color: #666;
-      font-style: italic;
-    }
-    
+    .form-group input::placeholder { color: #999; }
+    .form-group small { font-size: 12px; color: #666; font-style: italic; }
+
     .form-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #e0e0e0;
+      display: flex; gap: 12px; justify-content: flex-end;
+      margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;
     }
-    
+
     .btn-submit {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
+      color: white; border: none; padding: 10px 24px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
     }
-    
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+
     .btn-cancelar {
-      background: #f5f5f5;
-      color: #666;
-      border: 1px solid #ddd;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: #f5f5f5; color: #666; border: 1px solid #ddd;
+      padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
     }
-    
-    .btn-cancelar:hover {
-      background: #e8e8e8;
-    }
-    
-    /* ==========================================
-       TABLA
-       ========================================== */
-    
-    .lecturas-table-container {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .lecturas-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
+    .btn-cancelar:hover { background: #e8e8e8; }
+
+    .lecturas-table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .lecturas-table { width: 100%; border-collapse: collapse; }
+
     .lecturas-table thead {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-    
     .lecturas-table th {
-      padding: 14px 16px;
-      text-align: left;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
-    
-    .lecturas-table tbody tr {
-      border-bottom: 1px solid #e0e0e0;
-      transition: background 0.2s;
-    }
-    
-    .lecturas-table tbody tr:nth-child(even) {
-      background: #f8f9fa;
-    }
-    
-    .lecturas-table tbody tr:hover {
-      background: #e9ecef;
-    }
-    
-    .lecturas-table td {
-      padding: 14px 16px;
-      font-size: 14px;
-      color: #333;
-    }
-    
-    /* ==========================================
-       CURSO TAG
-       ========================================== */
-    
+
+    .lecturas-table tbody tr { border-bottom: 1px solid #e0e0e0; transition: background 0.2s; }
+    .lecturas-table tbody tr:nth-child(even) { background: #f8f9fa; }
+    .lecturas-table tbody tr:hover { background: #e9ecef; }
+
+    .lecturas-table td { padding: 14px 16px; font-size: 14px; color: #333; }
+
     .curso-tag {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      background: #e9ecef;
-      color: #495057;
+      display: inline-block; padding: 4px 10px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; background: #e9ecef; color: #495057;
     }
-    
-    /* ==========================================
-       TÍTULO LECTURA
-       ========================================== */
-    
-    .lectura-titulo {
-      font-weight: 600;
-      color: #333;
-    }
-    
-    /* ==========================================
-       BARRA DE PROGRESO (DIFERENCIADOR)
-       ========================================== */
-    
-    .progreso-cell {
-      min-width: 180px;
-    }
-    
-    .progreso-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
+
+    .lectura-titulo { font-weight: 600; color: #333; }
+
+    .progreso-cell { min-width: 180px; }
+    .progreso-container { display: flex; align-items: center; gap: 10px; }
+
     .barra-progreso {
-      flex: 1;
-      height: 20px;
-      background: #e9ecef;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
+      flex: 1; height: 20px; background: #e9ecef; border-radius: 10px;
+      overflow: hidden; position: relative;
     }
-    
     .barra-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      transition: width 0.3s ease;
-      border-radius: 10px;
+      height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease; border-radius: 10px;
     }
-    
     .progreso-text {
-      font-size: 13px;
-      font-weight: 600;
-      color: #667eea;
-      min-width: 45px;
-      text-align: right;
+      font-size: 13px; font-weight: 600; color: #667eea;
+      min-width: 45px; text-align: right;
     }
-    
-    /* ==========================================
-       PÁGINAS
-       ========================================== */
-    
-    .paginas-cell {
-      font-size: 13px;
-      color: #666;
-      white-space: nowrap;
-    }
-    
-    /* ==========================================
-       FECHA
-       ========================================== */
-    
-    .fecha-cell {
-      white-space: nowrap;
-      font-size: 13px;
-      color: #666;
-    }
-    
-    /* ==========================================
-       NOTA CON COLORES DINÁMICOS
-       ========================================== */
-    
-    .nota-cell {
-      text-align: center;
-      font-weight: 600;
-      font-size: 15px;
-    }
-    
-    .nota-alta {
-      color: #28a745;
-    }
-    
-    .nota-media {
-      color: #ffc107;
-    }
-    
-    .nota-baja {
-      color: #dc3545;
-    }
-    
-    .nota-pendiente {
-      color: #999;
-      font-weight: 400;
-    }
-    
-    /* ==========================================
-       PESO
-       ========================================== */
-    
-    .peso-cell {
-      text-align: center;
-      color: #666;
-      font-size: 13px;
-    }
-    
-    /* ==========================================
-       SEMANA
-       ========================================== */
-    
-    .sem-cell {
-      text-align: center;
-      color: #666;
-      font-size: 13px;
-    }
-    
-    /* ==========================================
-       ACCIONES
-       ========================================== */
-    
-    .acciones-cell {
-      text-align: center;
-      white-space: nowrap;
-    }
-    
+
+    .paginas-cell { font-size: 13px; color: #666; white-space: nowrap; }
+    .fecha-cell { white-space: nowrap; font-size: 13px; color: #666; }
+
+    .nota-cell { text-align: center; font-weight: 600; font-size: 15px; }
+    .nota-alta { color: #28a745; }
+    .nota-media { color: #ffc107; }
+    .nota-baja { color: #dc3545; }
+    .nota-pendiente { color: #999; font-weight: 400; }
+
+    .peso-cell { text-align: center; color: #666; font-size: 13px; }
+    .sem-cell { text-align: center; color: #666; font-size: 13px; }
+
+    .acciones-cell { text-align: center; white-space: nowrap; }
     .btn-icon {
-      background: transparent;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: all 0.2s;
+      background: transparent; border: none; font-size: 18px; cursor: pointer;
+      padding: 4px 8px; border-radius: 4px; transition: all 0.2s;
     }
-    
-    .btn-icon:hover {
-      background: #f0f0f0;
-      transform: scale(1.1);
-    }
-    
-    .btn-icon:active {
-      transform: scale(0.95);
-    }
-    
-    /* ==========================================
-       LOADING
-       ========================================== */
-    
-    .loading-container {
-      text-align: center;
-      padding: 60px 20px;
-    }
-    
+    .btn-icon:hover { background: #f0f0f0; transform: scale(1.1); }
+    .btn-icon:active { transform: scale(0.95); }
+
+    .loading-container { text-align: center; padding: 60px 20px; }
     .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+      border: 4px solid #f3f3f3; border-top: 4px solid #667eea;
+      border-radius: 50%; width: 50px; height: 50px;
+      animation: spin 1s linear infinite; margin: 0 auto 20px;
     }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      color: #666;
-      font-size: 14px;
-    }
-    
-    /* ==========================================
-       ESTADO VACÍO
-       ========================================== */
-    
-    .estado-vacio {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-    
-    .estado-vacio-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-    
-    .estado-vacio-text {
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #666;
-    }
-    
-    .estado-vacio-subtext {
-      font-size: 14px;
-      color: #999;
-    }
-    
-    /* ==========================================
-       RESPONSIVE
-       ========================================== */
-    
+    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+    .loading-text { color: #666; font-size: 14px; }
+
+    .estado-vacio { text-align: center; padding: 60px 20px; color: #999; }
+    .estado-vacio-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+    .estado-vacio-text { font-size: 16px; margin-bottom: 8px; color: #666; }
+    .estado-vacio-subtext { font-size: 14px; color: #999; }
+
     @media (max-width: 1024px) {
-      .lecturas-container {
-        padding: 16px;
-      }
-      
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-      
-      /* Ocultar columna Semana en tablets */
-      .lecturas-table .col-sem {
-        display: none;
-      }
+      .lecturas-container { padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+      .lecturas-table .col-sem { display: none; }
     }
-    
+
     @media (max-width: 768px) {
-      .lecturas-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .lecturas-header h2 {
-        font-size: 20px;
-      }
-      
-      .header-actions {
-        width: 100%;
-        flex-direction: column;
-      }
-      
-      .filtro-container {
-        width: 100%;
-      }
-      
-      .filtro-container select {
-        width: 100%;
-      }
-      
-      .btn-agregar {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .form-lectura {
-        padding: 16px;
-      }
-      
-      .lecturas-table {
-        font-size: 13px;
-      }
-      
-      .lecturas-table th,
-      .lecturas-table td {
-        padding: 10px 12px;
-      }
-      
-      /* Progreso más compacto en mobile */
-      .barra-progreso {
-        height: 16px;
-      }
-      
-      .progreso-text {
-        font-size: 12px;
-        min-width: 40px;
-      }
+      .lecturas-header { flex-direction: column; align-items: flex-start; }
+      .lecturas-header h2 { font-size: 20px; }
+      .header-actions { width: 100%; flex-direction: column; }
+      .filtro-container { width: 100%; }
+      .filtro-container select { width: 100%; }
+      .btn-agregar { width: 100%; justify-content: center; }
+      .form-lectura { padding: 16px; }
+      .lecturas-table { font-size: 13px; }
+      .lecturas-table th, .lecturas-table td { padding: 10px 12px; }
+      .barra-progreso { height: 16px; }
+      .progreso-text { font-size: 12px; min-width: 40px; }
     }
   </style>
 </head>
 <body>
-  
-  <!-- ==========================================
-       CONTENEDOR PRINCIPAL
-       ========================================== -->
-  
+
   <div class="lecturas-container">
-    
-    <!-- Header con Filtros y Botón Agregar -->
+
     <div class="lecturas-header">
       <h2>📖 Lecturas</h2>
-      
+
       <div class="header-actions">
-        <!-- Filtro por Curso -->
         <div class="filtro-container">
           <label for="filtroCurso">Filtrar por curso:</label>
-          <select id="filtroCurso" onchange="aplicarFiltro()">
+          <select id="filtroCurso" onchange="LecturasModule.aplicarFiltro()">
             <option value="todos">Todos los cursos</option>
           </select>
         </div>
-        
-        <!-- Botón Agregar -->
-        <button class="btn-agregar" onclick="toggleFormAgregar()">
+
+        <button class="btn-agregar" onclick="LecturasModule.toggleFormAgregar()">
           <span>➕</span>
           <span>Agregar Lectura</span>
         </button>
       </div>
     </div>
-    
-    <!-- Formulario de Agregar/Editar -->
+
     <div id="formLectura" class="form-lectura">
       <div class="form-header">
         <h3 id="formTitulo">Agregar Lectura</h3>
-        <button class="btn-cerrar-form" onclick="cancelarFormulario()" title="Cerrar">×</button>
+        <button class="btn-cerrar-form" onclick="LecturasModule.cancelarFormulario()" title="Cerrar">×</button>
       </div>
-      
-      <form id="lecturaForm" onsubmit="handleSubmitLectura(event)">
-        <!-- Hidden fields para edición -->
+
+      <form id="lecturaForm" onsubmit="LecturasModule.handleSubmitLectura(event)">
         <input type="hidden" id="lecturaRowNumber" value="">
         <input type="hidden" id="lecturaModoEdicion" value="false">
-        
-        <!-- Fila 1: Curso y Lectura -->
+
         <div class="form-row">
           <div class="form-group">
             <label for="inputCurso">
@@ -739,32 +277,31 @@ CONECTA CON:
               <option value="">Seleccionar curso...</option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label for="inputLectura">
               Título de la Lectura
               <span class="required">*</span>
             </label>
-            <input 
-              type="text" 
-              id="inputLectura" 
+            <input
+              type="text"
+              id="inputLectura"
               placeholder="Ej: El Principito"
               maxlength="100"
               required
             >
           </div>
         </div>
-        
-        <!-- Fila 2: CantPag y PagActual -->
+
         <div class="form-row">
           <div class="form-group">
             <label for="inputCantPag">
               Total de Páginas
               <span class="required">*</span>
             </label>
-            <input 
-              type="number" 
-              id="inputCantPag" 
+            <input
+              type="number"
+              id="inputCantPag"
               placeholder="Ej: 200"
               min="1"
               max="10000"
@@ -772,15 +309,15 @@ CONECTA CON:
             >
             <small>Número total de páginas del libro</small>
           </div>
-          
+
           <div class="form-group">
             <label for="inputPagActual">
               Páginas Leídas
               <span class="required">*</span>
             </label>
-            <input 
-              type="number" 
-              id="inputPagActual" 
+            <input
+              type="number"
+              id="inputPagActual"
               placeholder="Ej: 50"
               min="0"
               value="0"
@@ -789,32 +326,31 @@ CONECTA CON:
             <small>Páginas que ya has leído</small>
           </div>
         </div>
-        
-        <!-- Fila 3: FechaInicio y FechaFin -->
+
         <div class="form-row">
           <div class="form-group">
             <label for="inputFechaInicio">
               Fecha de Inicio
               <span class="required">*</span>
             </label>
-            <input 
-              type="text" 
-              id="inputFechaInicio" 
+            <input
+              type="text"
+              id="inputFechaInicio"
               placeholder="DD/MM/AAAA"
               pattern="\d{2}/\d{2}/\d{4}"
               required
             >
             <small>Formato: DD/MM/AAAA</small>
           </div>
-          
+
           <div class="form-group">
             <label for="inputFechaFin">
               Fecha de Finalización
               <span class="required">*</span>
             </label>
-            <input 
-              type="text" 
-              id="inputFechaFin" 
+            <input
+              type="text"
+              id="inputFechaFin"
               placeholder="DD/MM/AAAA"
               pattern="\d{2}/\d{2}/\d{4}"
               required
@@ -822,29 +358,28 @@ CONECTA CON:
             <small>Fecha programada de finalización</small>
           </div>
         </div>
-        
-        <!-- Fila 4: FechaEval y Nota -->
+
         <div class="form-row">
           <div class="form-group">
             <label for="inputFechaEval">
               Fecha de Evaluación
             </label>
-            <input 
-              type="text" 
-              id="inputFechaEval" 
+            <input
+              type="text"
+              id="inputFechaEval"
               placeholder="DD/MM/AAAA"
               pattern="\d{2}/\d{2}/\d{4}"
             >
             <small>Opcional - Formato: DD/MM/AAAA</small>
           </div>
-          
+
           <div class="form-group">
             <label for="inputNota">
               Nota
             </label>
-            <input 
-              type="number" 
-              id="inputNota" 
+            <input
+              type="number"
+              id="inputNota"
               placeholder="Ej: 15.5"
               min="0"
               max="20"
@@ -853,16 +388,15 @@ CONECTA CON:
             <small>Opcional - Calificación de 0 a 20</small>
           </div>
         </div>
-        
-        <!-- Fila 5: Peso y Semana -->
+
         <div class="form-row">
           <div class="form-group">
             <label for="inputPeso">
               Peso (%)
             </label>
-            <input 
-              type="number" 
-              id="inputPeso" 
+            <input
+              type="number"
+              id="inputPeso"
               placeholder="Ej: 20"
               min="0"
               max="100"
@@ -870,14 +404,14 @@ CONECTA CON:
             >
             <small>Opcional - Porcentaje de peso en la nota final</small>
           </div>
-          
+
           <div class="form-group">
             <label for="inputSem">
               Semana
             </label>
-            <input 
-              type="number" 
-              id="inputSem" 
+            <input
+              type="number"
+              id="inputSem"
               placeholder="Ej: 5"
               min="1"
               max="52"
@@ -886,10 +420,9 @@ CONECTA CON:
             <small>Opcional - Número de semana (1-52)</small>
           </div>
         </div>
-        
-        <!-- Botones del Formulario -->
+
         <div class="form-actions">
-          <button type="button" class="btn-cancelar" onclick="cancelarFormulario()">
+          <button type="button" class="btn-cancelar" onclick="LecturasModule.cancelarFormulario()">
             Cancelar
           </button>
           <button type="submit" class="btn-submit" id="btnSubmit">
@@ -898,24 +431,20 @@ CONECTA CON:
         </div>
       </form>
     </div>
-    
-    <!-- Tabla de Lecturas -->
+
     <div class="lecturas-table-container">
-      
-      <!-- Loading -->
+
       <div id="loadingLecturas" class="loading-container" style="display: none;">
         <div class="spinner"></div>
         <div class="loading-text">Cargando lecturas...</div>
       </div>
-      
-      <!-- Estado Vacío -->
+
       <div id="estadoVacio" class="estado-vacio" style="display: none;">
         <div class="estado-vacio-icon">📚</div>
         <div class="estado-vacio-text">No hay lecturas registradas</div>
         <div class="estado-vacio-subtext">Haz clic en "Agregar Lectura" para comenzar</div>
       </div>
-      
-      <!-- Tabla -->
+
       <table class="lecturas-table" id="tablaLecturas" style="display: none;">
         <thead>
           <tr>
@@ -930,362 +459,347 @@ CONECTA CON:
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="lecturasTableBody">
-          <!-- Filas dinámicas -->
-        </tbody>
+        <tbody id="lecturasTableBody"></tbody>
       </table>
-      
+
     </div>
-    
+
   </div>
-  
-  <!-- ==========================================
-       JAVASCRIPT
-       ========================================== -->
-  
+
   <script>
-    // ==========================================
-    // VARIABLES LOCALES
-    // ==========================================
-    
+  (function() {
+    'use strict';
+
+    // ============================
+    // VARIABLES (privadas del módulo)
+    // ============================
     let lecturasData = [];
-    let cursosData = [];
+    let cursosListaData = [];
     let lecturasFiltradas = [];
-    
-    // ==========================================
-    // INICIALIZACIÓN
-    // ==========================================
-    
-    window.addEventListener('DOMContentLoaded', function() {
-      // Validación robusta de currentUser con retry
-      if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
-        inicializarLecturas();
-      } else {
-        // Reintentar después de 100ms (el padre puede estar cargando)
-        setTimeout(function() {
-          if (typeof currentUser !== 'undefined' && currentUser.codeAlum) {
-            inicializarLecturas();
-          } else {
-            console.error('[6btablecturas] currentUser no disponible');
-            mostrarError('No se pudo identificar al usuario. Por favor, recarga la página.');
-          }
-        }, 100);
+
+    // ============================
+    // INIT (directo con guard)
+    // ============================
+    function inicializar() {
+      if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+        console.error('[6btablecturas] currentUser no disponible');
+        mostrarError('No se pudo identificar al usuario. Por favor, recarga la página.');
+        return;
       }
-    });
-    
-    /**
-     * Inicializar módulo de lecturas
-     */
-    function inicializarLecturas() {
+
       cargarCursos();
       cargarLecturas();
-      
-      console.log('%c📖 Sub-tab Lecturas Cargado', 'font-size: 11px; color: #667eea;');
+
+      console.log('%c📖 Sub-tab Lecturas V01.18 GPT EXTRA Cargado', 'font-size: 11px; color: #667eea;');
     }
-    
-    // ==========================================
-    // CARGAR CURSOS
-    // ==========================================
-    
-    /**
-     * Cargar cursos del estudiante
-     */
+
+    // ============================
+    // CURSOS
+    // ============================
     function cargarCursos() {
       google.script.run
-        .withSuccessHandler(function(response) {
-          if (response.success) {
-            cursosData = response.data;
-            poblarDropdownCursos();
-          } else {
-            console.error('Error al cargar cursos:', response.error);
-          }
-        })
-        .withFailureHandler(function(error) {
-          console.error('Error de conexión al cargar cursos:', error);
+        .withSuccessHandler(handleCursosLoaded)
+        .withFailureHandler(function(err) {
+          console.error('[6btablecturas] Error de conexión al cargar cursos:', err);
         })
         .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
     }
-    
-    /**
-     * Poblar dropdown de cursos
-     */
+
+    function handleCursosLoaded(response) {
+      if (!response || response.success !== true || !Array.isArray(response.data)) {
+        console.error('[6btablecturas] Respuesta inválida en cargarCursos:', response);
+        return;
+      }
+      cursosListaData = response.data;
+      poblarDropdownCursos();
+    }
+
     function poblarDropdownCursos() {
       const selectCurso = document.getElementById('inputCurso');
       const selectFiltro = document.getElementById('filtroCurso');
-      
-      // Guardar primera opción
-      const primerOption = selectCurso.options[0].outerHTML;
-      const primerOptionFiltro = selectFiltro.options[0].outerHTML;
-      
-      // Limpiar y agregar cursos
+      if (!selectCurso || !selectFiltro) return;
+
+      const primerOption = selectCurso.options[0] ? selectCurso.options[0].outerHTML : '<option value="">Seleccionar curso...</option>';
+      const primerOptionFiltro = selectFiltro.options[0] ? selectFiltro.options[0].outerHTML : '<option value="todos">Todos los cursos</option>';
+
       selectCurso.innerHTML = primerOption;
       selectFiltro.innerHTML = primerOptionFiltro;
-      
-      cursosData.forEach(function(curso) {
-        // Select del formulario
+
+      cursosListaData.forEach(function(curso) {
+        const codigo = curso && curso.Curso ? String(curso.Curso) : '';
+        const completo = curso && curso.Completo ? String(curso.Completo) : '';
+        if (!codigo) return;
+
         const option = document.createElement('option');
-        option.value = curso.Curso;
-        option.textContent = curso.Curso + ' - ' + curso.Completo;
+        option.value = codigo;
+        option.textContent = codigo + (completo ? (' - ' + completo) : '');
         selectCurso.appendChild(option);
-        
-        // Select del filtro
+
         const optionFiltro = document.createElement('option');
-        optionFiltro.value = curso.Curso;
-        optionFiltro.textContent = curso.Curso;
+        optionFiltro.value = codigo;
+        optionFiltro.textContent = codigo;
         selectFiltro.appendChild(optionFiltro);
       });
     }
-    
-    // ==========================================
-    // CARGAR LECTURAS
-    // ==========================================
-    
-    /**
-     * Cargar lecturas del estudiante
-     */
+
+    // ============================
+    // LECTURAS
+    // ============================
+    function setLoading(isLoading) {
+      const loading = document.getElementById('loadingLecturas');
+      const vacio = document.getElementById('estadoVacio');
+      const tabla = document.getElementById('tablaLecturas');
+
+      if (loading) loading.style.display = isLoading ? 'block' : 'none';
+      if (vacio) vacio.style.display = 'none';
+      if (tabla) tabla.style.display = 'none';
+    }
+
     function cargarLecturas() {
-      // Mostrar loading
-      document.getElementById('loadingLecturas').style.display = 'block';
-      document.getElementById('estadoVacio').style.display = 'none';
-      document.getElementById('tablaLecturas').style.display = 'none';
-      
+      setLoading(true);
+
       google.script.run
         .withSuccessHandler(handleLecturasLoaded)
         .withFailureHandler(function(error) {
-          document.getElementById('loadingLecturas').style.display = 'none';
+          setLoading(false);
+          console.error('[6btablecturas] Error de conexión al cargar lecturas:', error);
           mostrarError('Error de conexión al cargar lecturas');
-          console.error('Error:', error);
         })
         .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
     }
-    
-    /**
-     * Manejar respuesta de lecturas cargadas
-     */
+
     function handleLecturasLoaded(response) {
-      document.getElementById('loadingLecturas').style.display = 'none';
-      
-      if (response.success) {
-        lecturasData = response.data;
-        aplicarFiltro();
-      } else {
-        mostrarError(response.error || 'Error al cargar lecturas');
-        document.getElementById('estadoVacio').style.display = 'block';
+      setLoading(false);
+
+      if (!response || response.success !== true || !Array.isArray(response.data)) {
+        console.error('[6btablecturas] Respuesta inválida en cargarLecturas:', response);
+        mostrarError('No se pudo cargar lecturas. Intenta nuevamente.');
+        return;
       }
+
+      lecturasData = response.data;
+      aplicarFiltro();
     }
-    
-    // ==========================================
-    // FILTRAR LECTURAS
-    // ==========================================
-    
-    /**
-     * Aplicar filtro por curso
-     */
+
+    // ============================
+    // FILTRO
+    // ============================
     function aplicarFiltro() {
-      const filtroCurso = document.getElementById('filtroCurso').value;
-      
+      const filtroSelect = document.getElementById('filtroCurso');
+      const filtroCurso = filtroSelect ? filtroSelect.value : 'todos';
+
       if (filtroCurso === 'todos') {
         lecturasFiltradas = lecturasData;
       } else {
         lecturasFiltradas = lecturasData.filter(function(lectura) {
-          return lectura.Curso === filtroCurso;
+          return String(lectura && lectura.Curso ? lectura.Curso : '') === String(filtroCurso);
         });
       }
-      
+
       renderLecturasTable();
     }
-    
-    // ==========================================
-    // RENDERIZAR TABLA
-    // ==========================================
-    
-    /**
-     * Renderizar tabla de lecturas
-     */
+
+    // ============================
+    // RENDER
+    // ============================
     function renderLecturasTable() {
       const tbody = document.getElementById('lecturasTableBody');
       const tabla = document.getElementById('tablaLecturas');
       const estadoVacio = document.getElementById('estadoVacio');
-      
-      // Si no hay lecturas, mostrar estado vacío
-      if (lecturasFiltradas.length === 0) {
+      const filtroSelect = document.getElementById('filtroCurso');
+      const filtroCurso = filtroSelect ? filtroSelect.value : 'todos';
+
+      if (!tbody || !tabla || !estadoVacio) return;
+
+      if (!Array.isArray(lecturasFiltradas) || lecturasFiltradas.length === 0) {
         tabla.style.display = 'none';
         estadoVacio.style.display = 'block';
+
+        // Empty state contextual
+        const icon = estadoVacio.querySelector('.estado-vacio-icon');
+        const text = estadoVacio.querySelector('.estado-vacio-text');
+        const sub = estadoVacio.querySelector('.estado-vacio-subtext');
+
+        if (filtroCurso !== 'todos') {
+          if (icon) icon.textContent = '🔍';
+          if (text) text.textContent = 'No hay lecturas para el curso seleccionado';
+          if (sub) sub.textContent = 'Prueba otro curso o vuelve a “Todos los cursos”.';
+        } else {
+          if (icon) icon.textContent = '📚';
+          if (text) text.textContent = 'No hay lecturas registradas';
+          if (sub) sub.textContent = 'Haz clic en "Agregar Lectura" para comenzar';
+        }
+
+        tbody.innerHTML = '';
         return;
       }
-      
-      // Mostrar tabla
+
       estadoVacio.style.display = 'none';
       tabla.style.display = 'table';
-      
-      // Construir filas HTML
+
       let html = '';
-      
+
       lecturasFiltradas.forEach(function(lectura) {
-        // Calcular progreso
-        const progreso = calcularProgreso(lectura.PagActual, lectura.CantPag);
-        const claseNota = obtenerClaseNota(lectura.Nota);
-        
+        const curso = escHtml(lectura && lectura.Curso ? String(lectura.Curso) : '-');
+        const titulo = escHtml(lectura && lectura.Lectura ? String(lectura.Lectura) : '-');
+
+        const pagActualNum = safeInt(lectura && lectura.PagActual != null ? lectura.PagActual : 0, 0);
+        const cantPagNum = safeInt(lectura && lectura.CantPag != null ? lectura.CantPag : 0, 0);
+
+        const progreso = calcularProgreso(pagActualNum, cantPagNum);
+        const progresoTxt = Number.isFinite(progreso) ? progreso.toFixed(0) : '0';
+
+        const fechaEval = escHtml(lectura && lectura.FechaEval ? String(lectura.FechaEval) : '-');
+
+        const notaVal = (lectura && lectura.Nota != null && String(lectura.Nota).trim() !== '') ? String(lectura.Nota) : '';
+        const notaEsc = escHtml(notaVal || '-');
+        const claseNota = obtenerClaseNota(notaVal);
+
+        const pesoVal = (lectura && lectura.Peso != null && String(lectura.Peso).trim() !== '') ? String(lectura.Peso) : '';
+        const pesoEsc = pesoVal ? (escHtml(pesoVal) + '%') : '-';
+
+        const semVal = (lectura && lectura.Sem != null && String(lectura.Sem).trim() !== '') ? String(lectura.Sem) : '';
+        const semEsc = semVal ? escHtml(semVal) : '-';
+
+        const rowNumber = safeInt(lectura && lectura._rowNumber != null ? lectura._rowNumber : 0, 0);
+
         html += '<tr>';
-        
-        // Curso
-        html += '<td>';
-        html += '<span class="curso-tag">' + lectura.Curso + '</span>';
-        html += '</td>';
-        
-        // Lectura (título en negrita)
-        html += '<td>';
-        html += '<span class="lectura-titulo">' + lectura.Lectura + '</span>';
-        html += '</td>';
-        
-        // Progreso (BARRA VISUAL - DIFERENCIADOR)
+
+        html += '<td><span class="curso-tag">' + curso + '</span></td>';
+        html += '<td><span class="lectura-titulo">' + titulo + '</span></td>';
+
         html += '<td class="progreso-cell">';
-        html += '<div class="progreso-container">';
-        html += '<div class="barra-progreso">';
-        html += '<div class="barra-fill" style="width: ' + progreso + '%"></div>';
-        html += '</div>';
-        html += '<span class="progreso-text">' + progreso.toFixed(0) + '%</span>';
-        html += '</div>';
+        html +=   '<div class="progreso-container">';
+        html +=     '<div class="barra-progreso">';
+        html +=       '<div class="barra-fill" style="width: ' + progreso + '%"></div>';
+        html +=     '</div>';
+        html +=     '<span class="progreso-text">' + progresoTxt + '%</span>';
+        html +=   '</div>';
         html += '</td>';
-        
-        // Páginas (Actual/Total)
-        html += '<td class="paginas-cell">';
-        html += lectura.PagActual + ' / ' + lectura.CantPag;
-        html += '</td>';
-        
-        // Fecha Evaluación
-        html += '<td class="fecha-cell">';
-        html += lectura.FechaEval || '-';
-        html += '</td>';
-        
-        // Nota (con colores dinámicos)
-        html += '<td class="nota-cell ' + claseNota + '">';
-        html += lectura.Nota || '-';
-        html += '</td>';
-        
-        // Peso
-        html += '<td class="peso-cell col-peso">';
-        html += lectura.Peso ? lectura.Peso + '%' : '-';
-        html += '</td>';
-        
-        // Semana
-        html += '<td class="sem-cell col-sem">';
-        html += lectura.Sem || '-';
-        html += '</td>';
-        
-        // Acciones
+
+        html += '<td class="paginas-cell">' + escHtml(String(pagActualNum)) + ' / ' + escHtml(String(cantPagNum)) + '</td>';
+        html += '<td class="fecha-cell">' + fechaEval + '</td>';
+        html += '<td class="nota-cell ' + claseNota + '">' + notaEsc + '</td>';
+        html += '<td class="peso-cell col-peso">' + pesoEsc + '</td>';
+        html += '<td class="sem-cell col-sem">' + semEsc + '</td>';
+
         html += '<td class="acciones-cell">';
-        html += '<button class="btn-icon" onclick="editarLectura(' + lectura._rowNumber + ')" title="Editar">';
-        html += '✏️';
-        html += '</button>';
-        html += '<button class="btn-icon" onclick="eliminarLectura(' + lectura._rowNumber + ')" title="Eliminar">';
-        html += '🗑️';
-        html += '</button>';
+        html +=   '<button class="btn-icon" onclick="LecturasModule.editarLectura(' + rowNumber + ')" title="Editar">✏️</button>';
+        html +=   '<button class="btn-icon" onclick="LecturasModule.eliminarLectura(' + rowNumber + ')" title="Eliminar">🗑️</button>';
         html += '</td>';
-        
+
         html += '</tr>';
       });
-      
+
       tbody.innerHTML = html;
     }
-    
-    // ==========================================
-    // TOGGLE FORMULARIO
-    // ==========================================
-    
-    /**
-     * Mostrar/Ocultar formulario de agregar
-     */
+
+    // ============================
+    // FORM UI
+    // ============================
     function toggleFormAgregar() {
       const form = document.getElementById('formLectura');
-      
+      if (!form) return;
+
       if (form.classList.contains('active')) {
         form.classList.remove('active');
-      } else {
-        // Resetear formulario para modo agregar
-        resetFormulario();
-        document.getElementById('formTitulo').textContent = 'Agregar Lectura';
-        document.getElementById('lecturaModoEdicion').value = 'false';
-        document.getElementById('btnSubmit').textContent = 'Guardar Lectura';
-        
-        form.classList.add('active');
-        
-        // Focus en primer campo
-        setTimeout(function() {
-          document.getElementById('inputCurso').focus();
-        }, 300);
+        return;
       }
+
+      resetFormulario();
+
+      const titulo = document.getElementById('formTitulo');
+      const modo = document.getElementById('lecturaModoEdicion');
+      const btn = document.getElementById('btnSubmit');
+
+      if (titulo) titulo.textContent = 'Agregar Lectura';
+      if (modo) modo.value = 'false';
+      if (btn) btn.textContent = 'Guardar Lectura';
+
+      form.classList.add('active');
+
+      setTimeout(function() {
+        const first = document.getElementById('inputCurso');
+        if (first) first.focus();
+      }, 200);
     }
-    
-    // ==========================================
-    // SUBMIT FORMULARIO
-    // ==========================================
-    
-    /**
-     * Manejar submit del formulario
-     */
+
+    function resetFormulario() {
+      const form = document.getElementById('lecturaForm');
+      if (form) form.reset();
+
+      const row = document.getElementById('lecturaRowNumber');
+      const modo = document.getElementById('lecturaModoEdicion');
+      const pag = document.getElementById('inputPagActual');
+
+      if (row) row.value = '';
+      if (modo) modo.value = 'false';
+      if (pag) pag.value = '0';
+    }
+
+    function cancelarFormulario() {
+      const formWrap = document.getElementById('formLectura');
+      if (formWrap) formWrap.classList.remove('active');
+      resetFormulario();
+    }
+
+    // ============================
+    // SUBMIT
+    // ============================
     function handleSubmitLectura(event) {
       event.preventDefault();
-      
-      // Obtener valores del formulario
-      const curso = document.getElementById('inputCurso').value.trim();
-      const lectura = document.getElementById('inputLectura').value.trim();
-      const cantPag = parseInt(document.getElementById('inputCantPag').value);
-      const pagActual = parseInt(document.getElementById('inputPagActual').value);
-      const fechaInicio = document.getElementById('inputFechaInicio').value.trim();
-      const fechaFin = document.getElementById('inputFechaFin').value.trim();
-      const fechaEval = document.getElementById('inputFechaEval').value.trim();
-      const nota = document.getElementById('inputNota').value.trim();
-      const peso = document.getElementById('inputPeso').value.trim();
-      const sem = document.getElementById('inputSem').value.trim();
-      
-      // Validaciones frontend
-      if (!curso) {
-        showAlert('error', 'Selecciona un curso');
+
+      if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
+        showAlertSafe('error', 'No se pudo identificar al usuario. Recarga la página.');
         return;
       }
-      
-      if (!lectura) {
-        showAlert('error', 'Ingresa el título de la lectura');
+
+      const curso = getValueTrim('inputCurso');
+      const lectura = getValueTrim('inputLectura');
+      const cantPag = safeInt(getValueTrim('inputCantPag'), NaN);
+      const pagActual = safeInt(getValueTrim('inputPagActual'), NaN);
+      const fechaInicio = getValueTrim('inputFechaInicio');
+      const fechaFin = getValueTrim('inputFechaFin');
+      const fechaEval = getValueTrim('inputFechaEval');
+      const nota = getValueTrim('inputNota');
+      const peso = getValueTrim('inputPeso');
+      const sem = getValueTrim('inputSem');
+
+      if (!curso) { showAlertSafe('error', 'Selecciona un curso'); return; }
+      if (!lectura) { showAlertSafe('error', 'Ingresa el título de la lectura'); return; }
+
+      if (!Number.isFinite(cantPag) || cantPag <= 0) {
+        showAlertSafe('error', 'Ingresa el total de páginas (mayor a 0)');
         return;
       }
-      
-      if (!cantPag || cantPag <= 0) {
-        showAlert('error', 'Ingresa el total de páginas (mayor a 0)');
+
+      if (!Number.isFinite(pagActual) || pagActual < 0 || pagActual > cantPag) {
+        showAlertSafe('error', 'Las páginas leídas deben estar entre 0 y ' + cantPag);
         return;
       }
-      
-      if (pagActual < 0 || pagActual > cantPag) {
-        showAlert('error', 'Las páginas leídas deben estar entre 0 y ' + cantPag);
+
+      if (!validarFecha(fechaInicio)) { showAlertSafe('error', 'Fecha de inicio inválida. Formato: DD/MM/AAAA'); return; }
+      if (!validarFecha(fechaFin)) { showAlertSafe('error', 'Fecha de finalización inválida. Formato: DD/MM/AAAA'); return; }
+      if (fechaEval && !validarFecha(fechaEval)) { showAlertSafe('error', 'Fecha de evaluación inválida. Formato: DD/MM/AAAA'); return; }
+
+      const notaNum = nota ? safeFloat(nota, NaN) : NaN;
+      if (nota && (!Number.isFinite(notaNum) || notaNum < 0 || notaNum > 20)) {
+        showAlertSafe('error', 'La nota debe estar entre 0 y 20');
         return;
       }
-      
-      if (!validarFecha(fechaInicio)) {
-        showAlert('error', 'Fecha de inicio inválida. Formato: DD/MM/AAAA');
+
+      const pesoNum = peso ? safeInt(peso, NaN) : NaN;
+      if (peso && (!Number.isFinite(pesoNum) || pesoNum < 0 || pesoNum > 100)) {
+        showAlertSafe('error', 'El peso debe estar entre 0 y 100');
         return;
       }
-      
-      if (!validarFecha(fechaFin)) {
-        showAlert('error', 'Fecha de finalización inválida. Formato: DD/MM/AAAA');
+
+      const semNum = sem ? safeInt(sem, NaN) : NaN;
+      if (sem && (!Number.isFinite(semNum) || semNum <= 0)) {
+        showAlertSafe('error', 'La semana debe ser un número entero mayor a 0');
         return;
       }
-      
-      if (fechaEval && !validarFecha(fechaEval)) {
-        showAlert('error', 'Fecha de evaluación inválida. Formato: DD/MM/AAAA');
-        return;
-      }
-      
-      if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
-        showAlert('error', 'La nota debe estar entre 0 y 20');
-        return;
-      }
-      
-      if (peso && (parseInt(peso) < 0 || parseInt(peso) > 100)) {
-        showAlert('error', 'El peso debe estar entre 0 y 100');
-        return;
-      }
-      
-      // Preparar datos
+
       const params = {
         codeAlum: currentUser.codeAlum,
         curso: curso,
@@ -1299,213 +813,231 @@ CONECTA CON:
         peso: peso || '',
         sem: sem || ''
       };
-      
-      // Verificar si es edición
-      const modoEdicion = document.getElementById('lecturaModoEdicion').value === 'true';
-      
+
+      const modoEdicion = (document.getElementById('lecturaModoEdicion') && document.getElementById('lecturaModoEdicion').value === 'true');
+
+      setSubmitState(true, modoEdicion ? 'Actualizando...' : 'Guardando...');
+
       if (modoEdicion) {
-        // ACTUALIZAR
-        params.rowNumber = parseInt(document.getElementById('lecturaRowNumber').value);
-        
+        const rowStr = document.getElementById('lecturaRowNumber') ? document.getElementById('lecturaRowNumber').value : '';
+        const rowNumber = safeInt(rowStr, 0);
+
+        if (!Number.isFinite(rowNumber) || rowNumber <= 0) {
+          setSubmitState(false, 'Guardar Lectura');
+          showAlertSafe('error', 'Error interno: fila inválida para actualización. Cierra y vuelve a editar.');
+          return;
+        }
+
+        params.rowNumber = rowNumber;
+
         google.script.run
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
-            showAlert('error', 'Error de conexión al actualizar lectura');
-            console.error('Error:', error);
+            setSubmitState(false, 'Guardar Lectura');
+            console.error('[6btablecturas] Error de conexión al actualizar:', error);
+            showAlertSafe('error', 'Error de conexión al actualizar lectura');
           })
           .studentActualizarLectura(params);
       } else {
-        // AGREGAR
         google.script.run
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
-            showAlert('error', 'Error de conexión al guardar lectura');
-            console.error('Error:', error);
+            setSubmitState(false, 'Guardar Lectura');
+            console.error('[6btablecturas] Error de conexión al guardar:', error);
+            showAlertSafe('error', 'Error de conexión al guardar lectura');
           })
           .studentAgregarLectura(params);
       }
     }
-    
-    /**
-     * Manejar respuesta de lectura guardada
-     */
+
+    function setSubmitState(disabled, text) {
+      const btn = document.getElementById('btnSubmit');
+      if (!btn) return;
+      btn.disabled = !!disabled;
+      if (text) btn.textContent = text;
+    }
+
     function handleLecturaGuardada(response) {
-      if (response.success) {
-        showAlert('success', '✓ Lectura guardada correctamente');
-        cancelarFormulario();
-        cargarLecturas();
-      } else {
-        // Mostrar error de forma amigable
-        if (response.error.indexOf('ya existe') !== -1) {
-          showAlert('error', response.error);
+      setSubmitState(false, 'Guardar Lectura');
+
+      if (!response || response.success !== true) {
+        const err = (response && response.error) ? String(response.error) : '';
+        if (err && err.toLowerCase().indexOf('ya existe') !== -1) {
+          showAlertSafe('error', err);
         } else {
-          showAlert('error', 'No se pudo guardar la lectura. Verifica los datos e intenta nuevamente.');
+          showAlertSafe('error', 'No se pudo guardar la lectura. Verifica los datos e intenta nuevamente.');
         }
+        return;
       }
+
+      showAlertSafe('success', '✓ Lectura guardada correctamente');
+      cancelarFormulario();
+      cargarLecturas();
     }
-    
-    // ==========================================
-    // EDITAR LECTURA
-    // ==========================================
-    
-    /**
-     * Editar lectura existente
-     */
+
+    // ============================
+    // EDITAR
+    // ============================
     function editarLectura(rowNumber) {
-      // Buscar lectura en el array
+      const rn = safeInt(rowNumber, 0);
+      if (!Number.isFinite(rn) || rn <= 0) {
+        showAlertSafe('error', 'No se encontró la lectura');
+        return;
+      }
+
       const lectura = lecturasData.find(function(l) {
-        return l._rowNumber === rowNumber;
+        return safeInt(l && l._rowNumber != null ? l._rowNumber : 0, 0) === rn;
       });
-      
+
       if (!lectura) {
-        showAlert('error', 'No se encontró la lectura');
+        showAlertSafe('error', 'No se encontró la lectura');
         return;
       }
-      
-      // Poblar formulario
-      document.getElementById('inputCurso').value = lectura.Curso || '';
-      document.getElementById('inputLectura').value = lectura.Lectura || '';
-      document.getElementById('inputCantPag').value = lectura.CantPag || '';
-      document.getElementById('inputPagActual').value = lectura.PagActual || 0;
-      document.getElementById('inputFechaInicio').value = lectura.FechaInicio || '';
-      document.getElementById('inputFechaFin').value = lectura.FechaFin || '';
-      document.getElementById('inputFechaEval').value = lectura.FechaEval || '';
-      document.getElementById('inputNota').value = lectura.Nota || '';
-      document.getElementById('inputPeso').value = lectura.Peso || '';
-      document.getElementById('inputSem').value = lectura.Sem || '';
-      
-      // Configurar modo edición
-      document.getElementById('lecturaRowNumber').value = rowNumber;
-      document.getElementById('lecturaModoEdicion').value = 'true';
-      document.getElementById('formTitulo').textContent = 'Editar Lectura';
-      document.getElementById('btnSubmit').textContent = 'Actualizar Lectura';
-      
-      // Mostrar formulario
-      document.getElementById('formLectura').classList.add('active');
-      
-      // Scroll al formulario
-      document.getElementById('formLectura').scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
+
+      setValue('inputCurso', lectura.Curso || '');
+      setValue('inputLectura', lectura.Lectura || '');
+      setValue('inputCantPag', lectura.CantPag || '');
+      setValue('inputPagActual', (lectura.PagActual != null ? lectura.PagActual : 0));
+      setValue('inputFechaInicio', lectura.FechaInicio || '');
+      setValue('inputFechaFin', lectura.FechaFin || '');
+      setValue('inputFechaEval', lectura.FechaEval || '');
+      setValue('inputNota', lectura.Nota || '');
+      setValue('inputPeso', lectura.Peso || '');
+      setValue('inputSem', lectura.Sem || '');
+
+      setValue('lecturaRowNumber', rn);
+      setValue('lecturaModoEdicion', 'true');
+
+      const titulo = document.getElementById('formTitulo');
+      const btn = document.getElementById('btnSubmit');
+      if (titulo) titulo.textContent = 'Editar Lectura';
+      if (btn) btn.textContent = 'Actualizar Lectura';
+
+      const formWrap = document.getElementById('formLectura');
+      if (formWrap) formWrap.classList.add('active');
+
+      if (formWrap && typeof formWrap.scrollIntoView === 'function') {
+        formWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-    
-    // ==========================================
-    // ELIMINAR LECTURA
-    // ==========================================
-    
-    /**
-     * Eliminar lectura con confirmación
-     */
+
+    // ============================
+    // ELIMINAR
+    // ============================
     function eliminarLectura(rowNumber) {
-      // Buscar lectura para mostrar nombre en confirmación
-      const lectura = lecturasData.find(function(l) {
-        return l._rowNumber === rowNumber;
-      });
-      
-      const nombreLectura = lectura ? lectura.Lectura : 'esta lectura';
-      
-      if (!confirm('¿Eliminar "' + nombreLectura + '"?\nEsta acción no se puede deshacer.')) {
+      const rn = safeInt(rowNumber, 0);
+      if (!Number.isFinite(rn) || rn <= 0) {
+        showAlertSafe('error', 'No se pudo eliminar la lectura');
         return;
       }
-      
+
+      const lectura = lecturasData.find(function(l) {
+        return safeInt(l && l._rowNumber != null ? l._rowNumber : 0, 0) === rn;
+      });
+
+      const nombreLectura = lectura && lectura.Lectura ? String(lectura.Lectura) : 'esta lectura';
+
+      if (!confirm('¿Eliminar "' + nombreLectura + '"?\nEsta acción no se puede deshacer.')) return;
+
       google.script.run
         .withSuccessHandler(function(response) {
-          if (response.success) {
-            showAlert('success', '✓ Lectura eliminada correctamente');
-            cargarLecturas();
-          } else {
-            showAlert('error', 'No se pudo eliminar la lectura');
+          if (!response || response.success !== true) {
+            console.error('[6btablecturas] Error eliminar:', response);
+            showAlertSafe('error', 'No se pudo eliminar la lectura');
+            return;
           }
+          showAlertSafe('success', '✓ Lectura eliminada correctamente');
+          cargarLecturas();
         })
         .withFailureHandler(function(error) {
-          showAlert('error', 'Error de conexión al eliminar lectura');
-          console.error('Error:', error);
+          console.error('[6btablecturas] Error de conexión al eliminar:', error);
+          showAlertSafe('error', 'Error de conexión al eliminar lectura');
         })
-        .studentEliminarLectura({ rowNumber: rowNumber });
+        .studentEliminarLectura({ rowNumber: rn });
     }
-    
-    // ==========================================
-    // RESET Y CANCELAR FORMULARIO
-    // ==========================================
-    
-    /**
-     * Resetear formulario
-     */
-    function resetFormulario() {
-      document.getElementById('lecturaForm').reset();
-      document.getElementById('lecturaRowNumber').value = '';
-      document.getElementById('lecturaModoEdicion').value = 'false';
-      document.getElementById('inputPagActual').value = '0';
-    }
-    
-    /**
-     * Cancelar y ocultar formulario
-     */
-    function cancelarFormulario() {
-      document.getElementById('formLectura').classList.remove('active');
-      resetFormulario();
-    }
-    
-    // ==========================================
-    // FUNCIONES AUXILIARES
-    // ==========================================
-    
-    /**
-     * Calcular progreso de lectura
-     */
+
+    // ============================
+    // AUX
+    // ============================
     function calcularProgreso(pagActual, cantPag) {
-      if (!cantPag || cantPag === 0) return 0;
-      const progreso = (pagActual / cantPag) * 100;
-      return Math.min(100, Math.max(0, progreso)); // Clamp entre 0-100
+      const a = safeFloat(pagActual, 0);
+      const t = safeFloat(cantPag, 0);
+      if (!t || t === 0) return 0;
+      const p = (a / t) * 100;
+      return Math.min(100, Math.max(0, p));
     }
-    
-    /**
-     * Obtener clase CSS según nota
-     */
+
     function obtenerClaseNota(nota) {
-      if (!nota) return 'nota-pendiente';
-      
-      const notaNum = parseFloat(nota);
-      
-      if (notaNum >= 14) {
-        return 'nota-alta'; // Verde
-      } else if (notaNum >= 11) {
-        return 'nota-media'; // Amarillo
-      } else {
-        return 'nota-baja'; // Rojo
-      }
+      if (nota == null || String(nota).trim() === '') return 'nota-pendiente';
+      const n = safeFloat(nota, NaN);
+      if (!Number.isFinite(n)) return 'nota-pendiente';
+      if (n >= 14) return 'nota-alta';
+      if (n >= 11) return 'nota-media';
+      return 'nota-baja';
     }
-    
-    /**
-     * Validar formato de fecha DD/MM/AAAA
-     */
+
     function validarFecha(fecha) {
       if (!fecha) return false;
-      
+
+      const str = String(fecha).trim();
       const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-      if (!regex.test(fecha)) return false;
-      
-      const partes = fecha.split('/');
-      const dia = parseInt(partes[0]);
-      const mes = parseInt(partes[1]);
-      const anio = parseInt(partes[2]);
-      
+      if (!regex.test(str)) return false;
+
+      const partes = str.split('/');
+      const dia = safeInt(partes[0], 0);
+      const mes = safeInt(partes[1], 0);
+      const anio = safeInt(partes[2], 0);
+
       if (mes < 1 || mes > 12) return false;
       if (dia < 1 || dia > 31) return false;
       if (anio < 2000 || anio > 2100) return false;
-      
+
       return true;
     }
-    
-    // ==========================================
-    // UTILIDADES
-    // ==========================================
-    
-    /**
-     * Mostrar alerta temporal
-     * Solo definir si no existe globalmente
-     */
+
+    function getValueTrim(id) {
+      const el = document.getElementById(id);
+      return el && el.value != null ? String(el.value).trim() : '';
+    }
+
+    function setValue(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = value != null ? String(value) : '';
+    }
+
+    function safeInt(value, fallback) {
+      const n = parseInt(value, 10);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function safeFloat(value, fallback) {
+      const n = parseFloat(value);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function escHtml(str) {
+      const s = str == null ? '' : String(str);
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ============================
+    // ALERTAS
+    // ============================
+    function showAlertSafe(type, message) {
+      if (typeof showAlert === 'function') {
+        showAlert(type, message);
+        return;
+      }
+      if (type === 'error') console.error(message);
+      else console.log(message);
+    }
+
     if (typeof showAlert === 'undefined') {
       window.showAlert = function(type, message) {
         const alertBox = document.createElement('div');
@@ -1527,42 +1059,60 @@ CONECTA CON:
           ${type === 'warning' ? 'background: #fff3cd; color: #856404; border-left: 4px solid #ffc107;' : ''}
           ${type === 'info' ? 'background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8;' : ''}
         `;
-        
+
         document.body.appendChild(alertBox);
-        
-        setTimeout(function() {
-          alertBox.remove();
-        }, 4000);
+
+        setTimeout(function() { alertBox.remove(); }, 4000);
       };
-      
-      // Animación slideIn
+
       const style = document.createElement('style');
       style.textContent = `
         @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
       `;
       document.head.appendChild(style);
     }
-    
-    /**
-     * Mostrar error en lugar de estado vacío
-     */
+
     function mostrarError(mensaje) {
       const estadoVacio = document.getElementById('estadoVacio');
+      const tabla = document.getElementById('tablaLecturas');
+      const loading = document.getElementById('loadingLecturas');
+
+      if (loading) loading.style.display = 'none';
+      if (tabla) tabla.style.display = 'none';
+
+      if (!estadoVacio) return;
+
+      const icon = estadoVacio.querySelector('.estado-vacio-icon');
+      const text = estadoVacio.querySelector('.estado-vacio-text');
+      const sub = estadoVacio.querySelector('.estado-vacio-subtext');
+
       estadoVacio.style.display = 'block';
-      estadoVacio.querySelector('.estado-vacio-icon').textContent = '⚠️';
-      estadoVacio.querySelector('.estado-vacio-text').textContent = 'Error';
-      estadoVacio.querySelector('.estado-vacio-subtext').textContent = mensaje;
+      if (icon) icon.textContent = '⚠️';
+      if (text) text.textContent = 'Error';
+      if (sub) sub.textContent = mensaje;
     }
+
+    // ============================
+    // API pública
+    // ============================
+    window.LecturasModule = {
+      aplicarFiltro: aplicarFiltro,
+      toggleFormAgregar: toggleFormAgregar,
+      handleSubmitLectura: handleSubmitLectura,
+      editarLectura: editarLectura,
+      eliminarLectura: eliminarLectura,
+      cancelarFormulario: cancelarFormulario,
+      recargar: cargarLecturas
+    };
+
+    // GO
+    inicializar();
+
+  })();
   </script>
-  
+
 </body>
 </html>
