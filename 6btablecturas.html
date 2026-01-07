@@ -1,35 +1,28 @@
 <!--
 ******************************************
-PBE CONTROL - 6btablecturas.html - V01.18 GPT EXTRA
+PBE CONTROL - 6btablecturas.html - V01.19 CLAUDE
 Sistema de Gestión Académica
-06/01/2026
+07/01/2026
 
-OBJETIVO DE ESTA VERSIÓN:
-Actualizar el archivo V01.17 SIN CAMBIAR la UI ni el backend esperado,
-pero endureciendo el frontend para evitar fallos silenciosos, colisiones
-entre sub-tabs y problemas típicos de render/handlers.
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: Agregado retry logic (5 intentos)
+✅ FIX CRÍTICO: Auto-init con setTimeout para dar tiempo a currentUser
+✅ FIX CRÍTICO: Logging exhaustivo para debug
+✅ Manejo robusto de respuestas NULL
+✅ Compatible con cleanDataForSerialization de 1code.gs V01.24
 
-CAMBIOS PRINCIPALES (vs V01.17):
-- Encapsulado en IIFE para evitar colisión de variables/funciones en sub-tabs
-- API pública única: window.LecturasModule (sin funciones globales genéricas)
-- Compatibilidad con HTML existente:
-  - Se actualizan los onclick/onsubmit/onchange a LecturasModule.*
-- Eliminado retry con DOMContentLoaded + setTimeout:
-  - Inicialización directa con guard de currentUser
+CAMBIOS V01.18 GPT EXTRA:
+- Encapsulado en IIFE
+- API pública única: window.LecturasModule
 - Null-guard sistemático en respuestas backend
-- Sanitización de salida en render (evita inyección/ruptura de DOM)
-- Guard de rowNumber en editar/eliminar/actualizar
-- Empty state contextual según filtro (todos vs curso específico)
-- Manejo de errores amigable (sin error.toString()), logs a consola
-- Mantiene showAlert fallback si no existe globalmente
+- Mantiene showAlert fallback
 
-BACKEND (NO SE CAMBIA):
+BACKEND:
 - studentObtenerCursos({ codeAlum })
 - studentObtenerLecturas({ codeAlum })
-- studentAgregarLectura({ codeAlum, curso, lectura, cantPag, pagActual, ... })
-- studentActualizarLectura({ codeAlum, rowNumber, curso, lectura, ... })
+- studentAgregarLectura({ ... })
+- studentActualizarLectura({ ... })
 - studentEliminarLectura({ rowNumber })
-
 ******************************************
 -->
 <!DOCTYPE html>
@@ -181,7 +174,7 @@ BACKEND (NO SE CAMBIA):
     }
 
     .paginas-cell { font-size: 13px; color: #666; white-space: nowrap; }
-    .fecha-cell { white-space: nowrap; font-size: 13px; color: #666; }
+    .fecha-cell { whitespace: nowrap; font-size: 13px; color: #666; }
 
     .nota-cell { text-align: center; font-weight: 600; font-size: 15px; }
     .nota-alta { color: #28a745; }
@@ -470,47 +463,83 @@ BACKEND (NO SE CAMBIA):
   (function() {
     'use strict';
 
-    // ============================
+    // ========================================
     // VARIABLES (privadas del módulo)
-    // ============================
+    // ========================================
     let lecturasData = [];
     let cursosListaData = [];
     let lecturasFiltradas = [];
+    let _initDone = false;
+    let _retryCount = 0;
+    const MAX_RETRIES = 5;
 
-    // ============================
-    // INIT (directo con guard)
-    // ============================
+    // ========================================
+    // V01.19 CLAUDE: INIT CON RETRY LOGIC
+    // ========================================
     function inicializar() {
-      if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-        console.error('[6btablecturas] currentUser no disponible');
-        mostrarError('No se pudo identificar al usuario. Por favor, recarga la página.');
+      console.log('📖 LecturasModule.inicializar() llamado (intento ' + (_retryCount + 1) + ')');
+
+      if (_initDone) {
+        console.log('📖 LecturasModule ya inicializado, ignorando');
         return;
       }
 
+      // Validación con retry
+      if (typeof currentUser === 'undefined' || !currentUser) {
+        console.warn('📖 currentUser no disponible aún, reintentando...');
+        
+        if (_retryCount < MAX_RETRIES) {
+          _retryCount++;
+          setTimeout(inicializar, 200);
+        } else {
+          console.error('📖 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+          mostrarError('Usuario no disponible. Recarga la página.');
+        }
+        return;
+      }
+
+      if (!currentUser.codeAlum) {
+        console.error('📖 currentUser.codeAlum vacío:', currentUser);
+        mostrarError('Código de alumno no disponible');
+        return;
+      }
+
+      _initDone = true;
+      console.log('📖 LecturasModule inicializado para:', currentUser.codeAlum);
+
       cargarCursos();
       cargarLecturas();
-
-      console.log('%c📖 Sub-tab Lecturas V01.18 GPT EXTRA Cargado', 'font-size: 11px; color: #667eea;');
     }
 
-    // ============================
+    // ========================================
     // CURSOS
-    // ============================
+    // ========================================
     function cargarCursos() {
+      console.log('📖 Cargando cursos...');
+      
       google.script.run
         .withSuccessHandler(handleCursosLoaded)
         .withFailureHandler(function(err) {
-          console.error('[6btablecturas] Error de conexión al cargar cursos:', err);
+          console.error('📖 Error al cargar cursos:', err);
         })
         .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
     }
 
     function handleCursosLoaded(response) {
-      if (!response || response.success !== true || !Array.isArray(response.data)) {
-        console.error('[6btablecturas] Respuesta inválida en cargarCursos:', response);
+      console.log('📖 Respuesta cursos:', response);
+
+      if (!response) {
+        console.error('📖 Response cursos es NULL');
         return;
       }
+
+      if (response.success !== true || !Array.isArray(response.data)) {
+        console.error('📖 Respuesta cursos inválida');
+        return;
+      }
+
       cursosListaData = response.data;
+      console.log('📖 Cursos cargados:', cursosListaData.length);
       poblarDropdownCursos();
     }
 
@@ -540,11 +569,13 @@ BACKEND (NO SE CAMBIA):
         optionFiltro.textContent = codigo;
         selectFiltro.appendChild(optionFiltro);
       });
+
+      console.log('📖 Dropdowns poblados con', cursosListaData.length, 'cursos');
     }
 
-    // ============================
+    // ========================================
     // LECTURAS
-    // ============================
+    // ========================================
     function setLoading(isLoading) {
       const loading = document.getElementById('loadingLecturas');
       const vacio = document.getElementById('estadoVacio');
@@ -556,34 +587,49 @@ BACKEND (NO SE CAMBIA):
     }
 
     function cargarLecturas() {
+      console.log('📖 Cargando lecturas para:', currentUser.codeAlum);
       setLoading(true);
 
       google.script.run
         .withSuccessHandler(handleLecturasLoaded)
         .withFailureHandler(function(error) {
           setLoading(false);
-          console.error('[6btablecturas] Error de conexión al cargar lecturas:', error);
+          console.error('📖 Error al cargar lecturas:', error);
           mostrarError('Error de conexión al cargar lecturas');
         })
         .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
     }
 
     function handleLecturasLoaded(response) {
+      console.log('📖 Respuesta lecturas:', response);
       setLoading(false);
 
-      if (!response || response.success !== true || !Array.isArray(response.data)) {
-        console.error('[6btablecturas] Respuesta inválida en cargarLecturas:', response);
-        mostrarError('No se pudo cargar lecturas. Intenta nuevamente.');
+      if (!response) {
+        console.error('📖 Response lecturas es NULL');
+        mostrarError('Error: El servidor retornó NULL');
+        return;
+      }
+
+      if (response.success !== true) {
+        console.error('📖 Response no exitoso:', response.error);
+        mostrarError(response.error || 'Error al cargar lecturas');
+        return;
+      }
+
+      if (!Array.isArray(response.data)) {
+        console.error('📖 response.data no es array');
+        mostrarError('Formato de respuesta inválido');
         return;
       }
 
       lecturasData = response.data;
+      console.log('📖 Lecturas cargadas:', lecturasData.length);
       aplicarFiltro();
     }
 
-    // ============================
+    // ========================================
     // FILTRO
-    // ============================
+    // ========================================
     function aplicarFiltro() {
       const filtroSelect = document.getElementById('filtroCurso');
       const filtroCurso = filtroSelect ? filtroSelect.value : 'todos';
@@ -596,12 +642,13 @@ BACKEND (NO SE CAMBIA):
         });
       }
 
+      console.log('📖 Filtradas:', lecturasFiltradas.length, 'de', lecturasData.length);
       renderLecturasTable();
     }
 
-    // ============================
+    // ========================================
     // RENDER
-    // ============================
+    // ========================================
     function renderLecturasTable() {
       const tbody = document.getElementById('lecturasTableBody');
       const tabla = document.getElementById('tablaLecturas');
@@ -623,7 +670,7 @@ BACKEND (NO SE CAMBIA):
         if (filtroCurso !== 'todos') {
           if (icon) icon.textContent = '🔍';
           if (text) text.textContent = 'No hay lecturas para el curso seleccionado';
-          if (sub) sub.textContent = 'Prueba otro curso o vuelve a “Todos los cursos”.';
+          if (sub) sub.textContent = 'Prueba otro curso o vuelve a "Todos los cursos".';
         } else {
           if (icon) icon.textContent = '📚';
           if (text) text.textContent = 'No hay lecturas registradas';
@@ -631,6 +678,7 @@ BACKEND (NO SE CAMBIA):
         }
 
         tbody.innerHTML = '';
+        console.log('📖 Empty state mostrado');
         return;
       }
 
@@ -692,11 +740,12 @@ BACKEND (NO SE CAMBIA):
       });
 
       tbody.innerHTML = html;
+      console.log('📖 Tabla renderizada con', lecturasFiltradas.length, 'lecturas');
     }
 
-    // ============================
+    // ========================================
     // FORM UI
-    // ============================
+    // ========================================
     function toggleFormAgregar() {
       const form = document.getElementById('formLectura');
       if (!form) return;
@@ -743,9 +792,9 @@ BACKEND (NO SE CAMBIA):
       resetFormulario();
     }
 
-    // ============================
+    // ========================================
     // SUBMIT
-    // ============================
+    // ========================================
     function handleSubmitLectura(event) {
       event.preventDefault();
 
@@ -834,7 +883,7 @@ BACKEND (NO SE CAMBIA):
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
             setSubmitState(false, 'Guardar Lectura');
-            console.error('[6btablecturas] Error de conexión al actualizar:', error);
+            console.error('📖 Error al actualizar:', error);
             showAlertSafe('error', 'Error de conexión al actualizar lectura');
           })
           .studentActualizarLectura(params);
@@ -843,7 +892,7 @@ BACKEND (NO SE CAMBIA):
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
             setSubmitState(false, 'Guardar Lectura');
-            console.error('[6btablecturas] Error de conexión al guardar:', error);
+            console.error('📖 Error al guardar:', error);
             showAlertSafe('error', 'Error de conexión al guardar lectura');
           })
           .studentAgregarLectura(params);
@@ -875,9 +924,9 @@ BACKEND (NO SE CAMBIA):
       cargarLecturas();
     }
 
-    // ============================
+    // ========================================
     // EDITAR
-    // ============================
+    // ========================================
     function editarLectura(rowNumber) {
       const rn = safeInt(rowNumber, 0);
       if (!Number.isFinite(rn) || rn <= 0) {
@@ -921,9 +970,9 @@ BACKEND (NO SE CAMBIA):
       }
     }
 
-    // ============================
+    // ========================================
     // ELIMINAR
-    // ============================
+    // ========================================
     function eliminarLectura(rowNumber) {
       const rn = safeInt(rowNumber, 0);
       if (!Number.isFinite(rn) || rn <= 0) {
@@ -942,7 +991,7 @@ BACKEND (NO SE CAMBIA):
       google.script.run
         .withSuccessHandler(function(response) {
           if (!response || response.success !== true) {
-            console.error('[6btablecturas] Error eliminar:', response);
+            console.error('📖 Error eliminar:', response);
             showAlertSafe('error', 'No se pudo eliminar la lectura');
             return;
           }
@@ -950,15 +999,15 @@ BACKEND (NO SE CAMBIA):
           cargarLecturas();
         })
         .withFailureHandler(function(error) {
-          console.error('[6btablecturas] Error de conexión al eliminar:', error);
+          console.error('📖 Error al eliminar:', error);
           showAlertSafe('error', 'Error de conexión al eliminar lectura');
         })
         .studentEliminarLectura({ rowNumber: rn });
     }
 
-    // ============================
+    // ========================================
     // AUX
-    // ============================
+    // ========================================
     function calcularProgreso(pagActual, cantPag) {
       const a = safeFloat(pagActual, 0);
       const t = safeFloat(cantPag, 0);
@@ -1026,9 +1075,9 @@ BACKEND (NO SE CAMBIA):
         .replace(/'/g, '&#39;');
     }
 
-    // ============================
+    // ========================================
     // ALERTAS
-    // ============================
+    // ========================================
     function showAlertSafe(type, message) {
       if (typeof showAlert === 'function') {
         showAlert(type, message);
@@ -1095,9 +1144,9 @@ BACKEND (NO SE CAMBIA):
       if (sub) sub.textContent = mensaje;
     }
 
-    // ============================
+    // ========================================
     // API pública
-    // ============================
+    // ========================================
     window.LecturasModule = {
       aplicarFiltro: aplicarFiltro,
       toggleFormAgregar: toggleFormAgregar,
@@ -1108,8 +1157,21 @@ BACKEND (NO SE CAMBIA):
       recargar: cargarLecturas
     };
 
-    // GO
-    inicializar();
+    // ========================================
+    // V01.19 CLAUDE: AUTO-INIT CON RETRY
+    // ========================================
+    setTimeout(function() {
+      if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+        console.log('📖 currentUser detectado, auto-inicializando...');
+        inicializar();
+      } else {
+        console.log('📖 currentUser no disponible, iniciando retry logic...');
+        inicializar();
+      }
+    }, 150);
+
+    console.log('%c📖 LecturasModule V01.19 CLAUDE cargado',
+      'font-size:11px;color:#667eea;font-weight:bold');
 
   })();
   </script>
