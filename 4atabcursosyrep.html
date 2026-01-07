@@ -1,10 +1,16 @@
 <!--
 ******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.21 GPT
+PBE CONTROL - 4atabcursosyrep.html - V01.22 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
 
-FIX V01.21:
+CAMBIOS V01.22 CLAUDE:
+✅ FIX CRÍTICO: Activa subtab Cursos por defecto
+✅ FIX CRÍTICO: Conecta evento 'pbe:subtab-activated' con módulos
+✅ Llama a CursosModule.init() o RepasosModule.init() cuando se activan
+✅ Subtabs ahora se inicializan correctamente
+
+CAMBIOS V01.21 GPT:
 - NO se carga ningún subtab automáticamente
 - Los subtabs solo se inicializan por clic del usuario
 - Evita ejecución múltiple de scripts hijos
@@ -72,33 +78,70 @@ FIX V01.21:
     repasos: false
   };
 
+  /* ==========================================
+     SWITCH DE SUBTABS
+     ========================================== */
   function switchSubTab(name) {
 
+    // Ocultar todos los subtabs
     document.querySelectorAll('.subtab-content')
       .forEach(el => el.classList.remove('active'));
 
+    // Desactivar todos los botones
     document.querySelectorAll('.subtab-btn')
       .forEach(el => el.classList.remove('active'));
 
+    // Activar el subtab seleccionado
     document.getElementById('subtab-' + name).classList.add('active');
     document.getElementById('btn-subtab-' + name).classList.add('active');
 
+    // Inicializar subtab si es primera vez
     if (!loaded[name]) {
       loaded[name] = true;
 
+      // ==========================================
+      // V01.22 CLAUDE: LLAMAR DIRECTAMENTE AL MÓDULO
+      // ==========================================
+      console.log('🟢 Inicializando subtab:', name);
+      
+      if (name === 'cursos' && window.CursosModule) {
+        window.CursosModule.init();
+      } else if (name === 'repasos' && window.RepasosModule) {
+        window.RepasosModule.init();
+      }
+
+      // Disparar evento por si algún módulo lo necesita
       document.dispatchEvent(
         new CustomEvent('pbe:subtab-activated', {
           detail: name
         })
       );
-
-      console.log('🟢 Subtab inicializado por clic:', name);
     }
   }
 
+  /* ==========================================
+     V01.22 CLAUDE: AUTO-ACTIVAR CURSOS AL CARGAR
+     ========================================== */
+  function initDefaultSubTab() {
+    console.log('📦 4atabcursosyrep V01.22 CLAUDE: Activando Cursos por defecto');
+    
+    // Pequeño delay para asegurar que currentUser esté disponible
+    setTimeout(function() {
+      switchSubTab('cursos');
+    }, 100);
+  }
+
+  // Exponer función globalmente
   window.switchSubTab = switchSubTab;
 
-  console.log('%c📦 4atabcursosyrep V01.21 cargado (sin auto-init)',
+  // Activar subtab por defecto cuando el documento esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDefaultSubTab);
+  } else {
+    initDefaultSubTab();
+  }
+
+  console.log('%c📦 4atabcursosyrep V01.22 CLAUDE cargado',
     'font-weight:bold;color:#667eea');
 })();
 </script>
