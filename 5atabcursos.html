@@ -1,10 +1,17 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.22 GPT
+PBE CONTROL - 5atabcursos.html - V01.23 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
 
-FIX V01.22:
+CAMBIOS V01.23 CLAUDE:
+✅ FIX CRÍTICO: Eliminadas validaciones ultra-restrictivas
+✅ FIX CRÍTICO: Auto-init si currentUser ya existe
+✅ FIX CRÍTICO: Retry logic si currentUser no está disponible
+✅ Logging exhaustivo para debug
+✅ Maneja caso de 0 cursos correctamente
+
+FIX V01.22 GPT:
 - [LAZY-INIT] El subtab NO se auto-inicializa
 - [PARENT-CONTROL] init() expuesto para ser llamado por el contenedor
 - [SINGLE-RUN] Init real idempotente
@@ -17,27 +24,43 @@ FIX V01.22:
 
   let cursosData = [];
   let _initDone = false;
+  let _retryCount = 0;
+  const MAX_RETRIES = 5;
 
   /* ==========================================
-     INIT CONTROLADO (SOLO DESDE EL PADRE)
+     INIT CONTROLADO (CON RETRY LOGIC)
+     V01.23 CLAUDE
      ========================================== */
   function init() {
+    console.log('📚 CursosModule.init() llamado (intento ' + (_retryCount + 1) + ')');
+
     if (_initDone) {
-      console.log('📚 CursosModule.init() ignorado (ya inicializado)');
+      console.log('📚 CursosModule ya inicializado, ignorando');
       return;
     }
 
-    if (
-      typeof currentUser === 'undefined' ||
-      !currentUser ||
-      !currentUser.codeAlum
-    ) {
-      console.warn('📚 CursosModule: currentUser no disponible aún');
+    // V01.23 CLAUDE: Validación menos restrictiva
+    if (typeof currentUser === 'undefined' || !currentUser) {
+      console.warn('📚 currentUser no disponible aún, reintentando...');
+      
+      if (_retryCount < MAX_RETRIES) {
+        _retryCount++;
+        setTimeout(init, 200); // Reintentar en 200ms
+      } else {
+        console.error('📚 CursosModule: currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+        renderError('Usuario no disponible. Recarga la página.');
+      }
+      return;
+    }
+
+    if (!currentUser.codeAlum) {
+      console.error('📚 currentUser.codeAlum está vacío:', currentUser);
+      renderError('Código de alumno no disponible');
       return;
     }
 
     _initDone = true;
-    console.log('📚 CursosModule.init() ejecutado');
+    console.log('📚 CursosModule inicializado correctamente para:', currentUser.codeAlum);
     cargarCursos();
   }
 
@@ -45,6 +68,8 @@ FIX V01.22:
      CARGA DE DATOS
      ========================================== */
   function cargarCursos() {
+    console.log('📚 Cargando cursos para:', currentUser.codeAlum);
+
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
       .withFailureHandler(handleCursosError)
@@ -52,29 +77,42 @@ FIX V01.22:
   }
 
   function handleCursosLoaded(response) {
-    if (!response || response.success !== true) {
-      renderEmptyState();
+    console.log('📚 Respuesta recibida:', response);
+
+    if (!response) {
+      console.error('📚 Response es NULL');
+      renderError('Error: El servidor retornó NULL');
+      return;
+    }
+
+    if (response.success !== true) {
+      console.error('📚 Response no exitoso:', response.error);
+      renderError(response.error || 'Error al cargar cursos');
       return;
     }
 
     cursosData = response.data || [];
-    renderCursosTable();
+    console.log('📚 Cursos cargados:', cursosData.length);
+
+    if (cursosData.length === 0) {
+      renderEmptyState();
+    } else {
+      renderCursosTable();
+    }
   }
 
   function handleCursosError(error) {
-    console.error('Error al cargar cursos:', error);
-    renderEmptyState();
+    console.error('📚 Error al cargar cursos:', error);
+    renderError('Error de conexión: ' + error.message);
   }
 
   /* ==========================================
-     RENDER
+     RENDER - TABLA DE CURSOS
      ========================================== */
   function renderCursosTable() {
     const container = document.getElementById('cursosTableContainer');
-    if (!container) return;
-
-    if (!cursosData.length) {
-      renderEmptyState();
+    if (!container) {
+      console.error('📚 Container cursosTableContainer no encontrado');
       return;
     }
 
@@ -95,11 +133,12 @@ FIX V01.22:
       const color = curso.Color || '#FF5733';
       html += `
         <tr>
-          <td><div class="curso-color-box" style="background:${color}"></div></td>
+          <td><div class="curso-color-box" style="background:${color}; width:30px; height:30px; border-radius:4px;"></div></td>
           <td><strong>${curso.Curso}</strong></td>
           <td>${curso.Completo}</td>
           <td>
-            ✏️ 🗑️
+            <button onclick="editarCurso('${curso._rowNumber}')" style="background:none;border:none;cursor:pointer;font-size:16px;">✏️</button>
+            <button onclick="eliminarCurso('${curso._rowNumber}')" style="background:none;border:none;cursor:pointer;font-size:16px;">🗑️</button>
           </td>
         </tr>
       `;
@@ -107,30 +146,141 @@ FIX V01.22:
 
     html += '</tbody></table>';
     container.innerHTML = html;
+    console.log('📚 Tabla renderizada con', cursosData.length, 'cursos');
   }
 
+  /* ==========================================
+     RENDER - ESTADO VACÍO
+     ========================================== */
   function renderEmptyState() {
     const container = document.getElementById('cursosTableContainer');
     if (!container) return;
 
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📚</div>
-        <div class="empty-state-text">
+      <div class="empty-state" style="text-align:center; padding:40px 20px; color:#999;">
+        <div class="empty-state-icon" style="font-size:48px; margin-bottom:15px;">📚</div>
+        <div class="empty-state-text" style="font-size:16px; font-weight:500;">
           No tienes cursos registrados aún.
         </div>
+        <button onclick="abrirModalNuevoCurso()" style="margin-top:20px; padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
+          ➕ Agregar Primer Curso
+        </button>
       </div>
     `;
+    console.log('📚 Empty state renderizado');
   }
+
+  /* ==========================================
+     RENDER - ESTADO DE ERROR
+     V01.23 CLAUDE
+     ========================================== */
+  function renderError(message) {
+    const container = document.getElementById('cursosTableContainer');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="error-state" style="text-align:center; padding:40px 20px; color:#dc3545;">
+        <div class="error-icon" style="font-size:48px; margin-bottom:15px;">⚠️</div>
+        <div class="error-text" style="font-size:16px; font-weight:500;">
+          ${message}
+        </div>
+        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:6px; cursor:pointer;">
+          🔄 Recargar Página
+        </button>
+      </div>
+    `;
+    console.error('📚 Error state renderizado:', message);
+  }
+
+  /* ==========================================
+     FUNCIONES AUXILIARES (STUBS)
+     ========================================== */
+  window.editarCurso = function(rowNumber) {
+    console.log('✏️ Editar curso:', rowNumber);
+    alert('Función de edición en desarrollo');
+  };
+
+  window.eliminarCurso = function(rowNumber) {
+    console.log('🗑️ Eliminar curso:', rowNumber);
+    if (confirm('¿Eliminar este curso?')) {
+      alert('Función de eliminación en desarrollo');
+    }
+  };
+
+  window.abrirModalNuevoCurso = function() {
+    console.log('➕ Abrir modal nuevo curso');
+    alert('Modal de nuevo curso en desarrollo');
+  };
 
   /* ==========================================
      API PÚBLICA
      ========================================== */
   window.CursosModule = {
-    init: init
+    init: init,
+    reload: function() {
+      _initDone = false;
+      _retryCount = 0;
+      init();
+    }
   };
 
-  console.log('%c📚 CursosModule V01.22 cargado (lazy)',
-    'font-size:11px;color:#667eea');
+  /* ==========================================
+     V01.23 CLAUDE: AUTO-INIT SI CURRENTUSER EXISTE
+     ========================================== */
+  setTimeout(function() {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+      console.log('📚 currentUser detectado, auto-inicializando...');
+      init();
+    } else {
+      console.log('📚 currentUser no disponible, esperando llamada externa');
+    }
+  }, 150);
+
+  console.log('%c📚 CursosModule V01.23 CLAUDE cargado',
+    'font-size:11px;color:#667eea;font-weight:bold');
 })();
 </script>
+
+<!-- HTML CONTAINER -->
+<div id="cursosTableContainer" style="min-height:200px;">
+  <div style="text-align:center; padding:40px; color:#999;">
+    <div style="font-size:32px; margin-bottom:10px;">⏳</div>
+    <div>Cargando cursos...</div>
+  </div>
+</div>
+
+<style>
+  .cursos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .cursos-table thead {
+    background: #f8f9fa;
+  }
+
+  .cursos-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .cursos-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .cursos-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  .curso-color-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+</style>
