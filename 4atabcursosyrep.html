@@ -1,14 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.20 GPT
+PBE CONTROL - 4atabcursosyrep.html - V01.21 GPT
 Sistema de Gestión Académica
 07/01/2026
 
-FIX CRÍTICO V01.20:
-- Lazy-load REAL de subtabs
-- Evita ejecución simultánea de scripts hijos
-- Solo se inicializa el subtab activo
-- Emite evento controlado pbe:subtab-activated
+FIX V01.21:
+- NO se carga ningún subtab automáticamente
+- Los subtabs solo se inicializan por clic del usuario
+- Evita ejecución múltiple de scripts hijos
+- Mantiene lazy-load controlado vía evento
 ******************************************
 -->
 
@@ -41,20 +41,19 @@ FIX CRÍTICO V01.20:
 
   .subtab-content { display: none; }
   .subtab-content.active { display: block; }
-
 </style>
 
 <div class="subtabs-container">
 
   <div class="subtabs-nav">
-    <button class="subtab-btn active" id="btn-subtab-cursos"
+    <button class="subtab-btn" id="btn-subtab-cursos"
       onclick="switchSubTab('cursos')">📚 Cursos</button>
 
     <button class="subtab-btn" id="btn-subtab-repasos"
       onclick="switchSubTab('repasos')">🔄 Repasos</button>
   </div>
 
-  <div id="subtab-cursos" class="subtab-content active" data-loaded="false">
+  <div id="subtab-cursos" class="subtab-content" data-loaded="false">
     <?!= include('5atabcursos'); ?>
   </div>
 
@@ -93,18 +92,13 @@ FIX CRÍTICO V01.20:
         })
       );
 
-      console.log('🟢 Subtab inicializado:', name);
+      console.log('🟢 Subtab inicializado por clic:', name);
     }
   }
 
   window.switchSubTab = switchSubTab;
 
-  // 🔥 Auto-init SOLO del primer subtab visible
-  window.addEventListener('load', () => {
-    switchSubTab('cursos');
-  });
-
-  console.log('%c📦 4atabcursosyrep V01.20 cargado',
+  console.log('%c📦 4atabcursosyrep V01.21 cargado (sin auto-init)',
     'font-weight:bold;color:#667eea');
 })();
 </script>
