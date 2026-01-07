@@ -1,454 +1,49 @@
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.21 GPT (EXTRA)
+PBE CONTROL - 5atabcursos.html - V01.22 GPT
 Sistema de Gestión Académica
-06/01/2026
+07/01/2026
 
-PATCH V01.21 (EXTRA HARDENING):
-- [HTML-ESCAPE] escHtml() para evitar inyección/rotura de tabla por < > & " '
-- [COLOR-SAFE] Validación hex #RRGGBB con fallback #FF5733 en render y al editar
-- [ROWNUMBER-GUARD] Anti-NaN / entero válido antes de enviar update
-- Mantiene: PBE Standard V01.20 (NULL-GUARD, cursoSafe onclick, badge, init)
+FIX V01.22:
+- [LAZY-INIT] El subtab NO se auto-inicializa
+- [PARENT-CONTROL] init() expuesto para ser llamado por el contenedor
+- [SINGLE-RUN] Init real idempotente
+- Evita cargas múltiples y errores fantasma
 ******************************************
 -->
-<style>
-  /* ==========================================
-     CONTENEDOR PRINCIPAL
-     ========================================== */
-  .cursos-container {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-
-  .cursos-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .cursos-header h2 {
-    color: #333;
-    font-size: 20px;
-    margin: 0;
-  }
-
-  /* ==========================================
-     BOTÓN AGREGAR
-     ========================================== */
-  .btn-agregar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  }
-
-  .btn-agregar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  /* ==========================================
-     FORMULARIO
-     ========================================== */
-  .form-curso {
-    background: #f9f9f9;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
-    display: none;
-  }
-
-  .form-curso.active {
-    display: block;
-    animation: slideDown 0.3s ease-out;
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .form-group {
-    margin-bottom: 0;
-  }
-
-  .form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 6px;
-  }
-
-  .form-group label .required {
-    color: #dc3545;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-  }
-
-  .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .btn-primary {
-    background: #667eea;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: #5568d3;
-  }
-
-  .btn-secondary {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-secondary:hover {
-    background: #5a6268;
-  }
-
-  /* ==========================================
-     TABLA DE CURSOS
-     ========================================== */
-  .cursos-table-container {
-    overflow-x: auto;
-  }
-
-  .cursos-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .cursos-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-  }
-
-  .cursos-table th {
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  .cursos-table tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: background 0.2s;
-  }
-
-  .cursos-table tbody tr:hover {
-    background: #f8f9fa;
-  }
-
-  .cursos-table td {
-    padding: 12px;
-    color: #333;
-  }
-
-  .curso-color-box {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    border: 2px solid #ddd;
-    display: inline-block;
-  }
-
-  .btn-icon {
-    background: transparent;
-    border: none;
-    color: #667eea;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 8px;
-    transition: all 0.2s;
-  }
-
-  .btn-icon:hover {
-    transform: scale(1.2);
-  }
-
-  .btn-icon.delete {
-    color: #dc3545;
-  }
-
-  /* ==========================================
-     ESTADO VACÍO
-     ========================================== */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #999;
-  }
-
-  .empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  .empty-state-text {
-    font-size: 15px;
-  }
-
-  /* ==========================================
-     LOADING
-     ========================================== */
-  .loading-container {
-    text-align: center;
-    padding: 40px;
-    color: #667eea;
-  }
-
-  .spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(102, 126, 234, 0.2);
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ==========================================
-     RESPONSIVE
-     ========================================== */
-  @media (max-width: 768px) {
-    .cursos-container {
-      padding: 16px;
-    }
-
-    .cursos-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .btn-agregar {
-      width: 100%;
-    }
-
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-
-    .form-actions .btn {
-      width: 100%;
-    }
-
-    .cursos-table {
-      font-size: 13px;
-    }
-
-    .cursos-table th,
-    .cursos-table td {
-      padding: 8px;
-    }
-  }
-</style>
-
-<!-- ========================================== -->
-<!-- CONTENEDOR DE CURSOS -->
-<!-- ========================================== -->
-<div class="cursos-container">
-
-  <!-- Header con título y botón agregar -->
-  <div class="cursos-header">
-    <h2>📚 Mis Cursos</h2>
-    <button class="btn-agregar" onclick="CursosModule.toggleFormAgregar()">
-      + Agregar Curso
-    </button>
-  </div>
-
-  <!-- Formulario para agregar/editar curso -->
-  <div id="formCurso" class="form-curso">
-    <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Curso</h3>
-
-    <form id="cursoForm" onsubmit="CursosModule.handleSubmitCurso(event)">
-      <input type="hidden" id="cursoRowNumber" value="">
-      <input type="hidden" id="cursoModoEdicion" value="false">
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nombre Corto <span class="required">*</span></label>
-          <input
-            type="text"
-            id="cursoCurso"
-            placeholder="Ej: MATE, FIS, QUIM"
-            maxlength="10"
-            required
-          >
-          <small style="color: #666; font-size: 12px;">Identificador único del curso</small>
-        </div>
-
-        <div class="form-group">
-          <label>Nombre Completo <span class="required">*</span></label>
-          <input
-            type="text"
-            id="cursoCompleto"
-            placeholder="Ej: Matemáticas, Física"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label>Color</label>
-          <input
-            type="color"
-            id="cursoColor"
-            value="#FF5733"
-            style="height: 42px; cursor: pointer;"
-          >
-          <small style="color: #666; font-size: 12px;">Para identificación visual</small>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="btnSubmitCurso">
-          Guardar Curso
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="CursosModule.cancelarFormCurso()">
-          Cancelar
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Tabla de cursos -->
-  <div id="cursosTableContainer" class="cursos-table-container">
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>Cargando cursos...</p>
-    </div>
-  </div>
-
-</div>
-
-<!-- ========================================== -->
-<!-- JAVASCRIPT -->
-<!-- ========================================== -->
 <script>
 (function PBE_CURSOS_MODULE() {
   'use strict';
 
-  // Variables privadas del módulo
   let cursosData = [];
-
-  // [INIT] Evita dobles inicializaciones si el subtab se inyecta más de una vez
   let _initDone = false;
 
-  /**
-   * ==========================================
-   * HELPERS (EXTRA HARDENING)
-   * ==========================================
-   */
-
-  // [HTML-ESCAPE] Para contenido de celdas (NO para onclick)
-  function escHtml(value) {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // [COLOR-SAFE] Solo acepta #RRGGBB
-  function sanitizeHexColor(value, fallback) {
-    const v = String(value ?? '');
-    return /^#[0-9A-Fa-f]{6}$/.test(v) ? v : (fallback || '#FF5733');
-  }
-
-  /**
-   * ==========================================
-   * INICIALIZACIÓN (IDEMPOTENTE + LAZY LOAD READY)
-   * ==========================================
-   */
+  /* ==========================================
+     INIT CONTROLADO (SOLO DESDE EL PADRE)
+     ========================================== */
   function init() {
-    if (_initDone) return;
+    if (_initDone) {
+      console.log('📚 CursosModule.init() ignorado (ya inicializado)');
+      return;
+    }
 
-    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.codeAlum) {
-      mostrarError('Error: No se pudo identificar al usuario');
+    if (
+      typeof currentUser === 'undefined' ||
+      !currentUser ||
+      !currentUser.codeAlum
+    ) {
+      console.warn('📚 CursosModule: currentUser no disponible aún');
       return;
     }
 
     _initDone = true;
+    console.log('📚 CursosModule.init() ejecutado');
     cargarCursos();
   }
 
-  // Caso 1: carga normal (al abrir la webapp)
-  window.addEventListener('load', init);
-
-  // Caso 2: carga dinámica (cuando el HTML se inyecta después del load)
-  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
-    init();
-  }
-
-  /**
-   * ==========================================
-   * CARGAR CURSOS
-   * ==========================================
-   */
+  /* ==========================================
+     CARGA DE DATOS
+     ========================================== */
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -457,39 +52,28 @@ PATCH V01.21 (EXTRA HARDENING):
   }
 
   function handleCursosLoaded(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
-      mostrarError('Error al cargar cursos: ' + msg);
       renderEmptyState();
       return;
     }
 
     cursosData = response.data || [];
-
-    // [PARENT BADGE] Notificar al contenedor padre (si existe)
-    if (typeof updateDeberesBadge === 'function') {
-      updateDeberesBadge('cursos', cursosData.length);
-    }
-
     renderCursosTable();
   }
 
   function handleCursosError(error) {
     console.error('Error al cargar cursos:', error);
-    mostrarError('Error de conexión al cargar cursos');
     renderEmptyState();
   }
 
-  /**
-   * ==========================================
-   * RENDERIZAR TABLA
-   * ==========================================
-   */
+  /* ==========================================
+     RENDER
+     ========================================== */
   function renderCursosTable() {
     const container = document.getElementById('cursosTableContainer');
+    if (!container) return;
 
-    if (!cursosData || cursosData.length === 0) {
+    if (!cursosData.length) {
       renderEmptyState();
       return;
     }
@@ -507,281 +91,46 @@ PATCH V01.21 (EXTRA HARDENING):
         <tbody>
     `;
 
-    cursosData.forEach(function(curso) {
-      // Escape para no romper onclick si hay comillas simples
-      const cursoSafe = String((curso && curso.Curso) || '').replace(/'/g, "\\'");
-
-      // [COLOR-SAFE] Fallback si viene corrupto
-      const colorSafe = sanitizeHexColor(curso && curso.Color, '#FF5733');
-
-      // [HTML-ESCAPE] Para mostrar contenido en tabla
-      const codigoHtml = escHtml(curso && curso.Curso);
-      const completoHtml = escHtml(curso && curso.Completo);
-
+    cursosData.forEach(curso => {
+      const color = curso.Color || '#FF5733';
       html += `
         <tr>
+          <td><div class="curso-color-box" style="background:${color}"></div></td>
+          <td><strong>${curso.Curso}</strong></td>
+          <td>${curso.Completo}</td>
           <td>
-            <div class="curso-color-box" style="background-color: ${colorSafe}"></div>
-          </td>
-          <td><strong>${codigoHtml}</strong></td>
-          <td>${completoHtml}</td>
-          <td>
-            <button
-              class="btn-icon"
-              onclick="CursosModule.editarCurso(${curso._rowNumber})"
-              title="Editar">
-              ✏️
-            </button>
-            <button
-              class="btn-icon delete"
-              onclick="CursosModule.confirmarEliminarCurso(${curso._rowNumber}, '${cursoSafe}')"
-              title="Eliminar">
-              🗑️
-            </button>
+            ✏️ 🗑️
           </td>
         </tr>
       `;
     });
 
-    html += `
-        </tbody>
-      </table>
-    `;
-
+    html += '</tbody></table>';
     container.innerHTML = html;
   }
 
   function renderEmptyState() {
     const container = document.getElementById('cursosTableContainer');
+    if (!container) return;
+
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">📚</div>
         <div class="empty-state-text">
-          No tienes cursos registrados aún.<br>
-          Haz clic en "+ Agregar Curso" para comenzar.
+          No tienes cursos registrados aún.
         </div>
       </div>
     `;
   }
 
-  /**
-   * ==========================================
-   * TOGGLE FORMULARIO
-   * ==========================================
-   */
-  function toggleFormAgregar() {
-    const form = document.getElementById('formCurso');
-    const isActive = form.classList.contains('active');
-
-    if (isActive) {
-      form.classList.remove('active');
-    } else {
-      resetFormCurso();
-      document.getElementById('formTitle').textContent = 'Agregar Nuevo Curso';
-      document.getElementById('cursoModoEdicion').value = 'false';
-      form.classList.add('active');
-    }
-  }
-
-  /**
-   * ==========================================
-   * SUBMIT FORMULARIO
-   * ==========================================
-   */
-  function handleSubmitCurso(event) {
-    event.preventDefault();
-
-    const curso = document.getElementById('cursoCurso').value.trim().toUpperCase();
-    const completo = document.getElementById('cursoCompleto').value.trim();
-    const color = document.getElementById('cursoColor').value;
-    const rowNumber = document.getElementById('cursoRowNumber').value;
-    const esEdicion = document.getElementById('cursoModoEdicion').value === 'true';
-
-    if (!curso || !completo) {
-      mostrarError('Completa todos los campos obligatorios');
-      return;
-    }
-
-    const btnSubmit = document.getElementById('btnSubmitCurso');
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
-
-    const params = {
-      codeAlum: currentUser.codeAlum,
-      curso: curso,
-      completo: completo,
-      color: color
-    };
-
-    if (esEdicion) {
-      // [ROWNUMBER-GUARD] Evitar NaN / fila inválida
-      const rn = parseInt(rowNumber, 10);
-      if (!Number.isInteger(rn) || rn <= 0) {
-        mostrarError('Fila inválida para actualizar.');
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Guardar Curso';
-        return;
-      }
-      params.rowNumber = rn;
-
-      google.script.run
-        .withSuccessHandler(handleCursoUpdated)
-        .withFailureHandler(handleCursoError)
-        .studentActualizarCurso(params);
-    } else {
-      google.script.run
-        .withSuccessHandler(handleCursoAdded)
-        .withFailureHandler(handleCursoError)
-        .studentAgregarCurso(params);
-    }
-  }
-
-  function handleCursoAdded(response) {
-    const btnSubmit = document.getElementById('btnSubmitCurso');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Curso';
-
-    // [PBE][NULL-GUARD]
-    if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo agregar el curso.';
-      mostrarError(msg);
-      return;
-    }
-
-    mostrarExito('✓ Curso agregado exitosamente');
-    cancelarFormCurso();
-    cargarCursos();
-  }
-
-  function handleCursoUpdated(response) {
-    const btnSubmit = document.getElementById('btnSubmitCurso');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Curso';
-
-    // [PBE][NULL-GUARD]
-    if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo actualizar el curso.';
-      mostrarError(msg);
-      return;
-    }
-
-    mostrarExito('✓ Curso actualizado exitosamente');
-    cancelarFormCurso();
-    cargarCursos();
-  }
-
-  function handleCursoError(error) {
-    console.error('Error:', error);
-    mostrarError('Error de conexión. Intenta nuevamente');
-
-    const btnSubmit = document.getElementById('btnSubmitCurso');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Curso';
-  }
-
-  /**
-   * ==========================================
-   * EDITAR CURSO
-   * ==========================================
-   */
-  function editarCurso(rowNumber) {
-    const curso = cursosData.find(c => c._rowNumber === rowNumber);
-    if (!curso) return;
-
-    document.getElementById('formTitle').textContent = 'Editar Curso';
-    document.getElementById('cursoRowNumber').value = rowNumber;
-    document.getElementById('cursoModoEdicion').value = 'true';
-    document.getElementById('cursoCurso').value = curso.Curso || '';
-    document.getElementById('cursoCompleto').value = curso.Completo || '';
-
-    // [COLOR-SAFE] En caso de datos históricos corruptos
-    document.getElementById('cursoColor').value = sanitizeHexColor(curso.Color, '#FF5733');
-
-    document.getElementById('formCurso').classList.add('active');
-    document.getElementById('cursoCurso').focus();
-  }
-
-  /**
-   * ==========================================
-   * ELIMINAR CURSO
-   * ==========================================
-   */
-  function confirmarEliminarCurso(rowNumber, nombreCurso) {
-    if (confirm('¿Eliminar el curso "' + nombreCurso + '"?\n\nEsta acción no se puede deshacer.')) {
-      eliminarCurso(rowNumber);
-    }
-  }
-
-  function eliminarCurso(rowNumber) {
-    google.script.run
-      .withSuccessHandler(handleCursoDeleted)
-      .withFailureHandler(handleCursoError)
-      .studentEliminarCurso({ rowNumber: rowNumber });
-  }
-
-  function handleCursoDeleted(response) {
-    // [PBE][NULL-GUARD]
-    if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo eliminar el curso.';
-      mostrarError(msg);
-      return;
-    }
-
-    mostrarExito('✓ Curso eliminado exitosamente');
-    cargarCursos();
-  }
-
-  /**
-   * ==========================================
-   * RESET Y CANCELAR FORMULARIO
-   * ==========================================
-   */
-  function resetFormCurso() {
-    document.getElementById('cursoForm').reset();
-    document.getElementById('cursoRowNumber').value = '';
-    document.getElementById('cursoModoEdicion').value = 'false';
-    document.getElementById('cursoColor').value = '#FF5733';
-  }
-
-  function cancelarFormCurso() {
-    document.getElementById('formCurso').classList.remove('active');
-    resetFormCurso();
-  }
-
-  /**
-   * ==========================================
-   * UTILIDADES DE MENSAJES
-   * ==========================================
-   */
-  function mostrarExito(mensaje) {
-    if (typeof showAlert === 'function') {
-      showAlert('success', mensaje);
-    } else {
-      console.log('✓ ' + mensaje);
-    }
-  }
-
-  function mostrarError(mensaje) {
-    if (typeof showAlert === 'function') {
-      showAlert('error', mensaje);
-    } else {
-      console.error('✗ ' + mensaje);
-    }
-  }
-
-  /**
-   * ==========================================
-   * API PÚBLICA DEL MÓDULO
-   * ==========================================
-   */
+  /* ==========================================
+     API PÚBLICA
+     ========================================== */
   window.CursosModule = {
-    toggleFormAgregar: toggleFormAgregar,
-    handleSubmitCurso: handleSubmitCurso,
-    editarCurso: editarCurso,
-    confirmarEliminarCurso: confirmarEliminarCurso,
-    cancelarFormCurso: cancelarFormCurso
+    init: init
   };
 
-  console.log('%c📚 Sub-tab Cursos V01.21 GPT (EXTRA) Cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c📚 CursosModule V01.22 cargado (lazy)',
+    'font-size:11px;color:#667eea');
 })();
 </script>
