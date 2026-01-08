@@ -1,0 +1,267 @@
+Todas las páginas, funciones, tabs y subtabs ya funcionan bastante bien.
+Solo no funcionan 7ctabhorarioclase.html ni 7ctabhorariosem.html.
+
+Puede que no hayas podido ver todos los códigos; quizá algo no se grabó correctamente en el SolidCode o se cortó tu lectura ya que es un compilado de todos los códigos y se hace muy largo. Pero igual creo que basta con enfocarnos en lo que falta.
+
+Concentrémonos en 7ctabhorarioclase.html.
+
+Al respecto, ya conseguimos un código bastante bueno; pero no perfecto, la V01.18.3GPT.
+Lo bueno, el GRID:
+* Carga el GRID y su aspecto es aceptable, las celdas se ven bien.
+* Las Filas por Hora están bien, las Columnas por Día de la Semana, están bien también.
+* El título del contenido, la descripción y la leyenda están bien.
+
+Lo malo:
+* No carga las horas de clase existentes.
+* No funciona el CRUD: Al darle clic no se habilita el box o modal para agregar una nueva hora de clase o editarla.
+
+Te pasaré el códgio de  7ctabhorarioclase.html V01.18.3GPT:
+raw.githubusercontent.com/koki81pe/PBEcontrol/refs/heads/main/7ctabhorarioclase.html
+
+Te paso el código de la versión de horarioclase anterior de la que quizá puedas apoyarte o si no lo consideras lo descartas:
+raw.githubusercontent.com/koki81pe/PBEcontrol/refs/heads/V01Notabcall/7ctabhorarioclase.html
+
+Te paso el log al usar V01.18.3GPT y darle clic a una celda del Horario de Clase:
+exec?page=student:11 Unrecognized feature: 'ambient-light-sensor'.
+exec?page=student:11 Unrecognized feature: 'speaker'.
+exec?page=student:11 Unrecognized feature: 'vibrate'.
+exec?page=student:11 Unrecognized feature: 'vr'.
+about:blank:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'ambient-light-sensor'.
+userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'speaker'.
+userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'vibrate'.
+userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'vr'.
+ ✅ Usuario inicializado correctamente: Object
+ 🎓 PBE Control - Panel Estudiante V01.20
+ ✓ currentUser inicializado ANTES de cargar tabs
+ 📚 CursosModule V01.23 CLAUDE cargado
+ 🔄 Sub-tab Repasos V01.19 GPT EXTRA Cargado
+ 📦 4atabcursosyrep V01.22 CLAUDE cargado
+ 📋 TodosModule V01.21 CLAUDE cargado
+ 📝 Sub-tab Evaluaciones Cargado
+ ✏️ Sub-tab Tareas Cargado
+ 📖 LecturasModule V01.20 CLAUDE cargado
+ 📝 Tab Deberes Cargado [V01.18 CLAUDE]
+ Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas
+ Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha
+ currentUser disponible: true
+ Lazy-init habilitado para todos los sub-tabs
+ 🕐 HorarioClase V01.18.3 inicializado
+userCodeAppPanel?cre…AuthDialog=true:107 Uncaught 
+ 🗓️ CalendarioModule V01.19 CLAUDE iniciando...
+ 🗓️ CalendarioModule V01.19 CLAUDE cargado
+ 📅 Planning V01.18 cargado
+ 📦 4atabcursosyrep V01.22 CLAUDE: Activando Cursos por defecto
+ Variable global currentUser: Object
+ Net state changed from IDLE to BUSY
+ Funciones globales: showAlert, showLoading, hideLoading, switchTab
+ [4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos
+ [4btabdeberes] 🔄 switchSubTabDeberes llamada con: todos
+ [4btabdeberes] ✅ Sub-tab activado: todos
+ Sub-tab Deberes cambiado a: todos
+ [4btabdeberes] 📋 Inicializando TodosModule...
+userCodeAppPanel?cre…OAuthDialog=true:63 Uncaught 
+ 🟢 Inicializando subtab: cursos
+ 📚 CursosModule.init() llamado (intento 1)
+ 📚 CursosModule inicializado correctamente para: TEST05
+ 📚 Cargando cursos para: TEST05
+ 📚 currentUser detectado, auto-inicializando...
+ 📚 CursosModule.init() llamado (intento 1)
+ 📚 CursosModule ya inicializado, ignorando
+ 📋 currentUser detectado, auto-inicializando...
+ 📋 TodosModule.inicializar() llamado (intento 1)
+ 📋 TodosModule inicializado para: TEST05
+ 📋 Cargando deberes para: TEST05
+ 📖 currentUser detectado, auto-inicializando...
+ 📖 LecturasModule.inicializar() llamado (intento 1)
+ 📖 LecturasModule inicializado para: TEST05
+ 📖 Cargando cursos...
+ 📖 Cargando lecturas para: TEST05
+ 🗓️ currentUser detectado, auto-inicializando...
+ 🗓️ CalendarioModule.init() llamado (intento 1)
+ 🗓️ CalendarioModule inicializado para: TEST05
+ 🗓️ Cargando datos del calendario...
+ 🗓️ Llamando a: studentObtenerEvaluaciones
+ 🗓️ Llamando a: studentObtenerTareas
+ 🗓️ Llamando a: studentObtenerLecturas
+ 🗓️ Llamando a: studentObtenerHorarioSem
+ 📚 Respuesta recibida: Object
+ 📚 Cursos cargados: 6
+ 📚 Tabla renderizada con 6 cursos
+ 📖 Respuesta lecturas: Object
+VM188:165 📖 Lecturas cargadas: 2
+VM188:176 📖 Aplicando filtro. Valor actual: 
+VM188:181 📖 Mostrando TODAS las lecturas: 2
+VM188:189 📖 Filtradas: 2 de 2
+VM188:287 📖 Tabla renderizada con 2 lecturas
+VM193:141 🗓️ studentObtenerHorarioSem response: Object
+VM193:172 🗓️ studentObtenerHorarioSem ejemplo: Object
+VM193:178 🗓️ studentObtenerHorarioSem mapeados: 1
+VM188:68 📖 Respuesta cursos: Object
+VM188:81 📖 Cursos cargados: 6
+VM188:112 📖 Dropdowns poblados con 6 cursos
+VM193:141 🗓️ studentObtenerTareas response: Object
+VM193:172 🗓️ studentObtenerTareas ejemplo: Object
+VM193:178 🗓️ studentObtenerTareas mapeados: 3
+VM193:141 🗓️ studentObtenerLecturas response: Object
+VM193:172 🗓️ studentObtenerLecturas ejemplo: Object
+VM193:178 🗓️ studentObtenerLecturas mapeados: 2
+VM193:141 🗓️ studentObtenerEvaluaciones response: Object
+VM193:172 🗓️ studentObtenerEvaluaciones ejemplo: Object
+VM193:178 🗓️ studentObtenerEvaluaciones mapeados: 4
+VM193:114 🗓️ Total de actividades cargadas: 10
+VM193:115 🗓️ Desglose: Object
+VM193:193 🗓️ Renderizando calendario: Enero 2026
+VM193:252 🗓️ Calendario renderizado con 42 celdas
+VM185:366 📋 Respuesta del backend: Object
+VM185:389 📋 Deberes cargados: 9
+VM185:390 📋 Ejemplo de fecha del backend: 05/01/2026
+VM185:403 📋 Deberes ordenados por fecha
+VM185:201 📋 Dropdown de cursos poblado con 5 cursos: Array(5)
+VM185:296 📋 Aplicando filtros - Tipo: todos Curso:  Fecha: todos
+VM185:343 📋 Filtrados: 9 de 9
+VM185:281 📋 Tabla renderizada con 9 deberes
+VM195:37 Tab cambiado a: planning
+VM194:30 [Planning] Sub-tab activo: horarioclase
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+2599463051-warden_bin_i18n_warden__es.js:149 Net state changed from BUSY to IDLE
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+VM194:30 [Planning] Sub-tab activo: horariosem
+VM195:37 Tab cambiado a: cursosyrep
+VM195:37 Tab cambiado a: planning
+VM194:30 [Planning] Sub-tab activo: horariosem
+VM194:30 [Planning] Sub-tab activo: horarioclase
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+agregar @ VM190:124
+onclick @ userCodeAppPanel?createOAuthDialog=true:1
+VM190:124 Uncaught TypeError: window.clickCelda is not a function
+    at Object.agregar (<anonymous>:124:31)
+    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
+agregar @ VM190:124
+onclick @ userCodeAppPanel?createOAuthDialog=true:1
+
+
+También comentarios de Gemini al revisar el Log:
+En la versión V01.18.3 GPT, el código está "encapsulado". Esto significa que las funciones como `clickCelda`, `abrirFormularioAgregar` o `editarClase` ahora viven dentro de un contenedor privado llamado `HorarioClaseModule`.
+El error ocurre porque:
+1. Al hacer clic en la celda, el navegador busca una función global llamada `clickCelda`.
+2. Como esa función ahora está guardada dentro de `HorarioClaseModule`, el sistema no la encuentra y lanza el error que ves en el log.
+3. Al fallar el clic, el formulario no se abre y el flujo se detiene.
+🛠️ La Solución Quirúrgica (V01.18.4)
+Para que el CRUD funcione, debemos conectar los clics de la tabla con las funciones internas del módulo. Debes localizar la función `renderGrid()` en tu archivo V01.18.3 y realizar este cambio específico:
+Busca estas líneas (aprox. 154-168):
+JavaScript
+
+```
+// CÓDIGO CON ERROR (V01.18.3):
+if(s){
+  html+=`
+
+...
+
+`;
+} else {
+  html+=``;
+}
+
+```
+
+Cámbialas por estas (La conexión correcta):
+JavaScript
+
+```
+// CÓDIGO CORREGIDO:
+if(s){
+  const x = s[0];
+  html+=`
+
+
+          ${x.prefijo}${x.clase.Curso}${x.sufijo}
+        
+
+`;
+} else {
+  html+=`
+
+
+          +
+        
+
+`;
+}
+
+```
+
+2. El segundo error: No "jala" los datos
+En tu log se ve que `currentUser` se inicializa correctamente, pero el horario no se pinta. Esto es porque en la V01.18.3, la función `colorCurso` puede estar fallando si intenta buscar un color de un curso que aún no se ha cargado.
+Asegúrate de que tu objeto `window.HorarioClaseModule` al final del script incluya estos nombres exactos:
+JavaScript
+
+```
+window.HorarioClaseModule = {
+  init: init,
+  agregar: abrirFormularioAgregar, // Mapeo de seguridad
+  editar: editarClase,           // Mapeo de seguridad
+  abrirFormularioAgregar: abrirFormularioAgregar,
+  editarClase: editarClase,
+  guardarClase: guardarClase,
+  eliminarClase: eliminarClase,
+  cancelar: cancelarFormClase
+};
+
+```
+
+Resumen del Fix:
+El problema no es de lógica, es de nombres. El HTML llama a "A", pero la función ahora se llama "Modulo.A". 
+...
