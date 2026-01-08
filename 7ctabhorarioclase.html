@@ -1,30 +1,30 @@
 <!--
 ******************************************
-PBE CONTROL - 7ctabhorarioclase.html V01.18.3 GPT
+PBE CONTROL - 7ctabhorarioclase.html V01.18.4 CLAUDE
 Sistema de Gestión Académica
 08/01/2026
 
+CORRECCIONES V01.18.4:
+- ✅ Funciones expuestas correctamente (clickCelda, abrirFormularioAgregar, editarClase)
+- ✅ Formulario completo con todos los campos y botones
+- ✅ CRUD funcional: agregar, editar, eliminar
+- ✅ Carga de datos desde backend
+- ✅ Grid interactivo con onclick que SÍ funciona
+
 BASE:
-- V01.17ant (100% lógica funcional preservada)
+- V01.18.3 GPT (arquitectura encapsulada)
+- V01.17 ant (lógica y formulario completo)
 
-MEJORAS ARQUITECTURA:
-- Encapsulado seguro (IIFE)
-- Auto-init con Retry Logic (SolidCode)
-- Compatible con Planning (subtabs)
-- Prevención de doble inicialización
-- Spinner controlado (no infinito)
-
-NO:
-- No reescritura
-- No mutilación
-- No cambio de comportamiento
+FUNCIONALIDAD:
+- Grid 15 filas (7 AM - 10 PM) × 7 días
+- Click en celda → Formulario agregar/editar
+- Visualización con color del curso
+- Regla medias horas: "/" indica inicio/fin ≥ :30
 ******************************************
 -->
 
 <style>
-/* === ESTILOS ORIGINALES V01.17ant (SIN CAMBIOS) === */
-/* (copiados tal cual de tu versión ant) */
-
+/* === ESTILOS COMPLETOS === */
 .horarioclase-container {
   background: #fff;
   border-radius: 12px;
@@ -32,88 +32,273 @@ NO:
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
 .horarioclase-header { margin-bottom: 24px; }
-.horarioclase-header h2 { margin:0 0 8px; font-size:20px; }
-.horarioclase-subtitle { color:#666; font-size:14px; }
+.horarioclase-header h2 { 
+  margin: 0 0 8px; 
+  font-size: 20px;
+  color: #333;
+}
+.horarioclase-subtitle { 
+  color: #666; 
+  font-size: 14px;
+  margin: 0;
+}
 
 .leyenda {
-  background:#f8f9fa;
-  border:1px solid #dee2e6;
-  border-radius:8px;
-  padding:12px 16px;
-  margin-bottom:20px;
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
-  font-size:13px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
 }
 .leyenda-ejemplo {
-  font-family:monospace;
-  background:#e7f3ff;
-  border:1px solid #b3d9ff;
-  padding:2px 8px;
-  border-radius:4px;
-  font-weight:600;
+  font-family: monospace;
+  background: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 .form-clase {
-  background:#f9f9f9;
-  border:2px solid #e0e0e0;
-  border-radius:10px;
-  padding:20px;
-  margin-bottom:24px;
-  display:none;
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: none;
 }
-.form-clase.active { display:block; }
+.form-clase.active { 
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-clase h3 {
+  margin: 0 0 16px;
+  color: #667eea;
+  font-size: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group label .required {
+  color: #dc3545;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: space-between;
+}
+
+.form-actions-left {
+  display: flex;
+  gap: 12px;
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
 
 .horario-grid-container {
-  overflow-x:auto;
-  border-radius:8px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
 .horario-grid {
-  width:100%;
-  min-width:800px;
-  border-collapse:collapse;
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
 }
 .horario-grid th,
 .horario-grid td {
-  border:1px solid #dee2e6;
-  text-align:center;
+  border: 1px solid #dee2e6;
+  text-align: center;
 }
 .horario-grid thead {
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
 }
-.horario-grid th { padding:10px; font-size:13px; }
-.horario-grid td { height:50px; padding:0; }
+.horario-grid th { 
+  padding: 10px; 
+  font-size: 13px;
+  font-weight: 600;
+}
+.horario-grid td { 
+  height: 50px; 
+  padding: 0;
+  vertical-align: middle;
+}
+
+.horario-grid td.col-hora {
+  background: #f8f9fa;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  padding: 8px;
+}
 
 .celda-clase {
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
+  height: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 4px;
 }
+
+.celda-clase:hover {
+  background: #f0f0f0;
+}
+
 .celda-clase.ocupada {
-  color:#fff;
-  font-weight:700;
-  text-shadow:0 1px 2px rgba(0,0,0,.3);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+
+.celda-clase.ocupada:hover {
+  opacity: 0.9;
+  filter: brightness(1.1);
 }
 
 .loading-container {
-  text-align:center;
-  padding:40px;
-  color:#667eea;
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
 }
 .spinner {
-  width:40px;
-  height:40px;
-  border:4px solid rgba(102,126,234,.2);
-  border-top-color:#667eea;
-  border-radius:50%;
-  animation:spin .8s linear infinite;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102,126,234,.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
-@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .horarioclase-container {
+    padding: 16px;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .form-actions-left,
+  .form-actions-right {
+    width: 100%;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
 </style>
 
 <div class="horarioclase-container" id="horarioClaseBody">
@@ -128,8 +313,71 @@ NO:
     <span><span class="leyenda-ejemplo">MATE</span> hora completa</span>
   </div>
 
-  <!-- FORMULARIO ORIGINAL V01.17 -->
-  <div id="formClase" class="form-clase"></div>
+  <!-- FORMULARIO COMPLETO -->
+  <div id="formClase" class="form-clase">
+    <h3 id="formTitle">Agregar Clase</h3>
+    
+    <form id="claseForm" onsubmit="return handleSubmitClase(event)">
+      <input type="hidden" id="claseRowNumber" value="">
+      <input type="hidden" id="claseModoEdicion" value="false">
+      <input type="hidden" id="claseDia" value="">
+      <input type="hidden" id="claseHoraSlot" value="">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Curso <span class="required">*</span></label>
+          <select id="claseCurso" required>
+            <option value="">Seleccionar curso...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Hora Inicio <span class="required">*</span></label>
+          <input 
+            type="time" 
+            id="claseHoraIni"
+            min="07:00"
+            max="22:00"
+            required
+          >
+          <small>Rango: 07:00 - 22:00</small>
+        </div>
+
+        <div class="form-group">
+          <label>Hora Fin <span class="required">*</span></label>
+          <input 
+            type="time" 
+            id="claseHoraFin"
+            min="07:00"
+            max="22:00"
+            required
+          >
+          <small>Debe ser mayor a hora inicio</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <div class="form-actions-left">
+          <button 
+            type="button" 
+            class="btn btn-danger" 
+            id="btnEliminar" 
+            onclick="confirmarEliminarClase()"
+            style="display: none;">
+            Eliminar
+          </button>
+        </div>
+        <div class="form-actions-right">
+          <button type="button" class="btn btn-secondary" onclick="cancelarFormClase()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 
   <!-- GRID -->
   <div id="horarioGridContainer" class="horario-grid-container">
@@ -146,7 +394,7 @@ NO:
 
 if (window.HorarioClaseModule) return;
 
-/* ===== ESTADO ORIGINAL ===== */
+/* ===== ESTADO ===== */
 let clasesData = [];
 let cursosData = [];
 let horarioMatrix = {};
@@ -163,122 +411,421 @@ function init() {
   _initDone = true;
   cargarCursos();
   cargarHorarioClases();
-  console.log('🕐 HorarioClase V01.18.3 inicializado');
+  console.log('🕐 HorarioClase V01.18.4 inicializado');
 }
 
 /* ===== BACKEND ===== */
 function cargarCursos() {
   google.script.run
-    .withSuccessHandler(r => cursosData = r?.data || [])
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        cursosData = r.data || [];
+        poblarDropdownCursos();
+      }
+    })
+    .withFailureHandler(e => console.error('Error cursos:', e))
     .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+}
+
+function poblarDropdownCursos() {
+  const select = document.getElementById('claseCurso');
+  if (!select) return;
+  
+  const primerOption = select.options[0].outerHTML;
+  select.innerHTML = primerOption;
+
+  cursosData.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.Curso;
+    opt.textContent = c.Curso + ' - ' + c.Completo;
+    opt.dataset.color = c.Color || '#667eea';
+    select.appendChild(opt);
+  });
 }
 
 function cargarHorarioClases() {
   google.script.run
     .withSuccessHandler(r => {
-      clasesData = r?.data || [];
-      construirMatriz();
+      if (r && r.success) {
+        clasesData = r.data || [];
+        construirMatriz();
+        renderGrid();
+        ocultarLoading();
+      } else {
+        console.error('Error en respuesta:', r);
+        renderGrid();
+        ocultarLoading();
+      }
+    })
+    .withFailureHandler(e => {
+      console.error('Error al cargar horario:', e);
       renderGrid();
       ocultarLoading();
     })
     .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
 }
 
-/* ===== LÓGICA V01.17ant ===== */
+/* ===== LÓGICA ===== */
 function construirMatriz() {
   horarioMatrix = {};
   DIAS.forEach(d => horarioMatrix[d] = {});
+  
   clasesData.forEach(c => {
     const dia = extraerDia(c.Detalle);
     if (!dia) return;
+    
     calcularHoras(c.HoraIni, c.HoraFin).forEach(h => {
-      horarioMatrix[dia][h.hora] ??= [];
-      horarioMatrix[dia][h.hora].push({ clase:c, ...h });
+      horarioMatrix[dia][h.hora] = horarioMatrix[dia][h.hora] || [];
+      horarioMatrix[dia][h.hora].push({ clase: c, ...h });
     });
   });
 }
 
 function extraerDia(t) {
   if (!t) return null;
-  const s = t.toLowerCase();
+  const s = String(t).toLowerCase();
   return DIAS.find(d => s.includes(d.toLowerCase()));
 }
 
-function calcularHoras(i,f) {
-  const [hi,mi]=i.split(':').map(Number);
-  const [hf,mf]=f.split(':').map(Number);
-  const res=[];
-  for(let h=hi;h<=hf;h++){
-    if(h===hf && mf===0) continue;
+function calcularHoras(i, f) {
+  const [hi, mi] = i.split(':').map(Number);
+  const [hf, mf] = f.split(':').map(Number);
+  const res = [];
+  
+  for (let h = hi; h <= hf; h++) {
+    if (h === hf && mf === 0) continue;
+    
     res.push({
-      hora:String(h).padStart(2,'0')+':00',
-      prefijo:(h===hi&&mi>=30)?'/':'',
-      sufijo:(h===hf&&mf>=30)?'/':''
+      hora: String(h).padStart(2, '0') + ':00',
+      prefijo: (h === hi && mi >= 30) ? '/' : '',
+      sufijo: (h === hf && mf >= 30) ? '/' : ''
     });
   }
+  
   return res;
 }
 
-function colorCurso(curso){
-  const c = cursosData.find(x=>x.Curso===curso);
-  return c?.Color || '#667eea';
+function colorCurso(curso) {
+  const c = cursosData.find(x => x.Curso === curso);
+  return c ? c.Color : '#667eea';
 }
 
-/* ===== RENDER GRID (INTERACTIVO) ===== */
+/* ===== RENDER GRID ===== */
 function renderGrid() {
   const c = document.getElementById('horarioGridContainer');
   if (!c) return;
 
-  let html='<table class="horario-grid"><thead><tr><th>Hora</th>';
-  DIAS_CORTOS.forEach(d=>html+=`<th>${d}</th>`);
-  html+='</tr></thead><tbody>';
+  let html = '<table class="horario-grid"><thead><tr><th class="col-hora">Hora</th>';
+  DIAS_CORTOS.forEach(d => html += `<th class="col-dia">${d}</th>`);
+  html += '</tr></thead><tbody>';
 
-  for(let h=HORA_INICIO;h<=HORA_FIN;h++){
-    const k=String(h).padStart(2,'0')+':00';
-    html+=`<tr><td>${h<=12?h+' AM':(h-12)+' PM'}</td>`;
-    DIAS.forEach(d=>{
-      const s=horarioMatrix[d][k];
-      if(s){
-        const x=s[0];
-        html+=`<td><div class="celda-clase ocupada"
-          style="background:${colorCurso(x.clase.Curso)}"
-          onclick="HorarioClaseModule.editar('${d}','${k}')">
-          ${x.prefijo}${x.clase.Curso}${x.sufijo}
+  for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
+    const k = String(h).padStart(2, '0') + ':00';
+    const horaFormato = formatearHora12(h);
+    
+    html += `<tr><td class="col-hora">${horaFormato}</td>`;
+    
+    DIAS.forEach(d => {
+      const s = horarioMatrix[d][k];
+      
+      if (s && s.length > 0) {
+        const x = s[0];
+        const color = colorCurso(x.clase.Curso);
+        const texto = x.prefijo + x.clase.Curso + x.sufijo;
+        
+        html += `<td><div class="celda-clase ocupada" 
+          style="background:${color}" 
+          onclick="window.editarClase('${d}','${k}')">
+          ${texto}
         </div></td>`;
       } else {
-        html+=`<td><div class="celda-clase"
-          onclick="HorarioClaseModule.agregar('${d}','${k}')"></div></td>`;
+        html += `<td><div class="celda-clase" 
+          onclick="window.clickCelda('${d}','${k}')">
+        </div></td>`;
       }
     });
-    html+='</tr>';
+    
+    html += '</tr>';
   }
 
-  html+='</tbody></table>';
-  c.innerHTML=html;
+  html += '</tbody></table>';
+  c.innerHTML = html;
 }
 
-function ocultarLoading(){
-  const l=document.getElementById('loadingHorarioClase');
-  if(l) l.style.display='none';
+function ocultarLoading() {
+  const l = document.getElementById('loadingHorarioClase');
+  if (l) l.style.display = 'none';
 }
 
-/* ===== API (V01.17) ===== */
-function agregar(d,h){ window.clickCelda(d,h); }
-function editar(d,h){ window.clickCelda(d,h); }
+/* ===== FORMULARIO ===== */
+function clickCelda(dia, hora) {
+  abrirFormularioAgregar(dia, hora);
+}
+
+function abrirFormularioAgregar(dia, hora) {
+  resetFormClase();
+
+  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
+  const horaFormato = formatearHora12Desde24(hora);
+
+  document.getElementById('formTitle').textContent = 'Agregar Clase - ' + diaCorto + ' ' + horaFormato;
+  document.getElementById('claseModoEdicion').value = 'false';
+  document.getElementById('claseDia').value = dia;
+  document.getElementById('claseHoraSlot').value = hora;
+  document.getElementById('btnSubmit').textContent = 'Guardar';
+  document.getElementById('btnEliminar').style.display = 'none';
+
+  document.getElementById('claseHoraIni').value = hora;
+  
+  const [h] = hora.split(':').map(Number);
+  const horaFinSugerida = String(Math.min(h + 1, HORA_FIN + 1)).padStart(2, '0') + ':00';
+  document.getElementById('claseHoraFin').value = horaFinSugerida;
+
+  document.getElementById('formClase').classList.add('active');
+  
+  const select = document.getElementById('claseCurso');
+  if (select) select.focus();
+}
+
+function editarClase(dia, hora) {
+  const clases = horarioMatrix[dia][hora];
+
+  if (!clases || clases.length === 0) {
+    if (window.showAlert) {
+      showAlert('error', 'No hay clase en esta celda');
+    } else {
+      alert('No hay clase en esta celda');
+    }
+    return;
+  }
+
+  const claseInfo = clases[0];
+  const clase = claseInfo.clase;
+
+  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
+  const horaFormato = formatearHora12Desde24(hora);
+
+  document.getElementById('formTitle').textContent = 'Editar Clase - ' + diaCorto + ' ' + horaFormato;
+  document.getElementById('claseRowNumber').value = clase._rowNumber || '';
+  document.getElementById('claseModoEdicion').value = 'true';
+  document.getElementById('claseDia').value = dia;
+  document.getElementById('claseHoraSlot').value = hora;
+  document.getElementById('claseCurso').value = clase.Curso;
+  document.getElementById('claseHoraIni').value = clase.HoraIni;
+  document.getElementById('claseHoraFin').value = clase.HoraFin;
+  document.getElementById('btnSubmit').textContent = 'Actualizar';
+  document.getElementById('btnEliminar').style.display = 'block';
+
+  document.getElementById('formClase').classList.add('active');
+}
+
+function handleSubmitClase(event) {
+  event.preventDefault();
+
+  const curso = document.getElementById('claseCurso').value.trim();
+  const horaIni = document.getElementById('claseHoraIni').value.trim();
+  const horaFin = document.getElementById('claseHoraFin').value.trim();
+  const dia = document.getElementById('claseDia').value;
+  const esEdicion = document.getElementById('claseModoEdicion').value === 'true';
+
+  if (!curso || !horaIni || !horaFin) {
+    if (window.showAlert) {
+      showAlert('error', 'Completa todos los campos');
+    } else {
+      alert('Completa todos los campos');
+    }
+    return false;
+  }
+
+  if (horaIni >= horaFin) {
+    if (window.showAlert) {
+      showAlert('error', 'La hora de fin debe ser mayor a la de inicio');
+    } else {
+      alert('La hora de fin debe ser mayor a la de inicio');
+    }
+    return false;
+  }
+
+  const btnSubmit = document.getElementById('btnSubmit');
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+  const params = {
+    codeAlum: currentUser.codeAlum,
+    curso: curso,
+    horaIni: horaIni,
+    horaFin: horaFin,
+    detalle: dia
+  };
+
+  if (esEdicion) {
+    const rowNumber = document.getElementById('claseRowNumber').value;
+    if (rowNumber) {
+      params.rowNumber = parseInt(rowNumber);
+    }
+
+    google.script.run
+      .withSuccessHandler(r => handleClaseGuardada(r, true))
+      .withFailureHandler(e => handleClaseError(e, true))
+      .studentActualizarHorarioClase(params);
+  } else {
+    google.script.run
+      .withSuccessHandler(r => handleClaseGuardada(r, false))
+      .withFailureHandler(e => handleClaseError(e, false))
+      .studentAgregarHorarioClase(params);
+  }
+
+  return false;
+}
+
+function handleClaseGuardada(response, esEdicion) {
+  const btnSubmit = document.getElementById('btnSubmit');
+  btnSubmit.disabled = false;
+  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+
+  if (response && response.success) {
+    const msg = esEdicion ? '✓ Clase actualizada' : '✓ Clase agregada';
+    if (window.showAlert) {
+      showAlert('success', msg);
+    } else {
+      alert(msg);
+    }
+    cancelarFormClase();
+    cargarHorarioClases();
+  } else {
+    const error = response ? response.error : 'Error desconocido';
+    if (window.showAlert) {
+      showAlert('error', error);
+    } else {
+      alert('Error: ' + error);
+    }
+  }
+}
+
+function handleClaseError(error, esEdicion) {
+  console.error('Error:', error);
+  
+  const btnSubmit = document.getElementById('btnSubmit');
+  btnSubmit.disabled = false;
+  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+  
+  if (window.showAlert) {
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+  } else {
+    alert('Error de conexión. Intenta nuevamente');
+  }
+}
+
+function confirmarEliminarClase() {
+  const rowNumber = document.getElementById('claseRowNumber').value;
+
+  if (!rowNumber) {
+    if (window.showAlert) {
+      showAlert('error', 'No se puede eliminar esta clase');
+    } else {
+      alert('No se puede eliminar esta clase');
+    }
+    return;
+  }
+
+  if (confirm('¿Eliminar esta clase del horario?\n\nEsta acción no se puede deshacer.')) {
+    eliminarClase(parseInt(rowNumber));
+  }
+}
+
+function eliminarClase(rowNumber) {
+  google.script.run
+    .withSuccessHandler(handleClaseEliminada)
+    .withFailureHandler(e => {
+      console.error('Error al eliminar:', e);
+      if (window.showAlert) {
+        showAlert('error', 'Error al eliminar');
+      } else {
+        alert('Error al eliminar');
+      }
+    })
+    .studentEliminarHorarioClase({ rowNumber: rowNumber });
+}
+
+function handleClaseEliminada(response) {
+  if (response && response.success) {
+    if (window.showAlert) {
+      showAlert('success', '✓ Clase eliminada');
+    } else {
+      alert('Clase eliminada');
+    }
+    cancelarFormClase();
+    cargarHorarioClases();
+  } else {
+    const error = response ? response.error : 'Error desconocido';
+    if (window.showAlert) {
+      showAlert('error', error);
+    } else {
+      alert('Error: ' + error);
+    }
+  }
+}
+
+function resetFormClase() {
+  const form = document.getElementById('claseForm');
+  if (form) form.reset();
+  
+  document.getElementById('claseRowNumber').value = '';
+  document.getElementById('claseModoEdicion').value = 'false';
+  document.getElementById('claseDia').value = '';
+  document.getElementById('claseHoraSlot').value = '';
+}
+
+function cancelarFormClase() {
+  const formDiv = document.getElementById('formClase');
+  if (formDiv) formDiv.classList.remove('active');
+  resetFormClase();
+}
+
+/* ===== HELPERS ===== */
+function formatearHora12(h) {
+  if (h === 12) return '12 PM';
+  if (h > 12) return (h - 12) + ' PM';
+  if (h === 0) return '12 AM';
+  return h + ' AM';
+}
+
+function formatearHora12Desde24(hora24Str) {
+  const [h] = hora24Str.split(':').map(Number);
+  return formatearHora12(h);
+}
+
+/* ===== EXPOSICIÓN GLOBAL ===== */
+window.clickCelda = clickCelda;
+window.abrirFormularioAgregar = abrirFormularioAgregar;
+window.editarClase = editarClase;
+window.handleSubmitClase = handleSubmitClase;
+window.confirmarEliminarClase = confirmarEliminarClase;
+window.cancelarFormClase = cancelarFormClase;
 
 /* ===== AUTO INIT CON RETRY ===== */
-let _r=0;
-(function retry(){
-  if(window.currentUser?.codeAlum){
+let _r = 0;
+(function retry() {
+  if (window.currentUser && currentUser.codeAlum) {
     init();
-  } else if(_r<6){
-    _r++; setTimeout(retry,200);
+  } else if (_r < 6) {
+    _r++;
+    setTimeout(retry, 200);
   } else {
     ocultarLoading();
     console.error('HorarioClase: currentUser no disponible');
   }
 })();
 
-window.HorarioClaseModule = { init, agregar, editar };
+window.HorarioClaseModule = {
+  init: init,
+  clickCelda: clickCelda,
+  abrirFormularioAgregar: abrirFormularioAgregar,
+  editarClase: editarClase,
+  guardarClase: handleSubmitClase,
+  eliminarClase: confirmarEliminarClase,
+  cancelar: cancelarFormClase
+};
+
 })();
 </script>
