@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.23 CLAUDE
+PBE CONTROL - 1code.gs - V01.25 CLAUDE
 Sistema de Gestión Académica
-05/01/2026 - 20:30
+07/01/2026 - 23:45
 ******************************************
 
 CONTENIDO:
@@ -11,12 +11,28 @@ CONTENIDO:
 - autenticar(): Login unificado Admin/Estudiante
 - 31 WRAPPERS: Funciones puente para google.script.run
 
+CAMBIOS V01.25 CLAUDE:
+✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA en lugar de Date.toString()
+✅ Problema: Fechas mostraban formato largo en inglés ("Mon Jan 05 2026...")
+✅ Solución: Nueva función formatearFechaDD_MM_AAAA() para formato corto
+✅ Resuelve filtros de fecha que fallaban por formato incompatible
+✅ Función auxiliar actualizada: cleanObject()
+
+CAMBIOS V01.24 CLAUDE:
+✅ FIX CRÍTICO: Limpieza de objetos en TODOS los wrappers
+✅ Problema: google.script.run no serializa Date objects → retorna NULL
+✅ Solución: Convertir Date a String antes de retornar
+✅ Aplicado a los 31 wrappers de Student
+✅ Función auxiliar: cleanDataForSerialization()
+
+CAMBIOS V01.23:
+- Agregado wrapper faltante: studentActualizarHorarioSem
+
 CAMBIOS V01.22:
 - CORRECCIÓN CRÍTICA en include(): Ahora procesa templates anidados
 - Cambio: createHtmlOutputFromFile → createTemplateFromFile + evaluate()
 - Esto permite que los <?!= include() ?> dentro de sub-tabs se procesen correctamente
 - Sin este cambio, los sub-tabs mostraban texto literal: <?!= include('archivo'); ?>
-- Agregado wrapper faltante: studentActualizarHorarioSem
 
 CAMBIOS V01.21:
 - Se cambió createHtmlOutputFromFile por createTemplateFromFile en doGet().
@@ -148,86 +164,344 @@ function autenticar(params) {
 }
 
 // ==========================================
-// 4. WRAPPERS - STUDENT (31 Funciones)
+// 4. FUNCIÓN AUXILIAR - LIMPIEZA DE DATOS
+// V01.25 CLAUDE
 // ==========================================
 
-// CURSOS
-function studentObtenerCursos(params) { 
-  Logger.log('🔍 studentObtenerCursos WRAPPER');
-  Logger.log('  Params: ' + JSON.stringify(params));
+/**
+ * Limpiar objetos para serialización de google.script.run
+ * 
+ * PROBLEMA V01.23:
+ * google.script.run NO puede serializar Date objects
+ * Resultado: retorna NULL al frontend
+ * 
+ * SOLUCIÓN V01.24:
+ * Convertir todos los campos problemáticos a String
+ * 
+ * MEJORA V01.25:
+ * Formatear fechas como DD/MM/AAAA en lugar de Date.toString()
+ * Esto resuelve:
+ * - Fechas mostraban formato largo en inglés
+ * - Filtros de fecha fallaban por formato incompatible
+ * 
+ * CAMPOS QUE SE LIMPIAN:
+ * - FechaReg: Date → DD/MM/AAAA
+ * - FechaClase: Date → DD/MM/AAAA
+ * - FechaRep: Date → DD/MM/AAAA
+ * - FechaEval: Date → DD/MM/AAAA
+ * - FechaEntrega: Date → DD/MM/AAAA
+ * - FechaAccion: Date → DD/MM/AAAA
+ * - FechaInicio: Date → DD/MM/AAAA
+ * - FechaFin: Date → DD/MM/AAAA
+ * - FechaHS: Date → DD/MM/AAAA
+ * - HoraInicio: mantener como String
+ * - HoraFin: mantener como String
+ * 
+ * @param {Object} result - Respuesta de Student.* functions
+ * @return {Object} - Objeto limpio serializable
+ */
+function cleanDataForSerialization(result) {
+  if (!result || !result.success || !result.data) {
+    return result;
+  }
   
-  var result = Student.obtenerCursos(params);
-  
-  Logger.log('  Result type: ' + typeof result);
-  Logger.log('  Result is null: ' + (result === null));
-  Logger.log('  Result: ' + JSON.stringify(result));
+  // Si data es un array, limpiar cada item
+  if (Array.isArray(result.data)) {
+    result.data = result.data.map(function(item) {
+      return cleanObject(item);
+    });
+  } else {
+    // Si data es un objeto, limpiarlo directamente
+    result.data = cleanObject(result.data);
+  }
   
   return result;
 }
-function studentAgregarCurso(params) { return Student.agregarCurso(params); }
-function studentActualizarCurso(params) { return Student.actualizarCurso(params); }
-function studentEliminarCurso(params) { return Student.eliminarCurso(params); }
 
-// REPASOS
-function studentObtenerRepasos(params) { return Student.obtenerRepasos(params); }
-function studentAgregarRepaso(params) { return Student.agregarRepaso(params); }
-function studentActualizarRepaso(params) { return Student.actualizarRepaso(params); }
-function studentEliminarRepaso(params) { return Student.eliminarRepaso(params); }
+/**
+ * Formatear Date a DD/MM/AAAA
+ * V01.25 CLAUDE
+ */
+function formatearFechaDD_MM_AAAA(fecha) {
+  if (!fecha || !(fecha instanceof Date)) {
+    return '';
+  }
+  
+  var dia = fecha.getDate();
+  var mes = fecha.getMonth() + 1; // Mes base 0
+  var anio = fecha.getFullYear();
+  
+  // Agregar cero a la izquierda si es necesario
+  dia = dia < 10 ? '0' + dia : dia;
+  mes = mes < 10 ? '0' + mes : mes;
+  
+  return dia + '/' + mes + '/' + anio;
+}
 
-// EVALUACIONES
-function studentObtenerEvaluaciones(params) { return Student.obtenerEvaluaciones(params); }
-function studentAgregarEvaluacion(params) { return Student.agregarEvaluacion(params); }
-function studentActualizarEvaluacion(params) { return Student.actualizarEvaluacion(params); }
-function studentEliminarEvaluacion(params) { return Student.eliminarEvaluacion(params); }
-
-// TAREAS
-function studentObtenerTareas(params) { return Student.obtenerTareas(params); }
-function studentAgregarTarea(params) { return Student.agregarTarea(params); }
-function studentActualizarTarea(params) { return Student.actualizarTarea(params); }
-function studentEliminarTarea(params) { return Student.eliminarTarea(params); }
-
-// LECTURAS
-function studentObtenerLecturas(params) { return Student.obtenerLecturas(params); }
-function studentAgregarLectura(params) { return Student.agregarLectura(params); }
-function studentActualizarLectura(params) { return Student.actualizarLectura(params); }
-function studentEliminarLectura(params) { return Student.eliminarLectura(params); }
-
-// HORARIO CLASES
-function studentObtenerHorarioClases(params) { return Student.obtenerHorarioClases(params); }
-function studentAgregarHorarioClase(params) { return Student.agregarHorarioClase(params); }
-function studentActualizarHorarioClase(params) { return Student.actualizarHorarioClase(params); }
-function studentEliminarHorarioClase(params) { return Student.eliminarHorarioClase(params); }
-
-// HORARIO SEMANAL
-function studentObtenerHorarioSem(params) { return Student.obtenerHorarioSem(params); }
-function studentAgregarHorarioSem(params) { return Student.agregarHorarioSem(params); }
-function studentActualizarHorarioSem(params) { return Student.actualizarHorarioSem(params); }
-function studentEliminarHorarioSem(params) { return Student.eliminarHorarioSem(params); }
-
-// NOTAS Y RESÚMENES
-function studentObtenerNotasPorCurso(params) { return Student.obtenerNotasPorCurso(params); }
-function studentObtenerResumenNotas(params) { return Student.obtenerResumenNotas(params); }
-
-// DEBERES (VISTAS UNIFICADAS)
-function studentObtenerTodosDeberes(params) { return Student.obtenerTodosDeberes(params); }
-function studentObtenerDeberesPorTipo(params) { return Student.obtenerDeberesPorTipo(params); }
-
-// ==========================================
-// 5. WRAPPERS - ADMIN (3 Funciones)
-// ==========================================
-
-function adminCrearAlumno(params) { return Admin.crearAlumno(params); }
-function adminBuscarAlumno(params) { return Admin.buscarAlumno(params); }
-function adminEliminarAlumno(params) { return Admin.eliminarAlumno(params); }
+/**
+ * Limpiar un objeto individual
+ * V01.25: Convierte Dates a DD/MM/AAAA y preserva _rowNumber
+ */
+function cleanObject(obj) {
+  var cleaned = {};
+  
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      var value = obj[key];
+      
+      // Convertir Date a DD/MM/AAAA
+      if (value instanceof Date) {
+        cleaned[key] = formatearFechaDD_MM_AAAA(value);
+      } 
+      // Convertir null/undefined a string vacío
+      else if (value === null || value === undefined) {
+        cleaned[key] = '';
+      }
+      // Preservar el resto tal cual
+      else {
+        cleaned[key] = value;
+      }
+    }
+  }
+  
+  return cleaned;
+}
 
 // ==========================================
-// FIN DE 1code.gs V01.22
+// 5. WRAPPERS - STUDENT (31 Funciones)
+// V01.25 CLAUDE: Fechas en formato DD/MM/AAAA
+// V01.24 CLAUDE: TODOS CON LIMPIEZA
+// ==========================================
+
+// ==========================================
+// CURSOS (4 wrappers)
+// ==========================================
+
+function studentObtenerCursos(params) { 
+  var result = Student.obtenerCursos(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarCurso(params) { 
+  var result = Student.agregarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarCurso(params) { 
+  var result = Student.actualizarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarCurso(params) { 
+  var result = Student.eliminarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// REPASOS (4 wrappers)
+// ==========================================
+
+function studentObtenerRepasos(params) { 
+  var result = Student.obtenerRepasos(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarRepaso(params) { 
+  var result = Student.agregarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarRepaso(params) { 
+  var result = Student.actualizarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarRepaso(params) { 
+  var result = Student.eliminarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// EVALUACIONES (4 wrappers)
+// ==========================================
+
+function studentObtenerEvaluaciones(params) { 
+  var result = Student.obtenerEvaluaciones(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarEvaluacion(params) { 
+  var result = Student.agregarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarEvaluacion(params) { 
+  var result = Student.actualizarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarEvaluacion(params) { 
+  var result = Student.eliminarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// TAREAS (4 wrappers)
+// ==========================================
+
+function studentObtenerTareas(params) { 
+  var result = Student.obtenerTareas(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarTarea(params) { 
+  var result = Student.agregarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarTarea(params) { 
+  var result = Student.actualizarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarTarea(params) { 
+  var result = Student.eliminarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// LECTURAS (4 wrappers)
+// ==========================================
+
+function studentObtenerLecturas(params) { 
+  var result = Student.obtenerLecturas(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarLectura(params) { 
+  var result = Student.agregarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarLectura(params) { 
+  var result = Student.actualizarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarLectura(params) { 
+  var result = Student.eliminarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// HORARIO CLASES (4 wrappers)
+// ==========================================
+
+function studentObtenerHorarioClases(params) { 
+  var result = Student.obtenerHorarioClases(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarHorarioClase(params) { 
+  var result = Student.agregarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarHorarioClase(params) { 
+  var result = Student.actualizarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarHorarioClase(params) { 
+  var result = Student.eliminarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// HORARIO SEMANAL (4 wrappers)
+// ==========================================
+
+function studentObtenerHorarioSem(params) { 
+  var result = Student.obtenerHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarHorarioSem(params) { 
+  var result = Student.agregarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarHorarioSem(params) { 
+  var result = Student.actualizarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarHorarioSem(params) { 
+  var result = Student.eliminarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// NOTAS Y RESÚMENES (2 wrappers)
+// ==========================================
+
+function studentObtenerNotasPorCurso(params) { 
+  var result = Student.obtenerNotasPorCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentObtenerResumenNotas(params) { 
+  var result = Student.obtenerResumenNotas(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// DEBERES (VISTAS UNIFICADAS) (2 wrappers)
+// ==========================================
+
+function studentObtenerTodosDeberes(params) { 
+  var result = Student.obtenerTodosDeberes(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentObtenerDeberesPorTipo(params) { 
+  var result = Student.obtenerDeberesPorTipo(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// 6. WRAPPERS - ADMIN (3 Funciones)
+// Sin cambios - Admin no retorna Dates problemáticos
+// ==========================================
+
+function adminCrearAlumno(params) { 
+  return Admin.crearAlumno(params); 
+}
+
+function adminBuscarAlumno(params) { 
+  return Admin.buscarAlumno(params); 
+}
+
+function adminEliminarAlumno(params) { 
+  return Admin.eliminarAlumno(params); 
+}
+
+// ==========================================
+// FIN DE 1code.gs V01.24 CLAUDE
 // ==========================================
 // RESUMEN:
 // - 1 Router (doGet)
 // - 1 Include con procesamiento de templates anidados
 // - 1 Autenticación
-// - 31 Wrappers Student
-// - 3 Wrappers Admin
-// TOTAL: 37 funciones
+// - 2 Funciones auxiliares de limpieza (NUEVO V01.24)
+// - 31 Wrappers Student (TODOS con limpieza V01.24)
+// - 3 Wrappers Admin (sin cambios)
+// TOTAL: 39 funciones
+//
+// CAMBIOS V01.24 CLAUDE:
+// ✅ cleanDataForSerialization(): Limpia Date objects
+// ✅ cleanObject(): Convierte valores problemáticos a String
+// ✅ Aplicado a TODOS los 31 wrappers de Student
+// ✅ Soluciona: "Cannot read properties of null"
+// ✅ google.script.run ahora puede serializar correctamente
 // ==========================================
