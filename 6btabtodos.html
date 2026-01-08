@@ -1,8 +1,14 @@
 <!--
 ******************************************
-PBE CONTROL - 6btabtodos.html - V01.20 CLAUDE
+PBE CONTROL - 6btabtodos.html - V01.21 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
+
+CAMBIOS V01.21 CLAUDE:
+✅ FIX CRÍTICO: Filtros de fecha ahora funcionan correctamente
+✅ FIX: Normalización de horas en comparación de fechas
+✅ MEJORA: Fechas mostradas como "Mié 07/01" en lugar de "07/01/2026"
+✅ MEJORA: Logs adicionales para debugging de filtros
 
 CAMBIOS V01.20 CLAUDE:
 ✅ FIX CRÍTICO: Filtro ahora acepta '', 'todos', o null como "mostrar todo"
@@ -17,12 +23,6 @@ CAMBIOS V01.19 CLAUDE:
 ✅ MEJORA: Logs exhaustivos con prefijo 📋 para debugging
 ✅ Compatible con patrón de Lecturas y Cursos
 
-CAMBIOS V01.18:
-- Encapsulado en IIFE
-- API pública única: window.TodosModule
-- CSS scopeado para evitar colisiones
-- Fallbacks definidos solo si no existen globalmente
-
 DESCRIPCIÓN:
 Sub-tab "Todos" (vista unificada) que consolida Evaluaciones, Tareas y Lecturas
 en una sola tabla, ordenada por fecha, con filtros por tipo/curso/período.
@@ -36,6 +36,7 @@ FUNCIONALIDAD:
 - Colores dinámicos por nota (verde/amarillo/rojo)
 - Progreso para lecturas (barra + %)
 - Estados: loading, vacío, error
+- Formato de fecha mejorado: "Mié 07/01"
 
 BACKEND:
 - studentObtenerTodosDeberes({ codeAlum })
@@ -622,6 +623,10 @@ DEPENDENCIAS:
         }
       }
 
+      // ==========================================
+      // V01.21 CLAUDE: PARSEO Y FORMATO DE FECHAS
+      // ==========================================
+
       function parsearFecha(fechaStr) {
         // Usar función del contenedor si existe
         if (typeof window.parseFechaDD_MM_AAAA === 'function') {
@@ -639,6 +644,25 @@ DEPENDENCIAS:
 
         if (Number.isNaN(dia) || Number.isNaN(mes) || Number.isNaN(anio)) return null;
         return new Date(anio, mes, dia);
+      }
+
+      /**
+       * Formatear fecha a "Mié 07/01"
+       * V01.21 CLAUDE
+       */
+      function formatearFechaCorta(fechaStr) {
+        if (!fechaStr) return '-';
+        
+        const fecha = parsearFecha(fechaStr);
+        if (!fecha || isNaN(fecha.getTime())) return fechaStr;
+
+        const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const dia = dias[fecha.getDay()];
+        
+        const dd = String(fecha.getDate()).padStart(2, '0');
+        const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+        
+        return dia + ' ' + dd + '/' + mm;
       }
 
       function obtenerClaseFecha(fechaStr) {
@@ -685,7 +709,7 @@ DEPENDENCIAS:
           selectCurso.appendChild(option);
         });
 
-        console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos');
+        console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos:', cursosUnicos);
       }
 
       function renderizarTabla() {
@@ -710,6 +734,7 @@ DEPENDENCIAS:
         state.deberesFiltrados.forEach(deber => {
           const claseFecha = obtenerClaseFecha(deber.fecha);
           const claseNota = obtenerClaseNota(deber.nota);
+          const fechaFormateada = formatearFechaCorta(deber.fecha);
 
           html += '<tr>';
 
@@ -727,9 +752,9 @@ DEPENDENCIAS:
           // Nombre
           html += '<td>' + (deber.nombre || '-') + '</td>';
 
-          // Fecha
+          // Fecha (V01.21: formato mejorado)
           html += '<td class="fecha-cell ' + claseFecha + '">';
-          html += (deber.fecha ? deber.fecha : '-');
+          html += fechaFormateada;
           html += '</td>';
 
           // Peso
@@ -768,7 +793,7 @@ DEPENDENCIAS:
       }
 
       // ==========================================
-      // V01.20 CLAUDE: FILTROS CON FIX CRÍTICO
+      // V01.21 CLAUDE: FILTROS CON FIX CRÍTICO
       // ==========================================
       function aplicarFiltros() {
         const filtroTipoEl = document.getElementById('filtroTipo');
@@ -781,27 +806,45 @@ DEPENDENCIAS:
 
         console.log('📋 Aplicando filtros - Tipo:', filtroTipo, 'Curso:', filtroCurso, 'Fecha:', filtroFecha);
 
+        // ✅ V01.21: Normalizar fecha de hoy para comparaciones
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
         state.deberesFiltrados = state.todosLosDeberes.filter(deber => {
           // ✅ FIX V01.20: Acepta '', 'todos', o null como "mostrar todo"
           if (filtroTipo && filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
           if (filtroCurso && filtroCurso !== 'todos' && deber.curso !== filtroCurso) return false;
 
           if (filtroFecha && filtroFecha !== 'todos') {
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
             const fechaDeber = parsearFecha(deber.fecha);
+            
+            if (!fechaDeber) {
+              console.log('📋 Fecha no parseable:', deber.fecha);
+              return false;
+            }
+
+            // ✅ V01.21: Normalizar horas de fechaDeber también
+            fechaDeber.setHours(0, 0, 0, 0);
 
             if (filtroFecha === 'proximos7') {
               const limite = new Date(hoy);
               limite.setDate(limite.getDate() + 7);
-              if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) return false;
+              limite.setHours(23, 59, 59, 999);
+              
+              console.log('📋 Próximos 7 días - Comparando:', deber.fecha, 'fechaDeber:', fechaDeber.toISOString(), 'hoy:', hoy.toISOString(), 'limite:', limite.toISOString());
+              
+              // ✅ Incluye desde hoy hasta dentro de 7 días
+              if (fechaDeber < hoy || fechaDeber > limite) return false;
+              
             } else if (filtroFecha === 'proximos30') {
               const limite = new Date(hoy);
               limite.setDate(limite.getDate() + 30);
-              if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) return false;
+              limite.setHours(23, 59, 59, 999);
+              
+              if (fechaDeber < hoy || fechaDeber > limite) return false;
+              
             } else if (filtroFecha === 'pasados') {
-              if (!fechaDeber || fechaDeber >= hoy) return false;
+              if (fechaDeber >= hoy) return false;
             }
           }
 
@@ -855,6 +898,7 @@ DEPENDENCIAS:
 
             state.todosLosDeberes = response.data;
             console.log('📋 Deberes cargados:', state.todosLosDeberes.length);
+            console.log('📋 Ejemplo de fecha del backend:', state.todosLosDeberes[0] ? state.todosLosDeberes[0].fecha : 'N/A');
 
             // Ordenamiento por fecha (más próxima primero)
             state.todosLosDeberes.sort(function(a, b) {
@@ -906,7 +950,7 @@ DEPENDENCIAS:
         }
       }, 150);
 
-      console.log('%c📋 TodosModule V01.20 CLAUDE cargado',
+      console.log('%c📋 TodosModule V01.21 CLAUDE cargado',
         'font-size:11px;color:#667eea;font-weight:bold');
 
     })();
