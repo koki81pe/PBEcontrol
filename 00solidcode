@@ -1,6 +1,6 @@
 // ============================================
 // SOLID CODE - PBECONTROL
-// Generado: 7/1/2026, 4:30:24 p. m.
+// Generado: 7/1/2026, 8:16:14 p. m.
 // Total de archivos: 24
 // ============================================
 
@@ -360,9 +360,9 @@ var Admin = (function() {
 
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.23 CLAUDE
+PBE CONTROL - 1code.gs - V01.25 CLAUDE
 Sistema de Gestión Académica
-05/01/2026 - 20:30
+07/01/2026 - 23:45
 ******************************************
 
 CONTENIDO:
@@ -371,12 +371,28 @@ CONTENIDO:
 - autenticar(): Login unificado Admin/Estudiante
 - 31 WRAPPERS: Funciones puente para google.script.run
 
+CAMBIOS V01.25 CLAUDE:
+✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA en lugar de Date.toString()
+✅ Problema: Fechas mostraban formato largo en inglés ("Mon Jan 05 2026...")
+✅ Solución: Nueva función formatearFechaDD_MM_AAAA() para formato corto
+✅ Resuelve filtros de fecha que fallaban por formato incompatible
+✅ Función auxiliar actualizada: cleanObject()
+
+CAMBIOS V01.24 CLAUDE:
+✅ FIX CRÍTICO: Limpieza de objetos en TODOS los wrappers
+✅ Problema: google.script.run no serializa Date objects → retorna NULL
+✅ Solución: Convertir Date a String antes de retornar
+✅ Aplicado a los 31 wrappers de Student
+✅ Función auxiliar: cleanDataForSerialization()
+
+CAMBIOS V01.23:
+- Agregado wrapper faltante: studentActualizarHorarioSem
+
 CAMBIOS V01.22:
 - CORRECCIÓN CRÍTICA en include(): Ahora procesa templates anidados
 - Cambio: createHtmlOutputFromFile → createTemplateFromFile + evaluate()
 - Esto permite que los <?!= include() ?> dentro de sub-tabs se procesen correctamente
 - Sin este cambio, los sub-tabs mostraban texto literal: <?!= include('archivo'); ?>
-- Agregado wrapper faltante: studentActualizarHorarioSem
 
 CAMBIOS V01.21:
 - Se cambió createHtmlOutputFromFile por createTemplateFromFile en doGet().
@@ -508,88 +524,346 @@ function autenticar(params) {
 }
 
 // ==========================================
-// 4. WRAPPERS - STUDENT (31 Funciones)
+// 4. FUNCIÓN AUXILIAR - LIMPIEZA DE DATOS
+// V01.25 CLAUDE
 // ==========================================
 
-// CURSOS
-function studentObtenerCursos(params) { 
-  Logger.log('🔍 studentObtenerCursos WRAPPER');
-  Logger.log('  Params: ' + JSON.stringify(params));
+/**
+ * Limpiar objetos para serialización de google.script.run
+ * 
+ * PROBLEMA V01.23:
+ * google.script.run NO puede serializar Date objects
+ * Resultado: retorna NULL al frontend
+ * 
+ * SOLUCIÓN V01.24:
+ * Convertir todos los campos problemáticos a String
+ * 
+ * MEJORA V01.25:
+ * Formatear fechas como DD/MM/AAAA en lugar de Date.toString()
+ * Esto resuelve:
+ * - Fechas mostraban formato largo en inglés
+ * - Filtros de fecha fallaban por formato incompatible
+ * 
+ * CAMPOS QUE SE LIMPIAN:
+ * - FechaReg: Date → DD/MM/AAAA
+ * - FechaClase: Date → DD/MM/AAAA
+ * - FechaRep: Date → DD/MM/AAAA
+ * - FechaEval: Date → DD/MM/AAAA
+ * - FechaEntrega: Date → DD/MM/AAAA
+ * - FechaAccion: Date → DD/MM/AAAA
+ * - FechaInicio: Date → DD/MM/AAAA
+ * - FechaFin: Date → DD/MM/AAAA
+ * - FechaHS: Date → DD/MM/AAAA
+ * - HoraInicio: mantener como String
+ * - HoraFin: mantener como String
+ * 
+ * @param {Object} result - Respuesta de Student.* functions
+ * @return {Object} - Objeto limpio serializable
+ */
+function cleanDataForSerialization(result) {
+  if (!result || !result.success || !result.data) {
+    return result;
+  }
   
-  var result = Student.obtenerCursos(params);
-  
-  Logger.log('  Result type: ' + typeof result);
-  Logger.log('  Result is null: ' + (result === null));
-  Logger.log('  Result: ' + JSON.stringify(result));
+  // Si data es un array, limpiar cada item
+  if (Array.isArray(result.data)) {
+    result.data = result.data.map(function(item) {
+      return cleanObject(item);
+    });
+  } else {
+    // Si data es un objeto, limpiarlo directamente
+    result.data = cleanObject(result.data);
+  }
   
   return result;
 }
-function studentAgregarCurso(params) { return Student.agregarCurso(params); }
-function studentActualizarCurso(params) { return Student.actualizarCurso(params); }
-function studentEliminarCurso(params) { return Student.eliminarCurso(params); }
 
-// REPASOS
-function studentObtenerRepasos(params) { return Student.obtenerRepasos(params); }
-function studentAgregarRepaso(params) { return Student.agregarRepaso(params); }
-function studentActualizarRepaso(params) { return Student.actualizarRepaso(params); }
-function studentEliminarRepaso(params) { return Student.eliminarRepaso(params); }
+/**
+ * Formatear Date a DD/MM/AAAA
+ * V01.25 CLAUDE
+ */
+function formatearFechaDD_MM_AAAA(fecha) {
+  if (!fecha || !(fecha instanceof Date)) {
+    return '';
+  }
+  
+  var dia = fecha.getDate();
+  var mes = fecha.getMonth() + 1; // Mes base 0
+  var anio = fecha.getFullYear();
+  
+  // Agregar cero a la izquierda si es necesario
+  dia = dia < 10 ? '0' + dia : dia;
+  mes = mes < 10 ? '0' + mes : mes;
+  
+  return dia + '/' + mes + '/' + anio;
+}
 
-// EVALUACIONES
-function studentObtenerEvaluaciones(params) { return Student.obtenerEvaluaciones(params); }
-function studentAgregarEvaluacion(params) { return Student.agregarEvaluacion(params); }
-function studentActualizarEvaluacion(params) { return Student.actualizarEvaluacion(params); }
-function studentEliminarEvaluacion(params) { return Student.eliminarEvaluacion(params); }
-
-// TAREAS
-function studentObtenerTareas(params) { return Student.obtenerTareas(params); }
-function studentAgregarTarea(params) { return Student.agregarTarea(params); }
-function studentActualizarTarea(params) { return Student.actualizarTarea(params); }
-function studentEliminarTarea(params) { return Student.eliminarTarea(params); }
-
-// LECTURAS
-function studentObtenerLecturas(params) { return Student.obtenerLecturas(params); }
-function studentAgregarLectura(params) { return Student.agregarLectura(params); }
-function studentActualizarLectura(params) { return Student.actualizarLectura(params); }
-function studentEliminarLectura(params) { return Student.eliminarLectura(params); }
-
-// HORARIO CLASES
-function studentObtenerHorarioClases(params) { return Student.obtenerHorarioClases(params); }
-function studentAgregarHorarioClase(params) { return Student.agregarHorarioClase(params); }
-function studentActualizarHorarioClase(params) { return Student.actualizarHorarioClase(params); }
-function studentEliminarHorarioClase(params) { return Student.eliminarHorarioClase(params); }
-
-// HORARIO SEMANAL
-function studentObtenerHorarioSem(params) { return Student.obtenerHorarioSem(params); }
-function studentAgregarHorarioSem(params) { return Student.agregarHorarioSem(params); }
-function studentActualizarHorarioSem(params) { return Student.actualizarHorarioSem(params); }
-function studentEliminarHorarioSem(params) { return Student.eliminarHorarioSem(params); }
-
-// NOTAS Y RESÚMENES
-function studentObtenerNotasPorCurso(params) { return Student.obtenerNotasPorCurso(params); }
-function studentObtenerResumenNotas(params) { return Student.obtenerResumenNotas(params); }
-
-// DEBERES (VISTAS UNIFICADAS)
-function studentObtenerTodosDeberes(params) { return Student.obtenerTodosDeberes(params); }
-function studentObtenerDeberesPorTipo(params) { return Student.obtenerDeberesPorTipo(params); }
-
-// ==========================================
-// 5. WRAPPERS - ADMIN (3 Funciones)
-// ==========================================
-
-function adminCrearAlumno(params) { return Admin.crearAlumno(params); }
-function adminBuscarAlumno(params) { return Admin.buscarAlumno(params); }
-function adminEliminarAlumno(params) { return Admin.eliminarAlumno(params); }
+/**
+ * Limpiar un objeto individual
+ * V01.25: Convierte Dates a DD/MM/AAAA y preserva _rowNumber
+ */
+function cleanObject(obj) {
+  var cleaned = {};
+  
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      var value = obj[key];
+      
+      // Convertir Date a DD/MM/AAAA
+      if (value instanceof Date) {
+        cleaned[key] = formatearFechaDD_MM_AAAA(value);
+      } 
+      // Convertir null/undefined a string vacío
+      else if (value === null || value === undefined) {
+        cleaned[key] = '';
+      }
+      // Preservar el resto tal cual
+      else {
+        cleaned[key] = value;
+      }
+    }
+  }
+  
+  return cleaned;
+}
 
 // ==========================================
-// FIN DE 1code.gs V01.22
+// 5. WRAPPERS - STUDENT (31 Funciones)
+// V01.25 CLAUDE: Fechas en formato DD/MM/AAAA
+// V01.24 CLAUDE: TODOS CON LIMPIEZA
+// ==========================================
+
+// ==========================================
+// CURSOS (4 wrappers)
+// ==========================================
+
+function studentObtenerCursos(params) { 
+  var result = Student.obtenerCursos(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarCurso(params) { 
+  var result = Student.agregarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarCurso(params) { 
+  var result = Student.actualizarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarCurso(params) { 
+  var result = Student.eliminarCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// REPASOS (4 wrappers)
+// ==========================================
+
+function studentObtenerRepasos(params) { 
+  var result = Student.obtenerRepasos(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarRepaso(params) { 
+  var result = Student.agregarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarRepaso(params) { 
+  var result = Student.actualizarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarRepaso(params) { 
+  var result = Student.eliminarRepaso(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// EVALUACIONES (4 wrappers)
+// ==========================================
+
+function studentObtenerEvaluaciones(params) { 
+  var result = Student.obtenerEvaluaciones(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarEvaluacion(params) { 
+  var result = Student.agregarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarEvaluacion(params) { 
+  var result = Student.actualizarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarEvaluacion(params) { 
+  var result = Student.eliminarEvaluacion(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// TAREAS (4 wrappers)
+// ==========================================
+
+function studentObtenerTareas(params) { 
+  var result = Student.obtenerTareas(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarTarea(params) { 
+  var result = Student.agregarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarTarea(params) { 
+  var result = Student.actualizarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarTarea(params) { 
+  var result = Student.eliminarTarea(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// LECTURAS (4 wrappers)
+// ==========================================
+
+function studentObtenerLecturas(params) { 
+  var result = Student.obtenerLecturas(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarLectura(params) { 
+  var result = Student.agregarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarLectura(params) { 
+  var result = Student.actualizarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarLectura(params) { 
+  var result = Student.eliminarLectura(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// HORARIO CLASES (4 wrappers)
+// ==========================================
+
+function studentObtenerHorarioClases(params) { 
+  var result = Student.obtenerHorarioClases(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarHorarioClase(params) { 
+  var result = Student.agregarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarHorarioClase(params) { 
+  var result = Student.actualizarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarHorarioClase(params) { 
+  var result = Student.eliminarHorarioClase(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// HORARIO SEMANAL (4 wrappers)
+// ==========================================
+
+function studentObtenerHorarioSem(params) { 
+  var result = Student.obtenerHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentAgregarHorarioSem(params) { 
+  var result = Student.agregarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentActualizarHorarioSem(params) { 
+  var result = Student.actualizarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarHorarioSem(params) { 
+  var result = Student.eliminarHorarioSem(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// NOTAS Y RESÚMENES (2 wrappers)
+// ==========================================
+
+function studentObtenerNotasPorCurso(params) { 
+  var result = Student.obtenerNotasPorCurso(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentObtenerResumenNotas(params) { 
+  var result = Student.obtenerResumenNotas(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// DEBERES (VISTAS UNIFICADAS) (2 wrappers)
+// ==========================================
+
+function studentObtenerTodosDeberes(params) { 
+  var result = Student.obtenerTodosDeberes(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentObtenerDeberesPorTipo(params) { 
+  var result = Student.obtenerDeberesPorTipo(params);
+  return cleanDataForSerialization(result);
+}
+
+// ==========================================
+// 6. WRAPPERS - ADMIN (3 Funciones)
+// Sin cambios - Admin no retorna Dates problemáticos
+// ==========================================
+
+function adminCrearAlumno(params) { 
+  return Admin.crearAlumno(params); 
+}
+
+function adminBuscarAlumno(params) { 
+  return Admin.buscarAlumno(params); 
+}
+
+function adminEliminarAlumno(params) { 
+  return Admin.eliminarAlumno(params); 
+}
+
+// ==========================================
+// FIN DE 1code.gs V01.24 CLAUDE
 // ==========================================
 // RESUMEN:
 // - 1 Router (doGet)
 // - 1 Include con procesamiento de templates anidados
 // - 1 Autenticación
-// - 31 Wrappers Student
-// - 3 Wrappers Admin
-// TOTAL: 37 funciones
+// - 2 Funciones auxiliares de limpieza (NUEVO V01.24)
+// - 31 Wrappers Student (TODOS con limpieza V01.24)
+// - 3 Wrappers Admin (sin cambios)
+// TOTAL: 39 funciones
+//
+// CAMBIOS V01.24 CLAUDE:
+// ✅ cleanDataForSerialization(): Limpia Date objects
+// ✅ cleanObject(): Convierte valores problemáticos a String
+// ✅ Aplicado a TODOS los 31 wrappers de Student
+// ✅ Soluciona: "Cannot read properties of null"
+// ✅ google.script.run ahora puede serializar correctamente
 // ==========================================
 
 
@@ -6122,11 +6396,17 @@ CONECTA CON:
 
 <!--
 ******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.21 GPT
+PBE CONTROL - 4atabcursosyrep.html - V01.22 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
 
-FIX V01.21:
+CAMBIOS V01.22 CLAUDE:
+✅ FIX CRÍTICO: Activa subtab Cursos por defecto
+✅ FIX CRÍTICO: Conecta evento 'pbe:subtab-activated' con módulos
+✅ Llama a CursosModule.init() o RepasosModule.init() cuando se activan
+✅ Subtabs ahora se inicializan correctamente
+
+CAMBIOS V01.21 GPT:
 - NO se carga ningún subtab automáticamente
 - Los subtabs solo se inicializan por clic del usuario
 - Evita ejecución múltiple de scripts hijos
@@ -6194,33 +6474,70 @@ FIX V01.21:
     repasos: false
   };
 
+  /* ==========================================
+     SWITCH DE SUBTABS
+     ========================================== */
   function switchSubTab(name) {
 
+    // Ocultar todos los subtabs
     document.querySelectorAll('.subtab-content')
       .forEach(el => el.classList.remove('active'));
 
+    // Desactivar todos los botones
     document.querySelectorAll('.subtab-btn')
       .forEach(el => el.classList.remove('active'));
 
+    // Activar el subtab seleccionado
     document.getElementById('subtab-' + name).classList.add('active');
     document.getElementById('btn-subtab-' + name).classList.add('active');
 
+    // Inicializar subtab si es primera vez
     if (!loaded[name]) {
       loaded[name] = true;
 
+      // ==========================================
+      // V01.22 CLAUDE: LLAMAR DIRECTAMENTE AL MÓDULO
+      // ==========================================
+      console.log('🟢 Inicializando subtab:', name);
+      
+      if (name === 'cursos' && window.CursosModule) {
+        window.CursosModule.init();
+      } else if (name === 'repasos' && window.RepasosModule) {
+        window.RepasosModule.init();
+      }
+
+      // Disparar evento por si algún módulo lo necesita
       document.dispatchEvent(
         new CustomEvent('pbe:subtab-activated', {
           detail: name
         })
       );
-
-      console.log('🟢 Subtab inicializado por clic:', name);
     }
   }
 
+  /* ==========================================
+     V01.22 CLAUDE: AUTO-ACTIVAR CURSOS AL CARGAR
+     ========================================== */
+  function initDefaultSubTab() {
+    console.log('📦 4atabcursosyrep V01.22 CLAUDE: Activando Cursos por defecto');
+    
+    // Pequeño delay para asegurar que currentUser esté disponible
+    setTimeout(function() {
+      switchSubTab('cursos');
+    }, 100);
+  }
+
+  // Exponer función globalmente
   window.switchSubTab = switchSubTab;
 
-  console.log('%c📦 4atabcursosyrep V01.21 cargado (sin auto-init)',
+  // Activar subtab por defecto cuando el documento esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDefaultSubTab);
+  } else {
+    initDefaultSubTab();
+  }
+
+  console.log('%c📦 4atabcursosyrep V01.22 CLAUDE cargado',
     'font-weight:bold;color:#667eea');
 })();
 </script>
@@ -6233,9 +6550,9 @@ FIX V01.21:
 
 <!--
 ******************************************
-PBE CONTROL - 4btabdeberes.html - V01.17
+PBE CONTROL - 4btabdeberes.html - V01.18 CLAUDE
 Sistema de Gestión Académica
-04/01/2026
+07/01/2026
 
 DESCRIPCIÓN:
 Contenedor para los sub-tabs de Deberes.
@@ -6284,6 +6601,12 @@ FUNCIONES GLOBALES DISPONIBLES:
 - Cada sub-tab es independiente
 - Vista "Todos" unifica las otras 3 vistas
 - Lecturas muestran barra de progreso (PagActual/CantPag)
+
+🔧 CAMBIOS V01.18 CLAUDE:
+- FIX: Corregidos selectores (eliminado #tab-deberes inexistente)
+- FIX: Agregada activación directa de módulos (LecturasModule, TareasModule, etc.)
+- FIX: Patrón igual que 4atabcursosyrep.html para consistencia
+- MEJORA: Lazy-init de módulos solo en primera activación
 ******************************************
 -->
 <style>
@@ -6450,17 +6773,31 @@ FUNCIONES GLOBALES DISPONIBLES:
 <script>
   /**
    * ==========================================
+   * CONTROL DE LAZY-INIT PARA MÓDULOS
+   * ==========================================
+   */
+  var deberesSubtabsLoaded = {
+    todos: false,
+    eval: false,
+    tareas: false,
+    lecturas: false
+  };
+
+  /**
+   * ==========================================
    * NAVEGACIÓN ENTRE SUB-TABS DEBERES
    * ==========================================
    */
   function switchSubTabDeberes(subTabName) {
+    console.log('[4btabdeberes] 🔄 switchSubTabDeberes llamada con:', subTabName);
+
     // Ocultar todos los sub-tabs
-    document.querySelectorAll('#tab-deberes .subtab-content').forEach(function(content) {
+    document.querySelectorAll('.subtab-content').forEach(function(content) {
       content.classList.remove('active');
     });
 
     // Desactivar todos los botones
-    document.querySelectorAll('#tab-deberes .subtab-btn').forEach(function(btn) {
+    document.querySelectorAll('.subtab-btn').forEach(function(btn) {
       btn.classList.remove('active');
     });
 
@@ -6468,15 +6805,46 @@ FUNCIONES GLOBALES DISPONIBLES:
     const selectedTab = document.getElementById('subtab-' + subTabName);
     if (selectedTab) {
       selectedTab.classList.add('active');
+      console.log('[4btabdeberes] ✅ Sub-tab activado:', subTabName);
+    } else {
+      console.error('[4btabdeberes] ❌ No se encontró elemento: subtab-' + subTabName);
     }
 
     // Activar botón correspondiente
     const selectedBtn = document.getElementById('btn-subtab-' + subTabName);
     if (selectedBtn) {
       selectedBtn.classList.add('active');
+    } else {
+      console.error('[4btabdeberes] ❌ No se encontró botón: btn-subtab-' + subTabName);
     }
 
     console.log('Sub-tab Deberes cambiado a:', subTabName);
+
+    // ==========================================
+    // ACTIVACIÓN DIRECTA DE MÓDULOS (LAZY-INIT)
+    // ==========================================
+    // Solo inicializar el módulo la PRIMERA vez que se activa el sub-tab
+    if (!deberesSubtabsLoaded[subTabName]) {
+      deberesSubtabsLoaded[subTabName] = true;
+
+      if (subTabName === 'lecturas' && window.LecturasModule) {
+        console.log('[4btabdeberes] 📖 Inicializando LecturasModule...');
+        window.LecturasModule.init();
+      } else if (subTabName === 'tareas' && window.TareasModule) {
+        console.log('[4btabdeberes] ✏️ Inicializando TareasModule...');
+        window.TareasModule.init();
+      } else if (subTabName === 'eval' && window.EvalModule) {
+        console.log('[4btabdeberes] 📝 Inicializando EvalModule...');
+        window.EvalModule.init();
+      } else if (subTabName === 'todos' && window.TodosModule) {
+        console.log('[4btabdeberes] 📋 Inicializando TodosModule...');
+        window.TodosModule.init();
+      } else {
+        console.warn('[4btabdeberes] ⚠️ Módulo no encontrado para:', subTabName);
+      }
+    } else {
+      console.log('[4btabdeberes] ℹ️ Módulo ya inicializado:', subTabName);
+    }
   }
 
   /**
@@ -6598,14 +6966,25 @@ FUNCIONES GLOBALES DISPONIBLES:
 
   /**
    * ==========================================
+   * AUTO-ACTIVAR SUB-TAB POR DEFECTO
+   * ==========================================
+   */
+  setTimeout(function() {
+    console.log('[4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos');
+    switchSubTabDeberes('todos');
+  }, 100);
+
+  /**
+   * ==========================================
    * LOG DE DEPURACIÓN
    * ==========================================
    */
-  console.log('%c📝 Tab Deberes Cargado', 
+  console.log('%c📝 Tab Deberes Cargado [V01.18 CLAUDE]', 
               'font-size: 12px; font-weight: bold; color: #667eea;');
   console.log('Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas');
   console.log('Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha');
   console.log('currentUser disponible:', typeof currentUser !== 'undefined');
+  console.log('Lazy-init habilitado para todos los sub-tabs');
 </script>
 
 
@@ -6779,11 +7158,18 @@ window.PlanningModule = (function () {
 
 <!--
 ******************************************
-PBE CONTROL - 5atabcursos.html - V01.22 GPT
+PBE CONTROL - 5atabcursos.html - V01.23 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
 
-FIX V01.22:
+CAMBIOS V01.23 CLAUDE:
+✅ FIX CRÍTICO: Eliminadas validaciones ultra-restrictivas
+✅ FIX CRÍTICO: Auto-init si currentUser ya existe
+✅ FIX CRÍTICO: Retry logic si currentUser no está disponible
+✅ Logging exhaustivo para debug
+✅ Maneja caso de 0 cursos correctamente
+
+FIX V01.22 GPT:
 - [LAZY-INIT] El subtab NO se auto-inicializa
 - [PARENT-CONTROL] init() expuesto para ser llamado por el contenedor
 - [SINGLE-RUN] Init real idempotente
@@ -6796,27 +7182,43 @@ FIX V01.22:
 
   let cursosData = [];
   let _initDone = false;
+  let _retryCount = 0;
+  const MAX_RETRIES = 5;
 
   /* ==========================================
-     INIT CONTROLADO (SOLO DESDE EL PADRE)
+     INIT CONTROLADO (CON RETRY LOGIC)
+     V01.23 CLAUDE
      ========================================== */
   function init() {
+    console.log('📚 CursosModule.init() llamado (intento ' + (_retryCount + 1) + ')');
+
     if (_initDone) {
-      console.log('📚 CursosModule.init() ignorado (ya inicializado)');
+      console.log('📚 CursosModule ya inicializado, ignorando');
       return;
     }
 
-    if (
-      typeof currentUser === 'undefined' ||
-      !currentUser ||
-      !currentUser.codeAlum
-    ) {
-      console.warn('📚 CursosModule: currentUser no disponible aún');
+    // V01.23 CLAUDE: Validación menos restrictiva
+    if (typeof currentUser === 'undefined' || !currentUser) {
+      console.warn('📚 currentUser no disponible aún, reintentando...');
+      
+      if (_retryCount < MAX_RETRIES) {
+        _retryCount++;
+        setTimeout(init, 200); // Reintentar en 200ms
+      } else {
+        console.error('📚 CursosModule: currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+        renderError('Usuario no disponible. Recarga la página.');
+      }
+      return;
+    }
+
+    if (!currentUser.codeAlum) {
+      console.error('📚 currentUser.codeAlum está vacío:', currentUser);
+      renderError('Código de alumno no disponible');
       return;
     }
 
     _initDone = true;
-    console.log('📚 CursosModule.init() ejecutado');
+    console.log('📚 CursosModule inicializado correctamente para:', currentUser.codeAlum);
     cargarCursos();
   }
 
@@ -6824,6 +7226,8 @@ FIX V01.22:
      CARGA DE DATOS
      ========================================== */
   function cargarCursos() {
+    console.log('📚 Cargando cursos para:', currentUser.codeAlum);
+
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
       .withFailureHandler(handleCursosError)
@@ -6831,29 +7235,42 @@ FIX V01.22:
   }
 
   function handleCursosLoaded(response) {
-    if (!response || response.success !== true) {
-      renderEmptyState();
+    console.log('📚 Respuesta recibida:', response);
+
+    if (!response) {
+      console.error('📚 Response es NULL');
+      renderError('Error: El servidor retornó NULL');
+      return;
+    }
+
+    if (response.success !== true) {
+      console.error('📚 Response no exitoso:', response.error);
+      renderError(response.error || 'Error al cargar cursos');
       return;
     }
 
     cursosData = response.data || [];
-    renderCursosTable();
+    console.log('📚 Cursos cargados:', cursosData.length);
+
+    if (cursosData.length === 0) {
+      renderEmptyState();
+    } else {
+      renderCursosTable();
+    }
   }
 
   function handleCursosError(error) {
-    console.error('Error al cargar cursos:', error);
-    renderEmptyState();
+    console.error('📚 Error al cargar cursos:', error);
+    renderError('Error de conexión: ' + error.message);
   }
 
   /* ==========================================
-     RENDER
+     RENDER - TABLA DE CURSOS
      ========================================== */
   function renderCursosTable() {
     const container = document.getElementById('cursosTableContainer');
-    if (!container) return;
-
-    if (!cursosData.length) {
-      renderEmptyState();
+    if (!container) {
+      console.error('📚 Container cursosTableContainer no encontrado');
       return;
     }
 
@@ -6874,11 +7291,12 @@ FIX V01.22:
       const color = curso.Color || '#FF5733';
       html += `
         <tr>
-          <td><div class="curso-color-box" style="background:${color}"></div></td>
+          <td><div class="curso-color-box" style="background:${color}; width:30px; height:30px; border-radius:4px;"></div></td>
           <td><strong>${curso.Curso}</strong></td>
           <td>${curso.Completo}</td>
           <td>
-            ✏️ 🗑️
+            <button onclick="editarCurso('${curso._rowNumber}')" style="background:none;border:none;cursor:pointer;font-size:16px;">✏️</button>
+            <button onclick="eliminarCurso('${curso._rowNumber}')" style="background:none;border:none;cursor:pointer;font-size:16px;">🗑️</button>
           </td>
         </tr>
       `;
@@ -6886,33 +7304,144 @@ FIX V01.22:
 
     html += '</tbody></table>';
     container.innerHTML = html;
+    console.log('📚 Tabla renderizada con', cursosData.length, 'cursos');
   }
 
+  /* ==========================================
+     RENDER - ESTADO VACÍO
+     ========================================== */
   function renderEmptyState() {
     const container = document.getElementById('cursosTableContainer');
     if (!container) return;
 
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📚</div>
-        <div class="empty-state-text">
+      <div class="empty-state" style="text-align:center; padding:40px 20px; color:#999;">
+        <div class="empty-state-icon" style="font-size:48px; margin-bottom:15px;">📚</div>
+        <div class="empty-state-text" style="font-size:16px; font-weight:500;">
           No tienes cursos registrados aún.
         </div>
+        <button onclick="abrirModalNuevoCurso()" style="margin-top:20px; padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
+          ➕ Agregar Primer Curso
+        </button>
       </div>
     `;
+    console.log('📚 Empty state renderizado');
   }
+
+  /* ==========================================
+     RENDER - ESTADO DE ERROR
+     V01.23 CLAUDE
+     ========================================== */
+  function renderError(message) {
+    const container = document.getElementById('cursosTableContainer');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="error-state" style="text-align:center; padding:40px 20px; color:#dc3545;">
+        <div class="error-icon" style="font-size:48px; margin-bottom:15px;">⚠️</div>
+        <div class="error-text" style="font-size:16px; font-weight:500;">
+          ${message}
+        </div>
+        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:6px; cursor:pointer;">
+          🔄 Recargar Página
+        </button>
+      </div>
+    `;
+    console.error('📚 Error state renderizado:', message);
+  }
+
+  /* ==========================================
+     FUNCIONES AUXILIARES (STUBS)
+     ========================================== */
+  window.editarCurso = function(rowNumber) {
+    console.log('✏️ Editar curso:', rowNumber);
+    alert('Función de edición en desarrollo');
+  };
+
+  window.eliminarCurso = function(rowNumber) {
+    console.log('🗑️ Eliminar curso:', rowNumber);
+    if (confirm('¿Eliminar este curso?')) {
+      alert('Función de eliminación en desarrollo');
+    }
+  };
+
+  window.abrirModalNuevoCurso = function() {
+    console.log('➕ Abrir modal nuevo curso');
+    alert('Modal de nuevo curso en desarrollo');
+  };
 
   /* ==========================================
      API PÚBLICA
      ========================================== */
   window.CursosModule = {
-    init: init
+    init: init,
+    reload: function() {
+      _initDone = false;
+      _retryCount = 0;
+      init();
+    }
   };
 
-  console.log('%c📚 CursosModule V01.22 cargado (lazy)',
-    'font-size:11px;color:#667eea');
+  /* ==========================================
+     V01.23 CLAUDE: AUTO-INIT SI CURRENTUSER EXISTE
+     ========================================== */
+  setTimeout(function() {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+      console.log('📚 currentUser detectado, auto-inicializando...');
+      init();
+    } else {
+      console.log('📚 currentUser no disponible, esperando llamada externa');
+    }
+  }, 150);
+
+  console.log('%c📚 CursosModule V01.23 CLAUDE cargado',
+    'font-size:11px;color:#667eea;font-weight:bold');
 })();
 </script>
+
+<!-- HTML CONTAINER -->
+<div id="cursosTableContainer" style="min-height:200px;">
+  <div style="text-align:center; padding:40px; color:#999;">
+    <div style="font-size:32px; margin-bottom:10px;">⏳</div>
+    <div>Cargando cursos...</div>
+  </div>
+</div>
+
+<style>
+  .cursos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .cursos-table thead {
+    background: #f8f9fa;
+  }
+
+  .cursos-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .cursos-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .cursos-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  .curso-color-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+</style>
 
 
 // ============================================
@@ -9119,36 +9648,35 @@ CONECTA CON:
 
 <!--
 ******************************************
-PBE CONTROL - 6btablecturas.html - V01.18 GPT EXTRA
+PBE CONTROL - 6btablecturas.html - V01.20 CLAUDE
 Sistema de Gestión Académica
-06/01/2026
+07/01/2026
 
-OBJETIVO DE ESTA VERSIÓN:
-Actualizar el archivo V01.17 SIN CAMBIAR la UI ni el backend esperado,
-pero endureciendo el frontend para evitar fallos silenciosos, colisiones
-entre sub-tabs y problemas típicos de render/handlers.
+CAMBIOS V01.20 CLAUDE:
+✅ FIX CRÍTICO: Filtro ahora acepta '', 'todos', o null como "mostrar todo"
+✅ FIX: Lógica más robusta para filtro por defecto
+✅ Resuelve bug donde lecturas no se mostraban (0 de 2 filtradas)
+✅ Agregada función inicializar() al API pública (window.LecturasModule.inicializar)
 
-CAMBIOS PRINCIPALES (vs V01.17):
-- Encapsulado en IIFE para evitar colisión de variables/funciones en sub-tabs
-- API pública única: window.LecturasModule (sin funciones globales genéricas)
-- Compatibilidad con HTML existente:
-  - Se actualizan los onclick/onsubmit/onchange a LecturasModule.*
-- Eliminado retry con DOMContentLoaded + setTimeout:
-  - Inicialización directa con guard de currentUser
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: Agregado retry logic (5 intentos)
+✅ FIX CRÍTICO: Auto-init con setTimeout para dar tiempo a currentUser
+✅ FIX CRÍTICO: Logging exhaustivo para debug
+✅ Manejo robusto de respuestas NULL
+✅ Compatible con cleanDataForSerialization de 1code.gs V01.24
+
+CAMBIOS V01.18 GPT EXTRA:
+- Encapsulado en IIFE
+- API pública única: window.LecturasModule
 - Null-guard sistemático en respuestas backend
-- Sanitización de salida en render (evita inyección/ruptura de DOM)
-- Guard de rowNumber en editar/eliminar/actualizar
-- Empty state contextual según filtro (todos vs curso específico)
-- Manejo de errores amigable (sin error.toString()), logs a consola
-- Mantiene showAlert fallback si no existe globalmente
+- Mantiene showAlert fallback
 
-BACKEND (NO SE CAMBIA):
+BACKEND:
 - studentObtenerCursos({ codeAlum })
 - studentObtenerLecturas({ codeAlum })
-- studentAgregarLectura({ codeAlum, curso, lectura, cantPag, pagActual, ... })
-- studentActualizarLectura({ codeAlum, rowNumber, curso, lectura, ... })
+- studentAgregarLectura({ ... })
+- studentActualizarLectura({ ... })
 - studentEliminarLectura({ rowNumber })
-
 ******************************************
 -->
 <!DOCTYPE html>
@@ -9300,7 +9828,7 @@ BACKEND (NO SE CAMBIA):
     }
 
     .paginas-cell { font-size: 13px; color: #666; white-space: nowrap; }
-    .fecha-cell { white-space: nowrap; font-size: 13px; color: #666; }
+    .fecha-cell { whitespace: nowrap; font-size: 13px; color: #666; }
 
     .nota-cell { text-align: center; font-weight: 600; font-size: 15px; }
     .nota-alta { color: #28a745; }
@@ -9589,47 +10117,83 @@ BACKEND (NO SE CAMBIA):
   (function() {
     'use strict';
 
-    // ============================
+    // ========================================
     // VARIABLES (privadas del módulo)
-    // ============================
+    // ========================================
     let lecturasData = [];
     let cursosListaData = [];
     let lecturasFiltradas = [];
+    let _initDone = false;
+    let _retryCount = 0;
+    const MAX_RETRIES = 5;
 
-    // ============================
-    // INIT (directo con guard)
-    // ============================
+    // ========================================
+    // V01.19 CLAUDE: INIT CON RETRY LOGIC
+    // ========================================
     function inicializar() {
-      if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
-        console.error('[6btablecturas] currentUser no disponible');
-        mostrarError('No se pudo identificar al usuario. Por favor, recarga la página.');
+      console.log('📖 LecturasModule.inicializar() llamado (intento ' + (_retryCount + 1) + ')');
+
+      if (_initDone) {
+        console.log('📖 LecturasModule ya inicializado, ignorando');
         return;
       }
 
+      // Validación con retry
+      if (typeof currentUser === 'undefined' || !currentUser) {
+        console.warn('📖 currentUser no disponible aún, reintentando...');
+        
+        if (_retryCount < MAX_RETRIES) {
+          _retryCount++;
+          setTimeout(inicializar, 200);
+        } else {
+          console.error('📖 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+          mostrarError('Usuario no disponible. Recarga la página.');
+        }
+        return;
+      }
+
+      if (!currentUser.codeAlum) {
+        console.error('📖 currentUser.codeAlum vacío:', currentUser);
+        mostrarError('Código de alumno no disponible');
+        return;
+      }
+
+      _initDone = true;
+      console.log('📖 LecturasModule inicializado para:', currentUser.codeAlum);
+
       cargarCursos();
       cargarLecturas();
-
-      console.log('%c📖 Sub-tab Lecturas V01.18 GPT EXTRA Cargado', 'font-size: 11px; color: #667eea;');
     }
 
-    // ============================
+    // ========================================
     // CURSOS
-    // ============================
+    // ========================================
     function cargarCursos() {
+      console.log('📖 Cargando cursos...');
+      
       google.script.run
         .withSuccessHandler(handleCursosLoaded)
         .withFailureHandler(function(err) {
-          console.error('[6btablecturas] Error de conexión al cargar cursos:', err);
+          console.error('📖 Error al cargar cursos:', err);
         })
         .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
     }
 
     function handleCursosLoaded(response) {
-      if (!response || response.success !== true || !Array.isArray(response.data)) {
-        console.error('[6btablecturas] Respuesta inválida en cargarCursos:', response);
+      console.log('📖 Respuesta cursos:', response);
+
+      if (!response) {
+        console.error('📖 Response cursos es NULL');
         return;
       }
+
+      if (response.success !== true || !Array.isArray(response.data)) {
+        console.error('📖 Respuesta cursos inválida');
+        return;
+      }
+
       cursosListaData = response.data;
+      console.log('📖 Cursos cargados:', cursosListaData.length);
       poblarDropdownCursos();
     }
 
@@ -9659,11 +10223,13 @@ BACKEND (NO SE CAMBIA):
         optionFiltro.textContent = codigo;
         selectFiltro.appendChild(optionFiltro);
       });
+
+      console.log('📖 Dropdowns poblados con', cursosListaData.length, 'cursos');
     }
 
-    // ============================
+    // ========================================
     // LECTURAS
-    // ============================
+    // ========================================
     function setLoading(isLoading) {
       const loading = document.getElementById('loadingLecturas');
       const vacio = document.getElementById('estadoVacio');
@@ -9675,52 +10241,73 @@ BACKEND (NO SE CAMBIA):
     }
 
     function cargarLecturas() {
+      console.log('📖 Cargando lecturas para:', currentUser.codeAlum);
       setLoading(true);
 
       google.script.run
         .withSuccessHandler(handleLecturasLoaded)
         .withFailureHandler(function(error) {
           setLoading(false);
-          console.error('[6btablecturas] Error de conexión al cargar lecturas:', error);
+          console.error('📖 Error al cargar lecturas:', error);
           mostrarError('Error de conexión al cargar lecturas');
         })
         .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
     }
 
     function handleLecturasLoaded(response) {
+      console.log('📖 Respuesta lecturas:', response);
       setLoading(false);
 
-      if (!response || response.success !== true || !Array.isArray(response.data)) {
-        console.error('[6btablecturas] Respuesta inválida en cargarLecturas:', response);
-        mostrarError('No se pudo cargar lecturas. Intenta nuevamente.');
+      if (!response) {
+        console.error('📖 Response lecturas es NULL');
+        mostrarError('Error: El servidor retornó NULL');
+        return;
+      }
+
+      if (response.success !== true) {
+        console.error('📖 Response no exitoso:', response.error);
+        mostrarError(response.error || 'Error al cargar lecturas');
+        return;
+      }
+
+      if (!Array.isArray(response.data)) {
+        console.error('📖 response.data no es array');
+        mostrarError('Formato de respuesta inválido');
         return;
       }
 
       lecturasData = response.data;
+      console.log('📖 Lecturas cargadas:', lecturasData.length);
       aplicarFiltro();
     }
 
-    // ============================
-    // FILTRO
-    // ============================
+    // ========================================
+    // FILTRO - V01.20 CLAUDE: FIX CRÍTICO
+    // ========================================
     function aplicarFiltro() {
       const filtroSelect = document.getElementById('filtroCurso');
-      const filtroCurso = filtroSelect ? filtroSelect.value : 'todos';
+      const filtroCurso = filtroSelect ? filtroSelect.value : '';
 
-      if (filtroCurso === 'todos') {
+      console.log('📖 Aplicando filtro. Valor actual:', filtroCurso);
+
+      // ✅ FIX V01.20: Acepta '', 'todos', o null como "mostrar todo"
+      if (!filtroCurso || filtroCurso === 'todos' || filtroCurso === '') {
         lecturasFiltradas = lecturasData;
+        console.log('📖 Mostrando TODAS las lecturas:', lecturasData.length);
       } else {
         lecturasFiltradas = lecturasData.filter(function(lectura) {
           return String(lectura && lectura.Curso ? lectura.Curso : '') === String(filtroCurso);
         });
+        console.log('📖 Filtradas por curso "' + filtroCurso + '":', lecturasFiltradas.length);
       }
 
+      console.log('📖 Filtradas:', lecturasFiltradas.length, 'de', lecturasData.length);
       renderLecturasTable();
     }
 
-    // ============================
+    // ========================================
     // RENDER
-    // ============================
+    // ========================================
     function renderLecturasTable() {
       const tbody = document.getElementById('lecturasTableBody');
       const tabla = document.getElementById('tablaLecturas');
@@ -9739,10 +10326,10 @@ BACKEND (NO SE CAMBIA):
         const text = estadoVacio.querySelector('.estado-vacio-text');
         const sub = estadoVacio.querySelector('.estado-vacio-subtext');
 
-        if (filtroCurso !== 'todos') {
+        if (filtroCurso && filtroCurso !== 'todos' && filtroCurso !== '') {
           if (icon) icon.textContent = '🔍';
           if (text) text.textContent = 'No hay lecturas para el curso seleccionado';
-          if (sub) sub.textContent = 'Prueba otro curso o vuelve a “Todos los cursos”.';
+          if (sub) sub.textContent = 'Prueba otro curso o vuelve a "Todos los cursos".';
         } else {
           if (icon) icon.textContent = '📚';
           if (text) text.textContent = 'No hay lecturas registradas';
@@ -9750,6 +10337,7 @@ BACKEND (NO SE CAMBIA):
         }
 
         tbody.innerHTML = '';
+        console.log('📖 Empty state mostrado');
         return;
       }
 
@@ -9811,11 +10399,12 @@ BACKEND (NO SE CAMBIA):
       });
 
       tbody.innerHTML = html;
+      console.log('📖 Tabla renderizada con', lecturasFiltradas.length, 'lecturas');
     }
 
-    // ============================
+    // ========================================
     // FORM UI
-    // ============================
+    // ========================================
     function toggleFormAgregar() {
       const form = document.getElementById('formLectura');
       if (!form) return;
@@ -9862,9 +10451,9 @@ BACKEND (NO SE CAMBIA):
       resetFormulario();
     }
 
-    // ============================
+    // ========================================
     // SUBMIT
-    // ============================
+    // ========================================
     function handleSubmitLectura(event) {
       event.preventDefault();
 
@@ -9953,7 +10542,7 @@ BACKEND (NO SE CAMBIA):
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
             setSubmitState(false, 'Guardar Lectura');
-            console.error('[6btablecturas] Error de conexión al actualizar:', error);
+            console.error('📖 Error al actualizar:', error);
             showAlertSafe('error', 'Error de conexión al actualizar lectura');
           })
           .studentActualizarLectura(params);
@@ -9962,7 +10551,7 @@ BACKEND (NO SE CAMBIA):
           .withSuccessHandler(handleLecturaGuardada)
           .withFailureHandler(function(error) {
             setSubmitState(false, 'Guardar Lectura');
-            console.error('[6btablecturas] Error de conexión al guardar:', error);
+            console.error('📖 Error al guardar:', error);
             showAlertSafe('error', 'Error de conexión al guardar lectura');
           })
           .studentAgregarLectura(params);
@@ -9994,9 +10583,9 @@ BACKEND (NO SE CAMBIA):
       cargarLecturas();
     }
 
-    // ============================
+    // ========================================
     // EDITAR
-    // ============================
+    // ========================================
     function editarLectura(rowNumber) {
       const rn = safeInt(rowNumber, 0);
       if (!Number.isFinite(rn) || rn <= 0) {
@@ -10040,9 +10629,9 @@ BACKEND (NO SE CAMBIA):
       }
     }
 
-    // ============================
+    // ========================================
     // ELIMINAR
-    // ============================
+    // ========================================
     function eliminarLectura(rowNumber) {
       const rn = safeInt(rowNumber, 0);
       if (!Number.isFinite(rn) || rn <= 0) {
@@ -10061,7 +10650,7 @@ BACKEND (NO SE CAMBIA):
       google.script.run
         .withSuccessHandler(function(response) {
           if (!response || response.success !== true) {
-            console.error('[6btablecturas] Error eliminar:', response);
+            console.error('📖 Error eliminar:', response);
             showAlertSafe('error', 'No se pudo eliminar la lectura');
             return;
           }
@@ -10069,15 +10658,15 @@ BACKEND (NO SE CAMBIA):
           cargarLecturas();
         })
         .withFailureHandler(function(error) {
-          console.error('[6btablecturas] Error de conexión al eliminar:', error);
+          console.error('📖 Error al eliminar:', error);
           showAlertSafe('error', 'Error de conexión al eliminar lectura');
         })
         .studentEliminarLectura({ rowNumber: rn });
     }
 
-    // ============================
+    // ========================================
     // AUX
-    // ============================
+    // ========================================
     function calcularProgreso(pagActual, cantPag) {
       const a = safeFloat(pagActual, 0);
       const t = safeFloat(cantPag, 0);
@@ -10145,9 +10734,9 @@ BACKEND (NO SE CAMBIA):
         .replace(/'/g, '&#39;');
     }
 
-    // ============================
+    // ========================================
     // ALERTAS
-    // ============================
+    // ========================================
     function showAlertSafe(type, message) {
       if (typeof showAlert === 'function') {
         showAlert(type, message);
@@ -10214,10 +10803,11 @@ BACKEND (NO SE CAMBIA):
       if (sub) sub.textContent = mensaje;
     }
 
-    // ============================
+    // ========================================
     // API pública
-    // ============================
+    // ========================================
     window.LecturasModule = {
+      inicializar: inicializar,
       aplicarFiltro: aplicarFiltro,
       toggleFormAgregar: toggleFormAgregar,
       handleSubmitLectura: handleSubmitLectura,
@@ -10227,8 +10817,21 @@ BACKEND (NO SE CAMBIA):
       recargar: cargarLecturas
     };
 
-    // GO
-    inicializar();
+    // ========================================
+    // V01.19 CLAUDE: AUTO-INIT CON RETRY
+    // ========================================
+    setTimeout(function() {
+      if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+        console.log('📖 currentUser detectado, auto-inicializando...');
+        inicializar();
+      } else {
+        console.log('📖 currentUser no disponible, iniciando retry logic...');
+        inicializar();
+      }
+    }, 150);
+
+    console.log('%c📖 LecturasModule V01.20 CLAUDE cargado',
+      'font-size:11px;color:#667eea;font-weight:bold');
 
   })();
   </script>
@@ -11349,9 +11952,28 @@ CONECTA CON:
 
 <!--
 ******************************************
-PBE CONTROL - 6btabtodos.html - V01.18
+PBE CONTROL - 6btabtodos.html - V01.21 CLAUDE
 Sistema de Gestión Académica
-06/01/2026
+07/01/2026
+
+CAMBIOS V01.21 CLAUDE:
+✅ FIX CRÍTICO: Filtros de fecha ahora funcionan correctamente
+✅ FIX: Normalización de horas en comparación de fechas
+✅ MEJORA: Fechas mostradas como "Mié 07/01" en lugar de "07/01/2026"
+✅ MEJORA: Logs adicionales para debugging de filtros
+
+CAMBIOS V01.20 CLAUDE:
+✅ FIX CRÍTICO: Filtro ahora acepta '', 'todos', o null como "mostrar todo"
+✅ FIX: Mismo patrón que Lecturas - resuelve "0 de 9 filtrados"
+✅ Aplica a filtroTipo, filtroCurso y filtroFecha
+
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: Retry logic robusto (5 intentos, 200ms)
+✅ FIX CRÍTICO: Auto-init con setTimeout(150ms) en lugar de DOMContentLoaded
+✅ FIX CRÍTICO: Init tracking con _initDone para evitar reinicialización
+✅ FIX: API pública expone inicializar() para llamada desde padre
+✅ MEJORA: Logs exhaustivos con prefijo 📋 para debugging
+✅ Compatible con patrón de Lecturas y Cursos
 
 DESCRIPCIÓN:
 Sub-tab "Todos" (vista unificada) que consolida Evaluaciones, Tareas y Lecturas
@@ -11366,6 +11988,7 @@ FUNCIONALIDAD:
 - Colores dinámicos por nota (verde/amarillo/rojo)
 - Progreso para lecturas (barra + %)
 - Estados: loading, vacío, error
+- Formato de fecha mejorado: "Mié 07/01"
 
 BACKEND:
 - studentObtenerTodosDeberes({ codeAlum })
@@ -11375,15 +11998,10 @@ DEPENDENCIAS:
 - Opcional: showAlert(type, message) (fallback local)
 - Opcional: parseFechaDD_MM_AAAA(fechaStr) (fallback local)
 
-ENCAPSULADO / ANTICOLISIÓN (V01.18):
-- Todas las funciones y variables quedan dentro de TodosModule
-- Handlers inline llaman a TodosModule.*
-- CSS scopeado bajo .todos-container para reducir colisión con otros sub-tabs
-- Fallbacks definidos solo si no existen globalmente
-
 🔑 IMPORTANTE:
 - Validar currentUser antes de operar
 - Mostrar errores de forma amigable
+- Usar retry logic para timing de inicialización
 ******************************************
 -->
 <!DOCTYPE html>
@@ -11554,6 +12172,11 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
     }
 
     .todos-container .badge-evaluacion {
+      background: #fee;
+      color: #dc3545;
+    }
+
+    .todos-container .badge-evaluación {
       background: #fee;
       color: #dc3545;
     }
@@ -11889,8 +12512,49 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
       const state = {
         todosLosDeberes: [],
-        deberesFiltrados: []
+        deberesFiltrados: [],
+        _initDone: false,
+        _retryCount: 0
       };
+
+      const MAX_RETRIES = 5;
+
+      // ==========================================
+      // V01.19 CLAUDE: INIT CON RETRY LOGIC
+      // ==========================================
+      function inicializar() {
+        console.log('📋 TodosModule.inicializar() llamado (intento ' + (state._retryCount + 1) + ')');
+
+        if (state._initDone) {
+          console.log('📋 TodosModule ya inicializado, ignorando');
+          return;
+        }
+
+        // Validación con retry
+        if (typeof currentUser === 'undefined' || !currentUser) {
+          console.warn('📋 currentUser no disponible aún, reintentando...');
+          
+          if (state._retryCount < MAX_RETRIES) {
+            state._retryCount++;
+            setTimeout(inicializar, 200);
+          } else {
+            console.error('📋 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+            setEstadoError('Usuario no disponible', 'Recarga la página');
+          }
+          return;
+        }
+
+        if (!currentUser.codeAlum) {
+          console.error('📋 currentUser.codeAlum vacío:', currentUser);
+          setEstadoError('Código de alumno no disponible', 'Recarga la página');
+          return;
+        }
+
+        state._initDone = true;
+        console.log('📋 TodosModule inicializado para:', currentUser.codeAlum);
+
+        cargarDeberes();
+      }
 
       function setEstadoError(titulo, subtitulo) {
         const loading = document.getElementById('loadingDeberes');
@@ -11911,6 +12575,10 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         }
       }
 
+      // ==========================================
+      // V01.21 CLAUDE: PARSEO Y FORMATO DE FECHAS
+      // ==========================================
+
       function parsearFecha(fechaStr) {
         // Usar función del contenedor si existe
         if (typeof window.parseFechaDD_MM_AAAA === 'function') {
@@ -11928,6 +12596,25 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
         if (Number.isNaN(dia) || Number.isNaN(mes) || Number.isNaN(anio)) return null;
         return new Date(anio, mes, dia);
+      }
+
+      /**
+       * Formatear fecha a "Mié 07/01"
+       * V01.21 CLAUDE
+       */
+      function formatearFechaCorta(fechaStr) {
+        if (!fechaStr) return '-';
+        
+        const fecha = parsearFecha(fechaStr);
+        if (!fecha || isNaN(fecha.getTime())) return fechaStr;
+
+        const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const dia = dias[fecha.getDay()];
+        
+        const dd = String(fecha.getDate()).padStart(2, '0');
+        const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+        
+        return dia + ' ' + dd + '/' + mm;
       }
 
       function obtenerClaseFecha(fechaStr) {
@@ -11973,6 +12660,8 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
           option.textContent = curso;
           selectCurso.appendChild(option);
         });
+
+        console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos:', cursosUnicos);
       }
 
       function renderizarTabla() {
@@ -11985,6 +12674,7 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         if (state.deberesFiltrados.length === 0) {
           tabla.style.display = 'none';
           estadoVacio.style.display = 'block';
+          console.log('📋 No hay deberes para mostrar (filtrados: 0)');
           return;
         }
 
@@ -11996,12 +12686,13 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         state.deberesFiltrados.forEach(deber => {
           const claseFecha = obtenerClaseFecha(deber.fecha);
           const claseNota = obtenerClaseNota(deber.nota);
+          const fechaFormateada = formatearFechaCorta(deber.fecha);
 
           html += '<tr>';
 
           // Tipo
           html += '<td>';
-          const tipoLower = String(deber.tipo || '').toLowerCase();
+          const tipoLower = String(deber.tipo || '').toLowerCase().replace(/ó/g, 'o').replace(/í/g, 'i');
           html += '<span class="badge-tipo badge-' + tipoLower + '">';
           html += (deber.tipo || '-');
           html += '</span>';
@@ -12013,9 +12704,9 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
           // Nombre
           html += '<td>' + (deber.nombre || '-') + '</td>';
 
-          // Fecha
+          // Fecha (V01.21: formato mejorado)
           html += '<td class="fecha-cell ' + claseFecha + '">';
-          html += (deber.fecha ? deber.fecha : '-');
+          html += fechaFormateada;
           html += '</td>';
 
           // Peso
@@ -12050,8 +12741,12 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         });
 
         tbody.innerHTML = html;
+        console.log('📋 Tabla renderizada con', state.deberesFiltrados.length, 'deberes');
       }
 
+      // ==========================================
+      // V01.21 CLAUDE: FILTROS CON FIX CRÍTICO
+      // ==========================================
       function aplicarFiltros() {
         const filtroTipoEl = document.getElementById('filtroTipo');
         const filtroCursoEl = document.getElementById('filtroCurso');
@@ -12061,37 +12756,61 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
         const filtroCurso = filtroCursoEl ? filtroCursoEl.value : 'todos';
         const filtroFecha = filtroFechaEl ? filtroFechaEl.value : 'todos';
 
+        console.log('📋 Aplicando filtros - Tipo:', filtroTipo, 'Curso:', filtroCurso, 'Fecha:', filtroFecha);
+
+        // ✅ V01.21: Normalizar fecha de hoy para comparaciones
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
         state.deberesFiltrados = state.todosLosDeberes.filter(deber => {
-          if (filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
-          if (filtroCurso !== 'todos' && deber.curso !== filtroCurso) return false;
+          // ✅ FIX V01.20: Acepta '', 'todos', o null como "mostrar todo"
+          if (filtroTipo && filtroTipo !== 'todos' && deber.tipo !== filtroTipo) return false;
+          if (filtroCurso && filtroCurso !== 'todos' && deber.curso !== filtroCurso) return false;
 
-          if (filtroFecha !== 'todos') {
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
+          if (filtroFecha && filtroFecha !== 'todos') {
             const fechaDeber = parsearFecha(deber.fecha);
+            
+            if (!fechaDeber) {
+              console.log('📋 Fecha no parseable:', deber.fecha);
+              return false;
+            }
+
+            // ✅ V01.21: Normalizar horas de fechaDeber también
+            fechaDeber.setHours(0, 0, 0, 0);
 
             if (filtroFecha === 'proximos7') {
               const limite = new Date(hoy);
               limite.setDate(limite.getDate() + 7);
-              if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) return false;
+              limite.setHours(23, 59, 59, 999);
+              
+              console.log('📋 Próximos 7 días - Comparando:', deber.fecha, 'fechaDeber:', fechaDeber.toISOString(), 'hoy:', hoy.toISOString(), 'limite:', limite.toISOString());
+              
+              // ✅ Incluye desde hoy hasta dentro de 7 días
+              if (fechaDeber < hoy || fechaDeber > limite) return false;
+              
             } else if (filtroFecha === 'proximos30') {
               const limite = new Date(hoy);
               limite.setDate(limite.getDate() + 30);
-              if (!fechaDeber || fechaDeber < hoy || fechaDeber > limite) return false;
+              limite.setHours(23, 59, 59, 999);
+              
+              if (fechaDeber < hoy || fechaDeber > limite) return false;
+              
             } else if (filtroFecha === 'pasados') {
-              if (!fechaDeber || fechaDeber >= hoy) return false;
+              if (fechaDeber >= hoy) return false;
             }
           }
 
           return true;
         });
 
+        console.log('📋 Filtrados:', state.deberesFiltrados.length, 'de', state.todosLosDeberes.length);
         renderizarTabla();
       }
 
       function cargarDeberes() {
-        if (typeof window.currentUser === 'undefined' || !window.currentUser.codeAlum) {
+        console.log('📋 Cargando deberes para:', currentUser.codeAlum);
+
+        if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
           window.showAlert('error', 'No se pudo identificar al usuario');
           setEstadoError('Error al cargar usuario', 'Por favor, recarga la página');
           return;
@@ -12107,67 +12826,84 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
         google.script.run
           .withSuccessHandler(function(response) {
+            console.log('📋 Respuesta del backend:', response);
             if (loading) loading.style.display = 'none';
 
-            if (response && response.success) {
-              state.todosLosDeberes = Array.isArray(response.data) ? response.data : [];
+            if (!response) {
+              console.error('📋 Response es NULL');
+              setEstadoError('Error', 'El servidor retornó NULL');
+              return;
+            }
 
-              // Ordenamiento por fecha (más próxima primero)
-              state.todosLosDeberes.sort(function(a, b) {
-                if (!a.fecha) return 1;
-                if (!b.fecha) return -1;
-                const fechaA = parsearFecha(a.fecha);
-                const fechaB = parsearFecha(b.fecha);
-                if (!fechaA) return 1;
-                if (!fechaB) return -1;
-                return fechaA - fechaB;
-              });
+            if (response.success !== true) {
+              console.error('📋 Response no exitoso:', response.error);
+              window.showAlert('error', response.error || 'Error al cargar deberes');
+              setEstadoError('Error', response.error || 'No se pudieron cargar los deberes');
+              return;
+            }
 
-              if (state.todosLosDeberes.length === 0) {
-                if (estadoVacio) estadoVacio.style.display = 'block';
-              } else {
-                cargarCursosEnFiltro();
-                aplicarFiltros();
-              }
+            if (!Array.isArray(response.data)) {
+              console.error('📋 response.data no es array:', response.data);
+              setEstadoError('Error', 'Formato de respuesta inválido');
+              return;
+            }
+
+            state.todosLosDeberes = response.data;
+            console.log('📋 Deberes cargados:', state.todosLosDeberes.length);
+            console.log('📋 Ejemplo de fecha del backend:', state.todosLosDeberes[0] ? state.todosLosDeberes[0].fecha : 'N/A');
+
+            // Ordenamiento por fecha (más próxima primero)
+            state.todosLosDeberes.sort(function(a, b) {
+              if (!a.fecha) return 1;
+              if (!b.fecha) return -1;
+              const fechaA = parsearFecha(a.fecha);
+              const fechaB = parsearFecha(b.fecha);
+              if (!fechaA) return 1;
+              if (!fechaB) return -1;
+              return fechaA - fechaB;
+            });
+
+            console.log('📋 Deberes ordenados por fecha');
+
+            if (state.todosLosDeberes.length === 0) {
+              if (estadoVacio) estadoVacio.style.display = 'block';
+              console.log('📋 No hay deberes en el sistema');
             } else {
-              window.showAlert('error', (response && response.error) ? response.error : 'Error al cargar deberes');
-              setEstadoError('Error', 'No se pudieron cargar los deberes. Intenta nuevamente.');
+              cargarCursosEnFiltro();
+              aplicarFiltros();
             }
           })
           .withFailureHandler(function(error) {
             if (loading) loading.style.display = 'none';
             window.showAlert('error', 'Error de conexión al cargar deberes');
-            console.error('[6btabtodos] Error:', error);
+            console.error('📋 Error de conexión:', error);
             setEstadoError('Error de conexión', 'No se pudo cargar la información. Reintenta.');
           })
-          .studentObtenerTodosDeberes({ codeAlum: window.currentUser.codeAlum });
+          .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
       }
 
-      function init() {
-        // Validación robusta de currentUser con retry (alineado con lo que vienes usando)
-        if (typeof window.currentUser !== 'undefined' && window.currentUser.codeAlum) {
-          cargarDeberes();
-        } else {
-          setTimeout(function() {
-            if (typeof window.currentUser !== 'undefined' && window.currentUser.codeAlum) {
-              cargarDeberes();
-            } else {
-              console.error('[6btabtodos] currentUser no disponible');
-              setEstadoError('Error al cargar usuario', 'Por favor, recarga la página');
-            }
-          }, 100);
-        }
-      }
-
-      // Exponer API mínima
+      // Exponer API pública
       window.TodosModule = {
-        init,
-        cargarDeberes,
-        aplicarFiltros
+        inicializar: inicializar,
+        cargarDeberes: cargarDeberes,
+        aplicarFiltros: aplicarFiltros
       };
 
-      // Auto-init
-      window.addEventListener('DOMContentLoaded', init);
+      // ==========================================
+      // V01.19 CLAUDE: AUTO-INIT CON RETRY
+      // ==========================================
+      setTimeout(function() {
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+          console.log('📋 currentUser detectado, auto-inicializando...');
+          inicializar();
+        } else {
+          console.log('📋 currentUser no disponible, iniciando retry logic...');
+          inicializar();
+        }
+      }, 150);
+
+      console.log('%c📋 TodosModule V01.21 CLAUDE cargado',
+        'font-size:11px;color:#667eea;font-weight:bold');
 
     })();
   </script>
@@ -12183,15 +12919,42 @@ ENCAPSULADO / ANTICOLISIÓN (V01.18):
 
 <!--
 ******************************************
-PBE CONTROL - 7ctabcalendario.html - V01.18 GPT
+PBE CONTROL - 7ctabcalendario.html - V01.19 CLAUDE
 Sistema de Gestión Académica
 07/01/2026
 
-OBJETIVO V01.18
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: Nombres de campos backend corregidos
+✅ FIX CRÍTICO: Retry logic para currentUser (5 intentos, 200ms)
+✅ FIX CRÍTICO: Validación robusta antes de llamar backend
+✅ MEJORA: Logs exhaustivos con prefijo 🗓️
+✅ MEJORA: Error handling mejorado
+✅ Compatible con backend V01.25 (fechas DD/MM/AAAA)
+
+CAMPOS CORREGIDOS:
+- Evaluaciones: NomEval → Evaluacion
+- Tareas: Tarea → TipoTarea
+- Lecturas: Lectura → Título
+- Horario Semanal: Actividad → Actividad (OK)
+
+CAMBIOS V01.18 GPT:
 - Mantener 100% la funcionalidad de V01.17
 - Eliminar variables globales
 - Encapsular lógica (SPA-safe)
 - Consolidar múltiples fuentes de datos
+
+OBJETIVO:
+Calendario mensual que muestra:
+- Evaluaciones (rojo)
+- Tareas (amarillo)
+- Lecturas (verde)
+- Actividades del horario semanal (azul)
+
+FUNCIONALIDAD:
+- Navegación mes a mes
+- Click en día para ver detalles
+- Modal con lista de actividades
+- Indicadores visuales por tipo
 ******************************************
 -->
 
@@ -12199,13 +12962,16 @@ OBJETIVO V01.18
 .calendario-container{max-width:1400px;margin:0 auto;padding:20px}
 .calendario-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:15px 20px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;color:#fff}
 .calendario-header h2{margin:0;font-size:24px}
-.calendario-nav button{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer}
+.calendario-nav button{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;margin-left:8px}
+.calendario-nav button:hover{background:rgba(255,255,255,.3)}
 .calendario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#ddd;border-radius:8px;overflow:hidden}
-.calendario-dia-header{background:#f5f5f5;padding:12px;text-align:center;font-weight:600}
-.calendario-celda{background:#fff;min-height:100px;padding:8px;cursor:pointer;position:relative}
-.calendario-celda.fuera-mes{background:#e0e0e0;cursor:default}
-.calendario-celda.hoy{border:3px solid #667eea}
-.calendario-dia-numero{font-weight:700;margin-bottom:6px}
+.calendario-dia-header{background:#f5f5f5;padding:12px;text-align:center;font-weight:600;font-size:14px}
+.calendario-celda{background:#fff;min-height:100px;padding:8px;cursor:pointer;position:relative;transition:background 0.2s}
+.calendario-celda:hover{background:#f0f0f0}
+.calendario-celda.fuera-mes{background:#e0e0e0;color:#999;cursor:default}
+.calendario-celda.fuera-mes:hover{background:#e0e0e0}
+.calendario-celda.hoy{border:3px solid #667eea;box-shadow:0 0 8px rgba(102,126,234,0.3)}
+.calendario-dia-numero{font-weight:700;margin-bottom:6px;font-size:16px}
 .calendario-indicadores{display:flex;gap:4px;flex-wrap:wrap}
 .calendario-dot{width:8px;height:8px;border-radius:50%}
 .calendario-dot.evaluacion{background:#dc3545}
@@ -12215,21 +12981,43 @@ OBJETIVO V01.18
 
 .calendario-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center}
 .calendario-modal.active{display:flex}
-.calendario-modal-content{background:#fff;border-radius:12px;width:90%;max-width:600px;max-height:80vh;overflow:hidden}
-.calendario-modal-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px;display:flex;justify-content:space-between}
-.calendario-modal-body{padding:20px;overflow-y:auto}
-.calendario-actividad-item{padding:12px;margin-bottom:10px;border-left:4px solid #ccc;background:#f8f9fa}
-.calendario-actividad-item.evaluacion{border-color:#dc3545}
-.calendario-actividad-item.tarea{border-color:#ffc107}
-.calendario-actividad-item.lectura{border-color:#28a745}
-.calendario-actividad-item.actividad{border-color:#17a2b8}
+.calendario-modal-content{background:#fff;border-radius:12px;width:90%;max-width:600px;max-height:80vh;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
+.calendario-modal-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.calendario-modal-header h3{margin:0;font-size:20px}
+.calendario-modal-header button{background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:24px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1}
+.calendario-modal-header button:hover{background:rgba(255,255,255,0.3)}
+.calendario-modal-body{padding:20px;overflow-y:auto;max-height:60vh}
+.calendario-actividad-item{padding:12px;margin-bottom:10px;border-left:4px solid #ccc;background:#f8f9fa;border-radius:4px}
+.calendario-actividad-item.evaluacion{border-color:#dc3545;background:#fee}
+.calendario-actividad-item.tarea{border-color:#ffc107;background:#fff3cd}
+.calendario-actividad-item.lectura{border-color:#28a745;background:#d4edda}
+.calendario-actividad-item.actividad{border-color:#17a2b8;background:#d1ecf1}
+.calendario-actividad-item strong{display:block;margin-bottom:4px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px}
+.calendario-actividad-item div{font-size:14px;margin-bottom:2px}
+
 .calendario-loading{text-align:center;padding:40px;display:none}
 .calendario-loading.active{display:block}
+.calendario-loading .spinner{border:4px solid #f3f3f3;border-top:4px solid #667eea;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+.calendario-error{text-align:center;padding:40px;color:#dc3545;display:none}
+.calendario-error.active{display:block}
+.calendario-error-icon{font-size:48px;margin-bottom:16px}
+.calendario-error-text{font-size:16px;font-weight:600;margin-bottom:8px}
+.calendario-error-subtext{font-size:14px;color:#999}
+
+@media (max-width: 768px){
+  .calendario-header{flex-direction:column;gap:12px}
+  .calendario-nav{display:flex;gap:8px}
+  .calendario-celda{min-height:80px;padding:6px}
+  .calendario-dia-numero{font-size:14px}
+  .calendario-modal-content{width:95%;max-width:none}
+}
 </style>
 
 <div class="calendario-container">
   <div class="calendario-header">
-    <h2 id="calTitulo">Mes</h2>
+    <h2 id="calTitulo">Calendario</h2>
     <div class="calendario-nav">
       <button onclick="CalendarioModule.nav(-1)">← Anterior</button>
       <button onclick="CalendarioModule.hoy()">Hoy</button>
@@ -12237,7 +13025,16 @@ OBJETIVO V01.18
     </div>
   </div>
 
-  <div id="calLoading" class="calendario-loading">Cargando calendario…</div>
+  <div id="calLoading" class="calendario-loading">
+    <div class="spinner"></div>
+    <div>Cargando calendario...</div>
+  </div>
+
+  <div id="calError" class="calendario-error">
+    <div class="calendario-error-icon">⚠️</div>
+    <div class="calendario-error-text">Error al cargar el calendario</div>
+    <div class="calendario-error-subtext">Por favor, recarga la página</div>
+  </div>
 
   <div id="calGrid" class="calendario-grid">
     <div class="calendario-dia-header">Lun</div>
@@ -12250,8 +13047,8 @@ OBJETIVO V01.18
   </div>
 </div>
 
-<div id="calModal" class="calendario-modal">
-  <div class="calendario-modal-content">
+<div id="calModal" class="calendario-modal" onclick="CalendarioModule.cerrarSiFondo(event)">
+  <div class="calendario-modal-content" onclick="event.stopPropagation()">
     <div class="calendario-modal-header">
       <h3 id="modalTitulo"></h3>
       <button onclick="CalendarioModule.cerrar()">×</button>
@@ -12263,95 +13060,318 @@ OBJETIVO V01.18
 <script>
 (function(){
 'use strict';
-if(window.CalendarioModule) return;
+
+// Prevenir doble carga
+if(window.CalendarioModule && window.CalendarioModule._loaded) {
+  console.log('🗓️ CalendarioModule ya cargado, ignorando');
+  return;
+}
+
+console.log('🗓️ CalendarioModule V01.19 CLAUDE iniciando...');
 
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-const CalendarioModule={
-  m:new Date().getMonth(),
-  y:new Date().getFullYear(),
-  acts:[],
+const CalendarioModule = {
+  _loaded: true,
+  _initDone: false,
+  _retryCount: 0,
+  m: new Date().getMonth(),
+  y: new Date().getFullYear(),
+  acts: [],
 
-  init(){
+  // ==========================================
+  // V01.19 CLAUDE: INIT CON RETRY LOGIC
+  // ==========================================
+  init() {
+    console.log('🗓️ CalendarioModule.init() llamado (intento ' + (this._retryCount + 1) + ')');
+
+    if (this._initDone) {
+      console.log('🗓️ CalendarioModule ya inicializado, ignorando');
+      return;
+    }
+
+    // Validación con retry
+    if (typeof currentUser === 'undefined' || !currentUser) {
+      console.warn('🗓️ currentUser no disponible aún, reintentando...');
+      
+      if (this._retryCount < 5) {
+        this._retryCount++;
+        setTimeout(() => this.init(), 200);
+      } else {
+        console.error('🗓️ currentUser no disponible después de 5 intentos');
+        this.mostrarError('Usuario no disponible', 'Recarga la página');
+      }
+      return;
+    }
+
+    if (!currentUser.codeAlum) {
+      console.error('🗓️ currentUser.codeAlum vacío:', currentUser);
+      this.mostrarError('Código de alumno no disponible', 'Recarga la página');
+      return;
+    }
+
+    this._initDone = true;
+    console.log('🗓️ CalendarioModule inicializado para:', currentUser.codeAlum);
+
     this.load();
   },
 
-  nav(d){ this.m+=d; if(this.m>11){this.m=0;this.y++;} if(this.m<0){this.m=11;this.y--;} this.render(); },
-  hoy(){ const n=new Date(); this.m=n.getMonth(); this.y=n.getFullYear(); this.render(); },
-
-  load(){
-    document.getElementById('calLoading').classList.add('active');
-    Promise.all([
-      this.call('studentObtenerEvaluaciones','FechaEval','NomEval','evaluacion','Evaluación'),
-      this.call('studentObtenerTareas','FechaEntrega','Tarea','tarea','Tarea'),
-      this.call('studentObtenerLecturas','FechaEval','Lectura','lectura','Lectura'),
-      this.call('studentObtenerHorarioSem','FechaHS','Actividad','actividad','Actividad')
-    ]).then(r=>{
-      this.acts=r.flat();
-      this.render();
-      document.getElementById('calLoading').classList.remove('active');
-    });
+  nav(d) { 
+    this.m += d; 
+    if (this.m > 11) { this.m = 0; this.y++; } 
+    if (this.m < 0) { this.m = 11; this.y--; }
+    console.log('🗓️ Navegando a:', MESES[this.m], this.y);
+    this.render(); 
   },
 
-  call(fn,f,n,t,tn){
-    return new Promise(res=>{
-      google.script.run.withSuccessHandler(r=>{
-        if(!r.success) return res([]);
-        res(r.data.map(i=>({tipo:t,tipoNombre:tn,fecha:i[f],nombre:i[n],curso:i.Curso||''})));
-      })[fn]({codeAlum:currentUser.codeAlum});
-    });
+  hoy() { 
+    const n = new Date(); 
+    this.m = n.getMonth(); 
+    this.y = n.getFullYear();
+    console.log('🗓️ Volviendo a hoy:', MESES[this.m], this.y);
+    this.render(); 
   },
 
-  render(){
-    document.getElementById('calTitulo').textContent=`${MESES[this.m]} ${this.y}`;
-    const grid=document.getElementById('calGrid');
-    while(grid.children.length>7) grid.removeChild(grid.lastChild);
+  mostrarError(titulo, subtitulo) {
+    const loading = document.getElementById('calLoading');
+    const error = document.getElementById('calError');
+    const grid = document.getElementById('calGrid');
 
-    const start=(new Date(this.y,this.m,1).getDay()||7)-1;
-    let d=1-start;
-    for(let i=0;i<42;i++,d++){
-      const date=new Date(this.y,this.m,d);
-      const out=date.getMonth()!==this.m;
-      const cell=document.createElement('div');
-      cell.className='calendario-celda'+(out?' fuera-mes':'');
-      cell.innerHTML=`<div class="calendario-dia-numero">${date.getDate()}</div>`;
+    if (loading) loading.classList.remove('active');
+    if (grid) grid.style.display = 'none';
 
-      if(!out){
-        const f=this.f(date);
-        const acts=this.acts.filter(a=>a.fecha===f);
-        if(acts.length){
-          const ind=document.createElement('div');
-          ind.className='calendario-indicadores';
-          [...new Set(acts.map(a=>a.tipo))].forEach(t=>{
-            ind.innerHTML+=`<span class="calendario-dot ${t}"></span>`;
-          });
-          cell.appendChild(ind);
-          cell.onclick=()=>this.open(date,acts);
-        }
-      }
-      grid.appendChild(cell);
+    if (error) {
+      error.classList.add('active');
+      const t = error.querySelector('.calendario-error-text');
+      const s = error.querySelector('.calendario-error-subtext');
+      if (t) t.textContent = titulo || 'Error';
+      if (s) s.textContent = subtitulo || 'Por favor, recarga la página';
     }
   },
 
-  open(d,acts){
-    document.getElementById('modalTitulo').textContent=`${d.getDate()} de ${MESES[d.getMonth()]} ${this.y}`;
-    const b=document.getElementById('modalBody');
-    b.innerHTML=acts.map(a=>`
+  // ==========================================
+  // V01.19 CLAUDE: CARGA DE DATOS
+  // ==========================================
+  load() {
+    console.log('🗓️ Cargando datos del calendario...');
+    
+    const loading = document.getElementById('calLoading');
+    const error = document.getElementById('calError');
+    const grid = document.getElementById('calGrid');
+
+    if (loading) loading.classList.add('active');
+    if (error) error.classList.remove('active');
+    if (grid) grid.style.display = 'none';
+
+    Promise.all([
+      this.call('studentObtenerEvaluaciones', 'FechaEval', 'Evaluacion', 'evaluacion', 'Evaluación'),
+      this.call('studentObtenerTareas', 'FechaEntrega', 'TipoTarea', 'tarea', 'Tarea'),
+      this.call('studentObtenerLecturas', 'FechaEval', 'Título', 'lectura', 'Lectura'),
+      this.call('studentObtenerHorarioSem', 'FechaHS', 'Actividad', 'actividad', 'Actividad')
+    ]).then(results => {
+      this.acts = results.flat();
+      console.log('🗓️ Total de actividades cargadas:', this.acts.length);
+      console.log('🗓️ Desglose:', {
+        evaluaciones: results[0].length,
+        tareas: results[1].length,
+        lecturas: results[2].length,
+        actividades: results[3].length
+      });
+
+      if (loading) loading.classList.remove('active');
+      if (grid) grid.style.display = 'grid';
+      
+      this.render();
+    }).catch(err => {
+      console.error('🗓️ Error en Promise.all:', err);
+      this.mostrarError('Error al cargar datos', 'No se pudieron obtener las actividades');
+    });
+  },
+
+  // ==========================================
+  // V01.19 CLAUDE: LLAMADAS AL BACKEND
+  // ==========================================
+  call(fn, campoFecha, campoNombre, tipo, tipoNombre) {
+    console.log('🗓️ Llamando a:', fn);
+    
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(response => {
+          console.log('🗓️', fn, 'response:', response);
+          
+          if (!response) {
+            console.error('🗓️', fn, 'retornó NULL');
+            resolve([]);
+            return;
+          }
+
+          if (!response.success) {
+            console.error('🗓️', fn, 'error:', response.error);
+            resolve([]);
+            return;
+          }
+
+          if (!Array.isArray(response.data)) {
+            console.error('🗓️', fn, 'data no es array:', response.data);
+            resolve([]);
+            return;
+          }
+
+          const mapped = response.data.map(item => {
+            const actividad = {
+              tipo: tipo,
+              tipoNombre: tipoNombre,
+              fecha: item[campoFecha] || '',
+              nombre: item[campoNombre] || 'Sin nombre',
+              curso: item.Curso || ''
+            };
+
+            // Log de ejemplo (solo primer item)
+            if (response.data.indexOf(item) === 0) {
+              console.log('🗓️', fn, 'ejemplo:', actividad);
+            }
+
+            return actividad;
+          });
+
+          console.log('🗓️', fn, 'mapeados:', mapped.length);
+          resolve(mapped);
+        })
+        .withFailureHandler(error => {
+          console.error('🗓️', fn, 'falló:', error);
+          resolve([]);
+        })
+        [fn]({ codeAlum: currentUser.codeAlum });
+    });
+  },
+
+  // ==========================================
+  // V01.19 CLAUDE: RENDERIZADO
+  // ==========================================
+  render() {
+    console.log('🗓️ Renderizando calendario:', MESES[this.m], this.y);
+    
+    document.getElementById('calTitulo').textContent = `${MESES[this.m]} ${this.y}`;
+    
+    const grid = document.getElementById('calGrid');
+    
+    // Limpiar celdas anteriores (mantener headers)
+    while (grid.children.length > 7) {
+      grid.removeChild(grid.lastChild);
+    }
+
+    // Calcular días del mes
+    const primerDia = new Date(this.y, this.m, 1);
+    const start = (primerDia.getDay() || 7) - 1; // Lunes = 0
+    let d = 1 - start;
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 42; i++, d++) {
+      const date = new Date(this.y, this.m, d);
+      const fueraMes = date.getMonth() !== this.m;
+      
+      const cell = document.createElement('div');
+      cell.className = 'calendario-celda' + (fueraMes ? ' fuera-mes' : '');
+      
+      // Marcar día actual
+      const cellDate = new Date(date);
+      cellDate.setHours(0, 0, 0, 0);
+      if (cellDate.getTime() === hoy.getTime()) {
+        cell.classList.add('hoy');
+      }
+
+      cell.innerHTML = `<div class="calendario-dia-numero">${date.getDate()}</div>`;
+
+      if (!fueraMes) {
+        const fechaStr = this.formatearFecha(date);
+        const actsDia = this.acts.filter(a => a.fecha === fechaStr);
+
+        if (actsDia.length > 0) {
+          const ind = document.createElement('div');
+          ind.className = 'calendario-indicadores';
+          
+          // Tipos únicos
+          const tiposUnicos = [...new Set(actsDia.map(a => a.tipo))];
+          tiposUnicos.forEach(t => {
+            const dot = document.createElement('span');
+            dot.className = 'calendario-dot ' + t;
+            ind.appendChild(dot);
+          });
+          
+          cell.appendChild(ind);
+          cell.onclick = () => this.abrirModal(date, actsDia);
+        }
+      }
+      
+      grid.appendChild(cell);
+    }
+
+    console.log('🗓️ Calendario renderizado con 42 celdas');
+  },
+
+  // ==========================================
+  // MODAL
+  // ==========================================
+  abrirModal(fecha, actividades) {
+    console.log('🗓️ Abriendo modal para:', this.formatearFecha(fecha), 'con', actividades.length, 'actividades');
+    
+    document.getElementById('modalTitulo').textContent = 
+      `${fecha.getDate()} de ${MESES[fecha.getMonth()]} ${this.y}`;
+    
+    const body = document.getElementById('modalBody');
+    body.innerHTML = actividades.map(a => `
       <div class="calendario-actividad-item ${a.tipo}">
-        <div><strong>${a.tipoNombre}</strong></div>
+        <strong>${a.tipoNombre}</strong>
         <div>${a.nombre}</div>
-        ${a.curso?`<div>Curso: ${a.curso}</div>`:''}
-      </div>`).join('');
+        ${a.curso ? `<div>Curso: ${a.curso}</div>` : ''}
+      </div>
+    `).join('');
+    
     document.getElementById('calModal').classList.add('active');
   },
 
-  cerrar(){ document.getElementById('calModal').classList.remove('active'); },
+  cerrar() {
+    console.log('🗓️ Cerrando modal');
+    document.getElementById('calModal').classList.remove('active');
+  },
 
-  f(d){ return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+  cerrarSiFondo(event) {
+    if (event.target.id === 'calModal') {
+      this.cerrar();
+    }
+  },
+
+  // ==========================================
+  // HELPERS
+  // ==========================================
+  formatearFecha(date) {
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  }
 };
 
-window.CalendarioModule=CalendarioModule;
-CalendarioModule.init();
+// Exponer globalmente
+window.CalendarioModule = CalendarioModule;
+
+// ==========================================
+// V01.19 CLAUDE: AUTO-INIT CON RETRY
+// ==========================================
+setTimeout(() => {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    console.log('🗓️ currentUser detectado, auto-inicializando...');
+    CalendarioModule.init();
+  } else {
+    console.log('🗓️ currentUser no disponible, iniciando retry logic...');
+    CalendarioModule.init();
+  }
+}, 150);
+
+console.log('%c🗓️ CalendarioModule V01.19 CLAUDE cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+
 })();
 </script>
 
@@ -12977,6 +13997,6 @@ OBJETIVO V01.18:
 
 // ============================================
 // FIN DEL SOLID CODE
-// Tamaño total: 398,690 caracteres
+// Tamaño total: 432,022 caracteres
 // Archivos exitosos: 24/24
 // ============================================
