@@ -1,18 +1,23 @@
 <!--
 ******************************************
-PBE CONTROL - 7ctabhorarioclase.html V01.18.4 CLAUDE
+PBE CONTROL - 7ctabhorarioclase.html V01.19 CLAUDE
 Sistema de Gestión Académica
-08/01/2026
+08/01/2026 - 20:30
 
-CORRECCIONES V01.18.4:
-- ✅ Funciones expuestas correctamente (clickCelda, abrirFormularioAgregar, editarClase)
-- ✅ Formulario completo con todos los campos y botones
-- ✅ CRUD funcional: agregar, editar, eliminar
-- ✅ Carga de datos desde backend
-- ✅ Grid interactivo con onclick que SÍ funciona
+CAMBIOS V01.19 CLAUDE:
+✅ FIX CRÍTICO: extraerDia() ahora busca bidireccional (resuelve 'Lun' vs 'Lunes')
+✅ FIX CRÍTICO: Validación robusta de horas (maneja time objects y strings)
+✅ FIX CRÍTICO: Retry logic robusto (5 intentos, 200ms)
+✅ MEJORA: Logs exhaustivos con prefijo 🕐 para debugging
+✅ MEJORA: Validación de datos antes de construir matriz
+
+PROBLEMA RESUELTO:
+- Sheet tiene: 'Lun', 'Martes', 'Miércoles' (mezclados)
+- Código antiguo: solo 'texto.includes(dia)' → falla con 'Lun'
+- Código nuevo: búsqueda bidireccional → funciona con ambos
 
 BASE:
-- V01.18.3 GPT (arquitectura encapsulada)
+- V01.18.4 CLAUDE (arquitectura encapsulada)
 - V01.17 ant (lógica y formulario completo)
 
 FUNCIONALIDAD:
@@ -392,7 +397,12 @@ FUNCIONALIDAD:
 (function () {
 'use strict';
 
-if (window.HorarioClaseModule) return;
+if (window.HorarioClaseModule) {
+  console.log('🕐 HorarioClaseModule ya existe, ignorando carga');
+  return;
+}
+
+console.log('🕐 HorarioClaseModule V01.19 CLAUDE iniciando...');
 
 /* ===== ESTADO ===== */
 let clasesData = [];
@@ -403,27 +413,57 @@ const HORA_FIN = 22;
 const DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const DIAS_CORTOS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 let _initDone = false;
+let _retryCount = 0;
+const MAX_RETRIES = 5;
 
-/* ===== INIT ===== */
+/* ===== INIT CON RETRY LOGIC ===== */
 function init() {
-  if (_initDone) return;
-  if (!window.currentUser || !currentUser.codeAlum) return;
+  console.log('🕐 HorarioClaseModule.init() llamado (intento ' + (_retryCount + 1) + ')');
+  
+  if (_initDone) {
+    console.log('🕐 Ya inicializado, ignorando');
+    return;
+  }
+  
+  if (!window.currentUser || !currentUser.codeAlum) {
+    console.warn('🕐 currentUser no disponible, reintentando...');
+    
+    if (_retryCount < MAX_RETRIES) {
+      _retryCount++;
+      setTimeout(init, 200);
+    } else {
+      console.error('🕐 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+      ocultarLoading();
+    }
+    return;
+  }
+  
   _initDone = true;
+  console.log('🕐 Inicializado para:', currentUser.codeAlum);
+  
   cargarCursos();
   cargarHorarioClases();
-  console.log('🕐 HorarioClase V01.18.4 inicializado');
 }
 
 /* ===== BACKEND ===== */
 function cargarCursos() {
+  console.log('🕐 Cargando cursos...');
+  
   google.script.run
     .withSuccessHandler(r => {
+      console.log('🕐 Cursos response:', r);
+      
       if (r && r.success) {
         cursosData = r.data || [];
+        console.log('🕐 Cursos cargados:', cursosData.length);
         poblarDropdownCursos();
+      } else {
+        console.error('🕐 Error en cursos:', r);
       }
     })
-    .withFailureHandler(e => console.error('Error cursos:', e))
+    .withFailureHandler(e => {
+      console.error('🕐 Error al cargar cursos:', e);
+    })
     .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
 }
 
@@ -441,24 +481,37 @@ function poblarDropdownCursos() {
     opt.dataset.color = c.Color || '#667eea';
     select.appendChild(opt);
   });
+  
+  console.log('🕐 Dropdown poblado con', cursosData.length, 'cursos');
 }
 
 function cargarHorarioClases() {
+  console.log('🕐 Cargando horario clases...');
+  
   google.script.run
     .withSuccessHandler(r => {
+      console.log('🕐 HorarioClases response:', r);
+      
       if (r && r.success) {
         clasesData = r.data || [];
+        console.log('🕐 Clases cargadas:', clasesData.length);
+        
+        if (clasesData.length > 0) {
+          console.log('🕐 Ejemplo de clase:', clasesData[0]);
+          console.log('🕐 Estructura completa primera clase:', JSON.stringify(clasesData[0]));
+        }
+        
         construirMatriz();
         renderGrid();
         ocultarLoading();
       } else {
-        console.error('Error en respuesta:', r);
+        console.error('🕐 Error en response:', r);
         renderGrid();
         ocultarLoading();
       }
     })
     .withFailureHandler(e => {
-      console.error('Error al cargar horario:', e);
+      console.error('🕐 Error de conexión:', e);
       renderGrid();
       ocultarLoading();
     })
@@ -467,32 +520,95 @@ function cargarHorarioClases() {
 
 /* ===== LÓGICA ===== */
 function construirMatriz() {
+  console.log('🕐 Construyendo matriz con', clasesData.length, 'clases');
+  
   horarioMatrix = {};
   DIAS.forEach(d => horarioMatrix[d] = {});
   
-  clasesData.forEach(c => {
-    const dia = extraerDia(c.Detalle);
-    if (!dia) return;
+  clasesData.forEach((c, idx) => {
+    console.log('🕐 Procesando clase ' + (idx + 1) + ':', {
+      Curso: c.Curso,
+      Detalle: c.Detalle,
+      HoraIni: c.HoraIni,
+      HoraFin: c.HoraFin
+    });
     
-    calcularHoras(c.HoraIni, c.HoraFin).forEach(h => {
+    const dia = extraerDia(c.Detalle);
+    console.log('🕐 Día extraído:', dia, 'de Detalle:', c.Detalle);
+    
+    if (!dia) {
+      console.warn('🕐 No se pudo extraer día de:', c.Detalle);
+      return;
+    }
+    
+    const horas = calcularHoras(c.HoraIni, c.HoraFin);
+    console.log('🕐 Horas calculadas:', horas.length, 'slots');
+    
+    horas.forEach(h => {
       horarioMatrix[dia][h.hora] = horarioMatrix[dia][h.hora] || [];
       horarioMatrix[dia][h.hora].push({ clase: c, ...h });
     });
   });
+  
+  console.log('🕐 Matriz construida:', horarioMatrix);
 }
 
+/**
+ * V01.19 CLAUDE: FIX CRÍTICO
+ * Búsqueda bidireccional para días
+ */
 function extraerDia(t) {
-  if (!t) return null;
-  const s = String(t).toLowerCase();
-  return DIAS.find(d => s.includes(d.toLowerCase()));
+  if (!t) {
+    console.warn('🕐 Detalle vacío');
+    return null;
+  }
+  
+  const s = String(t).toLowerCase().trim();
+  console.log('🕐 Buscando día en:', s);
+  
+  const diaEncontrado = DIAS.find(d => {
+    const dLower = d.toLowerCase();
+    // ✅ Búsqueda bidireccional
+    const coincide = s.includes(dLower) || dLower.includes(s);
+    
+    if (coincide) {
+      console.log('🕐 Match encontrado:', d, '(buscado:', s, ')');
+    }
+    
+    return coincide;
+  });
+  
+  if (!diaEncontrado) {
+    console.warn('🕐 No se encontró día en:', s, '| Días válidos:', DIAS);
+  }
+  
+  return diaEncontrado || null;
 }
 
+/**
+ * V01.19 CLAUDE: Validación robusta de horas
+ */
 function calcularHoras(i, f) {
-  const [hi, mi] = i.split(':').map(Number);
-  const [hf, mf] = f.split(':').map(Number);
+  console.log('🕐 calcularHoras() entrada:', { i, f, tipoI: typeof i, tipoF: typeof f });
+  
+  // Normalizar a string HH:MM
+  const horaIniStr = normalizarHora(i);
+  const horaFinStr = normalizarHora(f);
+  
+  console.log('🕐 Horas normalizadas:', { inicio: horaIniStr, fin: horaFinStr });
+  
+  if (!horaIniStr || !horaFinStr) {
+    console.error('🕐 Horas inválidas después de normalizar');
+    return [];
+  }
+  
+  const [hi, mi] = horaIniStr.split(':').map(Number);
+  const [hf, mf] = horaFinStr.split(':').map(Number);
+  
   const res = [];
   
   for (let h = hi; h <= hf; h++) {
+    if (h > HORA_FIN) break;
     if (h === hf && mf === 0) continue;
     
     res.push({
@@ -502,7 +618,37 @@ function calcularHoras(i, f) {
     });
   }
   
+  console.log('🕐 Slots generados:', res);
   return res;
+}
+
+/**
+ * V01.19 CLAUDE: Normaliza hora a formato HH:MM
+ */
+function normalizarHora(valor) {
+  if (!valor) return null;
+  
+  // Si ya es string en formato correcto
+  if (typeof valor === 'string') {
+    const match = valor.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      const h = match[1].padStart(2, '0');
+      const m = match[2];
+      return h + ':' + m;
+    }
+  }
+  
+  // Si es objeto con propiedades hour/minute (datetime.time serializado)
+  if (typeof valor === 'object' && valor !== null) {
+    if ('hour' in valor && 'minute' in valor) {
+      const h = String(valor.hour).padStart(2, '0');
+      const m = String(valor.minute).padStart(2, '0');
+      return h + ':' + m;
+    }
+  }
+  
+  console.warn('🕐 No se pudo normalizar hora:', valor);
+  return null;
 }
 
 function colorCurso(curso) {
@@ -512,12 +658,20 @@ function colorCurso(curso) {
 
 /* ===== RENDER GRID ===== */
 function renderGrid() {
+  console.log('🕐 Renderizando grid...');
+  
   const c = document.getElementById('horarioGridContainer');
-  if (!c) return;
+  if (!c) {
+    console.error('🕐 No se encontró horarioGridContainer');
+    return;
+  }
 
   let html = '<table class="horario-grid"><thead><tr><th class="col-hora">Hora</th>';
   DIAS_CORTOS.forEach(d => html += `<th class="col-dia">${d}</th>`);
   html += '</tr></thead><tbody>';
+
+  let celdasOcupadas = 0;
+  let celdasVacias = 0;
 
   for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
     const k = String(h).padStart(2, '0') + ':00';
@@ -529,6 +683,7 @@ function renderGrid() {
       const s = horarioMatrix[d][k];
       
       if (s && s.length > 0) {
+        celdasOcupadas++;
         const x = s[0];
         const color = colorCurso(x.clase.Curso);
         const texto = x.prefijo + x.clase.Curso + x.sufijo;
@@ -539,6 +694,7 @@ function renderGrid() {
           ${texto}
         </div></td>`;
       } else {
+        celdasVacias++;
         html += `<td><div class="celda-clase" 
           onclick="window.clickCelda('${d}','${k}')">
         </div></td>`;
@@ -550,6 +706,8 @@ function renderGrid() {
 
   html += '</tbody></table>';
   c.innerHTML = html;
+  
+  console.log('🕐 Grid renderizado:', { celdasOcupadas, celdasVacias });
 }
 
 function ocultarLoading() {
@@ -559,6 +717,7 @@ function ocultarLoading() {
 
 /* ===== FORMULARIO ===== */
 function clickCelda(dia, hora) {
+  console.log('🕐 Click en celda:', { dia, hora });
   abrirFormularioAgregar(dia, hora);
 }
 
@@ -588,6 +747,8 @@ function abrirFormularioAgregar(dia, hora) {
 }
 
 function editarClase(dia, hora) {
+  console.log('🕐 Editar clase:', { dia, hora });
+  
   const clases = horarioMatrix[dia][hora];
 
   if (!clases || clases.length === 0) {
@@ -611,8 +772,11 @@ function editarClase(dia, hora) {
   document.getElementById('claseDia').value = dia;
   document.getElementById('claseHoraSlot').value = hora;
   document.getElementById('claseCurso').value = clase.Curso;
-  document.getElementById('claseHoraIni').value = clase.HoraIni;
-  document.getElementById('claseHoraFin').value = clase.HoraFin;
+  
+  // V01.19: Normalizar horas antes de asignar
+  document.getElementById('claseHoraIni').value = normalizarHora(clase.HoraIni) || '';
+  document.getElementById('claseHoraFin').value = normalizarHora(clase.HoraFin) || '';
+  
   document.getElementById('btnSubmit').textContent = 'Actualizar';
   document.getElementById('btnEliminar').style.display = 'block';
 
@@ -703,7 +867,7 @@ function handleClaseGuardada(response, esEdicion) {
 }
 
 function handleClaseError(error, esEdicion) {
-  console.error('Error:', error);
+  console.error('🕐 Error:', error);
   
   const btnSubmit = document.getElementById('btnSubmit');
   btnSubmit.disabled = false;
@@ -737,7 +901,7 @@ function eliminarClase(rowNumber) {
   google.script.run
     .withSuccessHandler(handleClaseEliminada)
     .withFailureHandler(e => {
-      console.error('Error al eliminar:', e);
+      console.error('🕐 Error al eliminar:', e);
       if (window.showAlert) {
         showAlert('error', 'Error al eliminar');
       } else {
@@ -803,19 +967,16 @@ window.handleSubmitClase = handleSubmitClase;
 window.confirmarEliminarClase = confirmarEliminarClase;
 window.cancelarFormClase = cancelarFormClase;
 
-/* ===== AUTO INIT CON RETRY ===== */
-let _r = 0;
-(function retry() {
-  if (window.currentUser && currentUser.codeAlum) {
+/* ===== AUTO INIT ===== */
+setTimeout(function() {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    console.log('🕐 currentUser detectado, inicializando...');
     init();
-  } else if (_r < 6) {
-    _r++;
-    setTimeout(retry, 200);
   } else {
-    ocultarLoading();
-    console.error('HorarioClase: currentUser no disponible');
+    console.log('🕐 currentUser no disponible, iniciando retry...');
+    init();
   }
-})();
+}, 150);
 
 window.HorarioClaseModule = {
   init: init,
@@ -826,6 +987,9 @@ window.HorarioClaseModule = {
   eliminarClase: confirmarEliminarClase,
   cancelar: cancelarFormClase
 };
+
+console.log('%c🕐 HorarioClaseModule V01.19 CLAUDE cargado',
+  'font-size:11px;color:#667eea;font-weight:bold');
 
 })();
 </script>
