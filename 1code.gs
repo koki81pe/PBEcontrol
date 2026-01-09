@@ -1,8 +1,8 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.25 CLAUDE
+PBE CONTROL - 1code.gs - V01.26 CLAUDE
 Sistema de Gestión Académica
-07/01/2026 - 23:45
+09/01/2026 - 00:30
 ******************************************
 
 CONTENIDO:
@@ -10,6 +10,13 @@ CONTENIDO:
 - include(): Inclusión dinámica de HTML (Indispensable para las pestañas)
 - autenticar(): Login unificado Admin/Estudiante
 - 31 WRAPPERS: Funciones puente para google.script.run
+
+CAMBIOS V01.26 CLAUDE:
+✅ FIX CRÍTICO: Detección y formateo correcto de datetime.time objects
+✅ Problema: time(8,0) se convertía a Date "30/12/1899" en lugar de "08:00"
+✅ Solución: Nueva función isTimeValue() detecta time objects disfrazados de Date
+✅ Solución: Nueva función formatearTimeHH_MM() extrae hora correctamente
+✅ Resultado: HoraInicio y HoraFin ahora llegan como "08:00" al frontend
 
 CAMBIOS V01.25 CLAUDE:
 ✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA en lugar de Date.toString()
@@ -25,19 +32,6 @@ CAMBIOS V01.24 CLAUDE:
 ✅ Aplicado a los 31 wrappers de Student
 ✅ Función auxiliar: cleanDataForSerialization()
 
-CAMBIOS V01.23:
-- Agregado wrapper faltante: studentActualizarHorarioSem
-
-CAMBIOS V01.22:
-- CORRECCIÓN CRÍTICA en include(): Ahora procesa templates anidados
-- Cambio: createHtmlOutputFromFile → createTemplateFromFile + evaluate()
-- Esto permite que los <?!= include() ?> dentro de sub-tabs se procesen correctamente
-- Sin este cambio, los sub-tabs mostraban texto literal: <?!= include('archivo'); ?>
-
-CAMBIOS V01.21:
-- Se cambió createHtmlOutputFromFile por createTemplateFromFile en doGet().
-- Se agregó .evaluate() a cada retorno para procesar los comandos <?!= include() ?>.
-- Se mantiene la inyección de scriptUrl para redirecciones seguras.
 ******************************************
 */
 
@@ -50,7 +44,6 @@ function doGet(e) {
   var scriptUrl = ScriptApp.getService().getUrl(); 
   
   // 1. Caso Estudiante (?page=student)
-  // Ahora usa createTemplate para que las pestañas (5atabcursos, etc.) se carguen.
   if (page === 'student') {
     var template = HtmlService.createTemplateFromFile('3panelstudent');
     template.scriptUrl = scriptUrl; 
@@ -61,7 +54,6 @@ function doGet(e) {
   }
   
   // 2. Caso Administrador (?page=admin)
-  // Ahora usa createTemplate para que las pestañas (4atabcursosyrep, etc.) se carguen.
   if (page === 'admin') {
     var template = HtmlService.createTemplateFromFile('3paneladmin');
     template.scriptUrl = scriptUrl;
@@ -82,39 +74,9 @@ function doGet(e) {
 }
 
 // ==========================================
-// 2. FUNCIÓN include() - VERSIÓN CORREGIDA
+// 2. FUNCIÓN include()
 // ==========================================
 
-/**
- * CORRECCIÓN CRÍTICA V01.22
- * 
- * Fundamental para que funcionen las pestañas separadas en archivos HTML.
- * 
- * CAMBIO: Ahora usa createTemplateFromFile + evaluate() en lugar de
- * createHtmlOutputFromFile. Esto permite procesar includes anidados.
- * 
- * ANTES (V01.21): 
- * return HtmlService.createHtmlOutputFromFile(filename).getContent();
- * - Solo retornaba HTML estático
- * - Los <?!= include() ?> dentro de sub-tabs NO se procesaban
- * - Resultado: Aparecía texto literal "<?!= include('archivo'); ?>"
- * 
- * AHORA (V01.22):
- * var template = HtmlService.createTemplateFromFile(filename);
- * return template.evaluate().getContent();
- * - Crea un template del archivo
- * - Lo evalúa (procesa todos los <?!= include() ?>)
- * - Retorna el contenido HTML procesado
- * - Resultado: Los sub-tabs se cargan correctamente
- * 
- * EJEMPLO DE FLUJO:
- * 1. 3panelstudent.html → <?!= include('4atabcursosyrep'); ?>
- * 2. 4atabcursosyrep.html → <?!= include('5atabcursos'); ?>
- * 3. Ambos niveles se procesan correctamente
- * 
- * @param {string} filename - Nombre del archivo HTML (sin extensión .html)
- * @return {string} - Contenido HTML procesado
- */
 function include(filename) {
   var template = HtmlService.createTemplateFromFile(filename);
   return template.evaluate().getContent();
@@ -164,41 +126,30 @@ function autenticar(params) {
 }
 
 // ==========================================
-// 4. FUNCIÓN AUXILIAR - LIMPIEZA DE DATOS
-// V01.25 CLAUDE
+// 4. FUNCIONES AUXILIARES - LIMPIEZA DE DATOS
+// V01.26 CLAUDE
 // ==========================================
 
 /**
  * Limpiar objetos para serialización de google.script.run
  * 
- * PROBLEMA V01.23:
- * google.script.run NO puede serializar Date objects
- * Resultado: retorna NULL al frontend
+ * EVOLUCIÓN:
+ * V01.24: Convierte Date a String
+ * V01.25: Formatea fechas como DD/MM/AAAA
+ * V01.26: Detecta y formatea time objects correctamente
  * 
- * SOLUCIÓN V01.24:
- * Convertir todos los campos problemáticos a String
+ * PROBLEMA V01.25:
+ * datetime.time(8, 0) del Sheet se convierte a Date object
+ * pero representa SOLO la hora, no una fecha completa
+ * formatearFechaDD_MM_AAAA() le sacaba la fecha epoch "30/12/1899"
  * 
- * MEJORA V01.25:
- * Formatear fechas como DD/MM/AAAA en lugar de Date.toString()
- * Esto resuelve:
- * - Fechas mostraban formato largo en inglés
- * - Filtros de fecha fallaban por formato incompatible
+ * SOLUCIÓN V01.26:
+ * Detectar si un Date es realmente un TIME VALUE
+ * Extraer hora con getHours() y getMinutes() en lugar de getDate()
  * 
  * CAMPOS QUE SE LIMPIAN:
- * - FechaReg: Date → DD/MM/AAAA
- * - FechaClase: Date → DD/MM/AAAA
- * - FechaRep: Date → DD/MM/AAAA
- * - FechaEval: Date → DD/MM/AAAA
- * - FechaEntrega: Date → DD/MM/AAAA
- * - FechaAccion: Date → DD/MM/AAAA
- * - FechaInicio: Date → DD/MM/AAAA
- * - FechaFin: Date → DD/MM/AAAA
- * - FechaHS: Date → DD/MM/AAAA
- * - HoraInicio: mantener como String
- * - HoraFin: mantener como String
- * 
- * @param {Object} result - Respuesta de Student.* functions
- * @return {Object} - Objeto limpio serializable
+ * - Fechas (FechaReg, FechaEval, etc.) → DD/MM/AAAA
+ * - Horas (HoraInicio, HoraFin) → HH:MM
  */
 function cleanDataForSerialization(result) {
   if (!result || !result.success || !result.data) {
@@ -228,10 +179,9 @@ function formatearFechaDD_MM_AAAA(fecha) {
   }
   
   var dia = fecha.getDate();
-  var mes = fecha.getMonth() + 1; // Mes base 0
+  var mes = fecha.getMonth() + 1;
   var anio = fecha.getFullYear();
   
-  // Agregar cero a la izquierda si es necesario
   dia = dia < 10 ? '0' + dia : dia;
   mes = mes < 10 ? '0' + mes : mes;
   
@@ -239,7 +189,49 @@ function formatearFechaDD_MM_AAAA(fecha) {
 }
 
 /**
+ * V01.26 CLAUDE: Detectar si un Date object es realmente un TIME VALUE
+ * 
+ * ¿Cómo identificar?
+ * datetime.time(8, 0) se serializa como Date con fecha epoch 30/12/1899
+ * La clave: el año es 1899 (fecha base de Excel/Google Sheets para times)
+ */
+function isTimeValue(value) {
+  if (!(value instanceof Date)) {
+    return false;
+  }
+  
+  var year = value.getFullYear();
+  
+  // Si el año es 1899 o 1900, es un time value disfrazado
+  // Google Sheets usa 30/12/1899 como fecha base para times
+  return (year === 1899 || year === 1900);
+}
+
+/**
+ * V01.26 CLAUDE: Formatear time value a HH:MM
+ */
+function formatearTimeHH_MM(timeValue) {
+  if (!(timeValue instanceof Date)) {
+    return '';
+  }
+  
+  try {
+    var horas = timeValue.getHours();
+    var minutos = timeValue.getMinutes();
+    
+    horas = horas < 10 ? '0' + horas : horas;
+    minutos = minutos < 10 ? '0' + minutos : minutos;
+    
+    return horas + ':' + minutos;
+  } catch(e) {
+    Logger.log('Error formateando time: ' + e.toString());
+    return '';
+  }
+}
+
+/**
  * Limpiar un objeto individual
+ * V01.26: Detecta y formatea time objects correctamente
  * V01.25: Convierte Dates a DD/MM/AAAA y preserva _rowNumber
  */
 function cleanObject(obj) {
@@ -249,8 +241,12 @@ function cleanObject(obj) {
     if (obj.hasOwnProperty(key)) {
       var value = obj[key];
       
-      // Convertir Date a DD/MM/AAAA
-      if (value instanceof Date) {
+      // ✅ V01.26: Detectar time values ANTES de fechas
+      if (value instanceof Date && isTimeValue(value)) {
+        cleaned[key] = formatearTimeHH_MM(value);
+      }
+      // ✅ V01.25: Convertir Date a DD/MM/AAAA
+      else if (value instanceof Date) {
         cleaned[key] = formatearFechaDD_MM_AAAA(value);
       } 
       // Convertir null/undefined a string vacío
@@ -269,6 +265,7 @@ function cleanObject(obj) {
 
 // ==========================================
 // 5. WRAPPERS - STUDENT (31 Funciones)
+// V01.26 CLAUDE: Time objects formateados como HH:MM
 // V01.25 CLAUDE: Fechas en formato DD/MM/AAAA
 // V01.24 CLAUDE: TODOS CON LIMPIEZA
 // ==========================================
@@ -487,21 +484,21 @@ function adminEliminarAlumno(params) {
 }
 
 // ==========================================
-// FIN DE 1code.gs V01.24 CLAUDE
+// FIN DE 1code.gs V01.26 CLAUDE
 // ==========================================
 // RESUMEN:
 // - 1 Router (doGet)
 // - 1 Include con procesamiento de templates anidados
 // - 1 Autenticación
-// - 2 Funciones auxiliares de limpieza (NUEVO V01.24)
-// - 31 Wrappers Student (TODOS con limpieza V01.24)
+// - 5 Funciones auxiliares de limpieza (V01.26: +2 nuevas)
+// - 31 Wrappers Student (TODOS con limpieza V01.24-26)
 // - 3 Wrappers Admin (sin cambios)
-// TOTAL: 39 funciones
+// TOTAL: 42 funciones
 //
-// CAMBIOS V01.24 CLAUDE:
-// ✅ cleanDataForSerialization(): Limpia Date objects
-// ✅ cleanObject(): Convierte valores problemáticos a String
-// ✅ Aplicado a TODOS los 31 wrappers de Student
-// ✅ Soluciona: "Cannot read properties of null"
-// ✅ google.script.run ahora puede serializar correctamente
+// CAMBIOS V01.26 CLAUDE:
+// ✅ isTimeValue(): Detecta time objects disfrazados de Date
+// ✅ formatearTimeHH_MM(): Extrae hora correcta de time value
+// ✅ cleanObject(): Procesa time values ANTES de fechas
+// ✅ Soluciona: HoraInicio "30/12/1899" → "08:00"
+// ✅ Resuelve: Horario de clases ahora muestra las clases
 // ==========================================
