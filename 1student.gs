@@ -2,13 +2,13 @@
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.16 CLAUDE
-FECHA: 09/01/2026 (UTC-5)
+VERSIÓN: 01.17 CLAUDE
+FECHA: 10/01/2026 01:15 (UTC-5)
 ******************************************
 
 DESCRIPCIÓN:
 Lógica de negocio del estudiante. Funciones para panel del estudiante.
-NO accede directamente a Sheets, usa módulo DB.
+NO accede directamente a Sheets, usa módulo DB (excepto MOD-009).
 
 MÓDULOS:
 MOD-001: Inicialización Student
@@ -18,22 +18,18 @@ MOD-004: Evaluaciones (4 funciones)
 MOD-005: Tareas (4 funciones)
 MOD-006: Lecturas (4 funciones)
 MOD-007: HorarioClases (4 funciones)
-MOD-008: HorarioSem (5 funciones) ← ACTUALIZADO V01.16
-MOD-009: Configuración Semanas (3 funciones) ← NUEVO V01.16
+MOD-008: HorarioSem (5 funciones)
+MOD-009: Configuración Semanas (4 funciones) ← CORREGIDO V01.17
 MOD-010: Notas (2 funciones)
 MOD-011: Deberes (2 funciones)
 MOD-012: Exportación pública
 MOD-013: Notas finales
 
-CAMBIOS V01.16 CLAUDE:
-✅ Aplicado estándar CodeWorkshop completo
-✅ Agregado MOD-008: actualizarHorarioSem()
-✅ Agregado MOD-009: Configuración Semanas (3 funciones nuevas)
-  - obtenerConfigSemana()
-  - guardarConfigSemana()
-  - copiarSemana()
-  - limpiarSemana()
-✅ Total funciones: 35 (antes 31)
+CAMBIOS V01.17 CLAUDE:
+✅ FIX CRÍTICO: obtenerConfigSemana() y guardarConfigSemana()
+✅ Problema: DB.buscar() no funcionaba con sheet Fechas
+✅ Solución: Acceso directo a sheet con getSheetByName()
+✅ Ahora detecta correctamente si existe configuración
 
 ******************************************
 */
@@ -661,58 +657,104 @@ function eliminarHorarioSem(params) {
 
 // MOD-009: CONFIGURACIÓN SEMANAS [INICIO]
 /**
- * V01.16 CLAUDE: Obtener configuración de Semana 1
+ * V01.17 CLAUDE: Obtener configuración de Semana 1
  * Lee de sheet Fechas el FechaInicio del alumno
+ * ✅ FIX: Acceso directo a sheet en lugar de DB.buscar()
  */
 function obtenerConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
-    var result = DB.buscar('Fechas', 'CodeAlum', codeAlum);
     
-    if (!result.success) {
-      return { success: false, error: 'No hay configuración de semanas' };
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Fechas');
+    
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Fechas' };
     }
     
-    return {
-      success: true,
-      data: {
-        FechaInicio: result.data.FechaInicio,
-        FechaFin: result.data.FechaFin || ''
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var codeAlumIdx = headers.indexOf('CodeAlum');
+    var fechaInicioIdx = headers.indexOf('FechaInicio');
+    var fechaFinIdx = headers.indexOf('FechaFin');
+    
+    if (codeAlumIdx === -1 || fechaInicioIdx === -1) {
+      return { success: false, error: 'Estructura de hoja Fechas incorrecta' };
+    }
+    
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][codeAlumIdx] === codeAlum) {
+        return {
+          success: true,
+          data: {
+            FechaInicio: data[i][fechaInicioIdx],
+            FechaFin: data[i][fechaFinIdx] || ''
+          }
+        };
       }
-    };
+    }
+    
+    return { success: false, error: 'No hay configuración de semanas' };
   } catch(error) {
     Logger.log('Error en Student.obtenerConfigSemana(): ' + error.toString());
-    return { success: false, error: 'Error al obtener configuración de semanas' };
+    return { success: false, error: 'Error al obtener configuración: ' + error.toString() };
   }
 }
 
 /**
- * V01.16 CLAUDE: Guardar configuración de Semana 1
+ * V01.17 CLAUDE: Guardar configuración de Semana 1
  * Guarda FechaInicio en sheet Fechas
+ * ✅ FIX: Acceso directo a sheet en lugar de DB
  */
 function guardarConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
     var fechaInicio = params.fechaInicio;
     
-    var existente = DB.buscar('Fechas', 'CodeAlum', codeAlum);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Fechas');
     
-    if (existente.success) {
-      var config = existente.data;
-      config.FechaInicio = fechaInicio;
-      return DB.actualizar('Fechas', config);
-    } else {
-      var config = {
-        FechaReg: Utils.fechaHoy(),
-        CodeAlum: codeAlum,
-        FechaInicio: fechaInicio,
-        FechaFin: ''
-      };
-      return DB.agregar('Fechas', config);
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Fechas' };
     }
+    
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var codeAlumIdx = headers.indexOf('CodeAlum');
+    var fechaInicioIdx = headers.indexOf('FechaInicio');
+    var fechaRegIdx = headers.indexOf('FechaReg');
+    
+    if (codeAlumIdx === -1 || fechaInicioIdx === -1) {
+      return { success: false, error: 'Estructura de hoja Fechas incorrecta' };
+    }
+    
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][codeAlumIdx] === codeAlum) {
+        sheet.getRange(i + 1, fechaInicioIdx + 1).setValue(fechaInicio);
+        return { success: true };
+      }
+    }
+    
+    var nuevaFila = [];
+    for (var j = 0; j < headers.length; j++) {
+      if (headers[j] === 'FechaReg') {
+        nuevaFila.push(Utils.fechaHoy());
+      } else if (headers[j] === 'CodeAlum') {
+        nuevaFila.push(codeAlum);
+      } else if (headers[j] === 'FechaInicio') {
+        nuevaFila.push(fechaInicio);
+      } else {
+        nuevaFila.push('');
+      }
+    }
+    
+    sheet.appendRow(nuevaFila);
+    return { success: true };
   } catch(error) {
     Logger.log('Error en Student.guardarConfigSemana(): ' + error.toString());
-    return { success: false, error: 'Error al guardar configuración de semanas' };
+    return { success: false, error: 'Error al guardar configuración: ' + error.toString() };
   }
 }
 
@@ -1070,11 +1112,11 @@ return {
 /*
 DESCRIPCIÓN:
 Módulo Student con lógica de negocio del estudiante.
-Todas las funciones usan DB para acceso a datos.
+Todas las funciones usan DB para acceso a datos (excepto MOD-009).
 
 DEPENDENCIAS:
-● MOD-002 a MOD-011 requieren módulo DB funcional
-● MOD-009 requiere sheet Fechas con estructura correcta
+● MOD-002 a MOD-008, MOD-010, MOD-011 requieren módulo DB funcional
+● MOD-009 accede directamente a sheet Fechas (fix V01.17)
 
 ESTRUCTURA DE DATOS:
 Sheet Fechas:
@@ -1092,7 +1134,7 @@ MOD-005: Tareas (4 funciones)
 MOD-006: Lecturas (4 funciones)
 MOD-007: HorarioClases (4 funciones)
 MOD-008: HorarioSem (5 funciones)
-MOD-009: Configuración Semanas (4 funciones)
+MOD-009: Configuración Semanas (4 funciones) - CORREGIDO V01.17
 MOD-010: Notas (2 funciones)
 MOD-011: Deberes (2 funciones)
 MOD-012: Exportación
@@ -1111,6 +1153,7 @@ ADVERTENCIAS:
 ● MOD-009: copiarSemana() requiere fechas en formato ISO
 ● MOD-009: limpiarSemana() NO elimina clases fijas
 ● MOD-007: obtenerHorarioClases() mapea HoraInicio → HoraIni
+● MOD-009: V01.17 usa acceso directo a sheet Fechas (no DB.buscar)
 
 PRÓXIMAS MEJORAS:
 ● Agregar validación de rangos de fechas en copiarSemana()
