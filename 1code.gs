@@ -1,49 +1,66 @@
 /*
 ******************************************
-PBE CONTROL - 1code.gs - V01.26 CLAUDE
-Sistema de Gestión Académica
-09/01/2026 - 00:30
+PROYECTO: PBE Control
+ARCHIVO: 1code.gs
+VERSIÓN: 01.27 CLAUDE
+FECHA: 09/01/2026 (UTC-5)
 ******************************************
 
-CONTENIDO:
-- doGet(): Router principal (Lógica MallaU con procesamiento de Templates)
-- include(): Inclusión dinámica de HTML (Indispensable para las pestañas)
-- autenticar(): Login unificado Admin/Estudiante
-- 31 WRAPPERS: Funciones puente para google.script.run
+DESCRIPCIÓN:
+Router principal, include(), autenticación y wrappers para google.script.run.
+Limpieza automática de Date/Time objects para serialización correcta.
+
+MÓDULOS:
+MOD-001: Router Principal (doGet)
+MOD-002: Include dinámico
+MOD-003: Autenticación
+MOD-004: Funciones auxiliares de limpieza
+MOD-005: Wrappers Student - Cursos (4)
+MOD-006: Wrappers Student - Repasos (4)
+MOD-007: Wrappers Student - Evaluaciones (4)
+MOD-008: Wrappers Student - Tareas (4)
+MOD-009: Wrappers Student - Lecturas (4)
+MOD-010: Wrappers Student - HorarioClases (4)
+MOD-011: Wrappers Student - HorarioSem (4)
+MOD-012: Wrappers Student - Config Semanas (4) ← NUEVO V01.27
+MOD-013: Wrappers Student - Notas (2)
+MOD-014: Wrappers Student - Deberes (2)
+MOD-015: Wrappers Admin (3)
+MOD-016: Notas finales
+
+CAMBIOS V01.27 CLAUDE:
+✅ Aplicado estándar CodeWorkshop completo
+✅ Agregado MOD-012: Config Semanas (4 wrappers)
+  - studentObtenerConfigSemana()
+  - studentGuardarConfigSemana()
+  - studentCopiarSemana()
+  - studentLimpiarSemana()
+✅ Soporte completo para HorarioSemanal V01.22
+✅ Total: 35 wrappers Student + 3 Admin = 38 wrappers
 
 CAMBIOS V01.26 CLAUDE:
-✅ FIX CRÍTICO: Detección y formateo correcto de datetime.time objects
-✅ Problema: time(8,0) se convertía a Date "30/12/1899" en lugar de "08:00"
-✅ Solución: Nueva función isTimeValue() detecta time objects disfrazados de Date
-✅ Solución: Nueva función formatearTimeHH_MM() extrae hora correctamente
-✅ Resultado: HoraInicio y HoraFin ahora llegan como "08:00" al frontend
+✅ FIX CRÍTICO: Detección y formateo de datetime.time objects
+✅ isTimeValue() detecta time objects disfrazados de Date
+✅ formatearTimeHH_MM() extrae hora correcta
+✅ Resultado: HoraInicio "30/12/1899" → "08:00"
 
 CAMBIOS V01.25 CLAUDE:
-✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA en lugar de Date.toString()
-✅ Problema: Fechas mostraban formato largo en inglés ("Mon Jan 05 2026...")
-✅ Solución: Nueva función formatearFechaDD_MM_AAAA() para formato corto
-✅ Resuelve filtros de fecha que fallaban por formato incompatible
-✅ Función auxiliar actualizada: cleanObject()
-
-CAMBIOS V01.24 CLAUDE:
-✅ FIX CRÍTICO: Limpieza de objetos en TODOS los wrappers
-✅ Problema: google.script.run no serializa Date objects → retorna NULL
-✅ Solución: Convertir Date a String antes de retornar
-✅ Aplicado a los 31 wrappers de Student
-✅ Función auxiliar: cleanDataForSerialization()
+✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA
+✅ formatearFechaDD_MM_AAAA() para formato corto
+✅ Resuelve filtros de fecha que fallaban
 
 ******************************************
 */
 
-// ==========================================
-// 1. ROUTER PRINCIPAL - doGet()
-// ==========================================
-
+// MOD-001: ROUTER PRINCIPAL [INICIO]
+/**
+ * Router principal del sistema
+ * Maneja 3 casos: Login (base), Panel Student, Panel Admin
+ */
 function doGet(e) {
   var page = e.parameter.page;
   var scriptUrl = ScriptApp.getService().getUrl(); 
   
-  // 1. Caso Estudiante (?page=student)
   if (page === 'student') {
     var template = HtmlService.createTemplateFromFile('3panelstudent');
     template.scriptUrl = scriptUrl; 
@@ -53,7 +70,6 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   
-  // 2. Caso Administrador (?page=admin)
   if (page === 'admin') {
     var template = HtmlService.createTemplateFromFile('3paneladmin');
     template.scriptUrl = scriptUrl;
@@ -63,7 +79,6 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   
-  // 3. Caso Base (Login / Index)
   var template = HtmlService.createTemplateFromFile('3index');
   template.scriptUrl = scriptUrl; 
   
@@ -72,26 +87,28 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
+// MOD-001: FIN
 
-// ==========================================
-// 2. FUNCIÓN include()
-// ==========================================
-
+// MOD-002: INCLUDE DINÁMICO [INICIO]
+/**
+ * Inclusión dinámica de HTML
+ * Indispensable para las pestañas
+ */
 function include(filename) {
   var template = HtmlService.createTemplateFromFile(filename);
   return template.evaluate().getContent();
 }
+// MOD-002: FIN
 
-// ==========================================
-// 3. AUTENTICACIÓN
-// ==========================================
-
+// MOD-003: AUTENTICACIÓN [INICIO]
+/**
+ * Autenticación unificada Admin/Estudiante
+ */
 function autenticar(params) {
   try {
     var clave = params.clave;
     if (!clave) return { success: false, error: 'Ingresa tu clave de acceso' };
     
-    // 1. Buscar en Admin
     var admin = DB.buscar('Admin', 'User', clave);
     if (admin.success) {
       return { 
@@ -104,7 +121,6 @@ function autenticar(params) {
       };
     }
     
-    // 2. Buscar en Alumnos
     var alumno = DB.buscar('Alumnos', 'Clave', clave);
     if (alumno.success) {
       return { 
@@ -124,12 +140,9 @@ function autenticar(params) {
     return { success: false, error: 'Error de servidor' };
   }
 }
+// MOD-003: FIN
 
-// ==========================================
-// 4. FUNCIONES AUXILIARES - LIMPIEZA DE DATOS
-// V01.26 CLAUDE
-// ==========================================
-
+// MOD-004: FUNCIONES AUXILIARES DE LIMPIEZA [INICIO]
 /**
  * Limpiar objetos para serialización de google.script.run
  * 
@@ -146,23 +159,17 @@ function autenticar(params) {
  * SOLUCIÓN V01.26:
  * Detectar si un Date es realmente un TIME VALUE
  * Extraer hora con getHours() y getMinutes() en lugar de getDate()
- * 
- * CAMPOS QUE SE LIMPIAN:
- * - Fechas (FechaReg, FechaEval, etc.) → DD/MM/AAAA
- * - Horas (HoraInicio, HoraFin) → HH:MM
  */
 function cleanDataForSerialization(result) {
   if (!result || !result.success || !result.data) {
     return result;
   }
   
-  // Si data es un array, limpiar cada item
   if (Array.isArray(result.data)) {
     result.data = result.data.map(function(item) {
       return cleanObject(item);
     });
   } else {
-    // Si data es un objeto, limpiarlo directamente
     result.data = cleanObject(result.data);
   }
   
@@ -191,9 +198,8 @@ function formatearFechaDD_MM_AAAA(fecha) {
 /**
  * V01.26 CLAUDE: Detectar si un Date object es realmente un TIME VALUE
  * 
- * ¿Cómo identificar?
  * datetime.time(8, 0) se serializa como Date con fecha epoch 30/12/1899
- * La clave: el año es 1899 (fecha base de Excel/Google Sheets para times)
+ * La clave: el año es 1899 o 1900 (fecha base de Excel/Sheets para times)
  */
 function isTimeValue(value) {
   if (!(value instanceof Date)) {
@@ -201,9 +207,6 @@ function isTimeValue(value) {
   }
   
   var year = value.getFullYear();
-  
-  // Si el año es 1899 o 1900, es un time value disfrazado
-  // Google Sheets usa 30/12/1899 como fecha base para times
   return (year === 1899 || year === 1900);
 }
 
@@ -241,19 +244,15 @@ function cleanObject(obj) {
     if (obj.hasOwnProperty(key)) {
       var value = obj[key];
       
-      // ✅ V01.26: Detectar time values ANTES de fechas
       if (value instanceof Date && isTimeValue(value)) {
         cleaned[key] = formatearTimeHH_MM(value);
       }
-      // ✅ V01.25: Convertir Date a DD/MM/AAAA
       else if (value instanceof Date) {
         cleaned[key] = formatearFechaDD_MM_AAAA(value);
       } 
-      // Convertir null/undefined a string vacío
       else if (value === null || value === undefined) {
         cleaned[key] = '';
       }
-      // Preservar el resto tal cual
       else {
         cleaned[key] = value;
       }
@@ -262,18 +261,9 @@ function cleanObject(obj) {
   
   return cleaned;
 }
+// MOD-004: FIN
 
-// ==========================================
-// 5. WRAPPERS - STUDENT (31 Funciones)
-// V01.26 CLAUDE: Time objects formateados como HH:MM
-// V01.25 CLAUDE: Fechas en formato DD/MM/AAAA
-// V01.24 CLAUDE: TODOS CON LIMPIEZA
-// ==========================================
-
-// ==========================================
-// CURSOS (4 wrappers)
-// ==========================================
-
+// MOD-005: WRAPPERS STUDENT - CURSOS [INICIO]
 function studentObtenerCursos(params) { 
   var result = Student.obtenerCursos(params);
   return cleanDataForSerialization(result);
@@ -293,11 +283,9 @@ function studentEliminarCurso(params) {
   var result = Student.eliminarCurso(params);
   return cleanDataForSerialization(result);
 }
+// MOD-005: FIN
 
-// ==========================================
-// REPASOS (4 wrappers)
-// ==========================================
-
+// MOD-006: WRAPPERS STUDENT - REPASOS [INICIO]
 function studentObtenerRepasos(params) { 
   var result = Student.obtenerRepasos(params);
   return cleanDataForSerialization(result);
@@ -317,11 +305,9 @@ function studentEliminarRepaso(params) {
   var result = Student.eliminarRepaso(params);
   return cleanDataForSerialization(result);
 }
+// MOD-006: FIN
 
-// ==========================================
-// EVALUACIONES (4 wrappers)
-// ==========================================
-
+// MOD-007: WRAPPERS STUDENT - EVALUACIONES [INICIO]
 function studentObtenerEvaluaciones(params) { 
   var result = Student.obtenerEvaluaciones(params);
   return cleanDataForSerialization(result);
@@ -341,11 +327,9 @@ function studentEliminarEvaluacion(params) {
   var result = Student.eliminarEvaluacion(params);
   return cleanDataForSerialization(result);
 }
+// MOD-007: FIN
 
-// ==========================================
-// TAREAS (4 wrappers)
-// ==========================================
-
+// MOD-008: WRAPPERS STUDENT - TAREAS [INICIO]
 function studentObtenerTareas(params) { 
   var result = Student.obtenerTareas(params);
   return cleanDataForSerialization(result);
@@ -365,11 +349,9 @@ function studentEliminarTarea(params) {
   var result = Student.eliminarTarea(params);
   return cleanDataForSerialization(result);
 }
+// MOD-008: FIN
 
-// ==========================================
-// LECTURAS (4 wrappers)
-// ==========================================
-
+// MOD-009: WRAPPERS STUDENT - LECTURAS [INICIO]
 function studentObtenerLecturas(params) { 
   var result = Student.obtenerLecturas(params);
   return cleanDataForSerialization(result);
@@ -389,11 +371,9 @@ function studentEliminarLectura(params) {
   var result = Student.eliminarLectura(params);
   return cleanDataForSerialization(result);
 }
+// MOD-009: FIN
 
-// ==========================================
-// HORARIO CLASES (4 wrappers)
-// ==========================================
-
+// MOD-010: WRAPPERS STUDENT - HORARIO CLASES [INICIO]
 function studentObtenerHorarioClases(params) { 
   var result = Student.obtenerHorarioClases(params);
   return cleanDataForSerialization(result);
@@ -413,11 +393,9 @@ function studentEliminarHorarioClase(params) {
   var result = Student.eliminarHorarioClase(params);
   return cleanDataForSerialization(result);
 }
+// MOD-010: FIN
 
-// ==========================================
-// HORARIO SEMANAL (4 wrappers)
-// ==========================================
-
+// MOD-011: WRAPPERS STUDENT - HORARIO SEMANAL [INICIO]
 function studentObtenerHorarioSem(params) { 
   var result = Student.obtenerHorarioSem(params);
   return cleanDataForSerialization(result);
@@ -437,11 +415,35 @@ function studentEliminarHorarioSem(params) {
   var result = Student.eliminarHorarioSem(params);
   return cleanDataForSerialization(result);
 }
+// MOD-011: FIN
 
-// ==========================================
-// NOTAS Y RESÚMENES (2 wrappers)
-// ==========================================
+// MOD-012: WRAPPERS STUDENT - CONFIGURACIÓN SEMANAS [INICIO]
+/**
+ * V01.27 CLAUDE: Wrappers para gestión de semanas
+ * Soporte completo para HorarioSemanal V01.22
+ */
+function studentObtenerConfigSemana(params) {
+  var result = Student.obtenerConfigSemana(params);
+  return cleanDataForSerialization(result);
+}
 
+function studentGuardarConfigSemana(params) {
+  var result = Student.guardarConfigSemana(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentCopiarSemana(params) {
+  var result = Student.copiarSemana(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentLimpiarSemana(params) {
+  var result = Student.limpiarSemana(params);
+  return cleanDataForSerialization(result);
+}
+// MOD-012: FIN
+
+// MOD-013: WRAPPERS STUDENT - NOTAS [INICIO]
 function studentObtenerNotasPorCurso(params) { 
   var result = Student.obtenerNotasPorCurso(params);
   return cleanDataForSerialization(result);
@@ -451,11 +453,9 @@ function studentObtenerResumenNotas(params) {
   var result = Student.obtenerResumenNotas(params);
   return cleanDataForSerialization(result);
 }
+// MOD-013: FIN
 
-// ==========================================
-// DEBERES (VISTAS UNIFICADAS) (2 wrappers)
-// ==========================================
-
+// MOD-014: WRAPPERS STUDENT - DEBERES [INICIO]
 function studentObtenerTodosDeberes(params) { 
   var result = Student.obtenerTodosDeberes(params);
   return cleanDataForSerialization(result);
@@ -465,12 +465,9 @@ function studentObtenerDeberesPorTipo(params) {
   var result = Student.obtenerDeberesPorTipo(params);
   return cleanDataForSerialization(result);
 }
+// MOD-014: FIN
 
-// ==========================================
-// 6. WRAPPERS - ADMIN (3 Funciones)
-// Sin cambios - Admin no retorna Dates problemáticos
-// ==========================================
-
+// MOD-015: WRAPPERS ADMIN [INICIO]
 function adminCrearAlumno(params) { 
   return Admin.crearAlumno(params); 
 }
@@ -482,23 +479,53 @@ function adminBuscarAlumno(params) {
 function adminEliminarAlumno(params) { 
   return Admin.eliminarAlumno(params); 
 }
+// MOD-015: FIN
 
-// ==========================================
-// FIN DE 1code.gs V01.26 CLAUDE
-// ==========================================
-// RESUMEN:
-// - 1 Router (doGet)
-// - 1 Include con procesamiento de templates anidados
-// - 1 Autenticación
-// - 5 Funciones auxiliares de limpieza (V01.26: +2 nuevas)
-// - 31 Wrappers Student (TODOS con limpieza V01.24-26)
-// - 3 Wrappers Admin (sin cambios)
-// TOTAL: 42 funciones
-//
-// CAMBIOS V01.26 CLAUDE:
-// ✅ isTimeValue(): Detecta time objects disfrazados de Date
-// ✅ formatearTimeHH_MM(): Extrae hora correcta de time value
-// ✅ cleanObject(): Procesa time values ANTES de fechas
-// ✅ Soluciona: HoraInicio "30/12/1899" → "08:00"
-// ✅ Resuelve: Horario de clases ahora muestra las clases
-// ==========================================
+// MOD-016: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Router principal del sistema PBE Control con wrappers para
+serialización correcta de datos hacia el frontend.
+
+DEPENDENCIAS:
+● MOD-005 a MOD-014: Requieren módulo Student funcional
+● MOD-015: Requiere módulo Admin funcional
+● MOD-004: Funciones de limpieza críticas para Date/Time
+
+MÓDULOS:
+MOD-001: Router Principal (1 función)
+MOD-002: Include dinámico (1 función)
+MOD-003: Autenticación (1 función)
+MOD-004: Limpieza de datos (5 funciones)
+MOD-005 a MOD-014: Wrappers Student (35 funciones)
+MOD-015: Wrappers Admin (3 funciones)
+MOD-016: Notas
+
+TOTAL FUNCIONES: 46
+- Router y utilidades: 8
+- Wrappers Student: 35
+- Wrappers Admin: 3
+
+LIMPIEZA AUTOMÁTICA:
+Todos los wrappers Student aplican cleanDataForSerialization():
+1. Detecta time objects (años 1899/1900)
+2. Formatea times como "HH:MM"
+3. Formatea fechas como "DD/MM/AAAA"
+4. Convierte null/undefined a string vacío
+
+CAMPOS QUE SE LIMPIAN:
+- FechaReg, FechaEval, FechaClase, etc. → DD/MM/AAAA
+- HoraInicio, HoraFin → HH:MM
+- Valores null/undefined → ""
+
+ADVERTENCIAS:
+● MOD-004: isTimeValue() crítico para detectar time objects
+● MOD-004: Procesar time values ANTES de fechas en cleanObject()
+● MOD-012: Wrappers nuevos V01.27 para HorarioSemanal
+
+PRÓXIMAS MEJORAS:
+● Agregar caché de datos frecuentes
+● Implementar compresión para arrays grandes
+● Agregar logging de errores de serialización
+*/
+// MOD-016: FIN
