@@ -1,181 +1,1477 @@
 <!--
 ******************************************
-PBE CONTROL - 7ctabhorariosem.html - V01.18 GPT
-Sistema de Gestión Académica
-07/01/2026
+PROYECTO: PBE Control
+ARCHIVO: 7ctabhorariosem.html
+VERSIÓN: 01.22 CLAUDE
+FECHA: 09/01/2026 (UTC-5)
+******************************************
 
-✔ Refactor V01.17
-✔ Encapsulado total (sin colisiones)
-✔ Mantiene TODA la funcionalidad original
-✔ Media hora, CRUD, Repaso / Actividad
-✔ Clases fijas + actividades semanales
+DESCRIPCIÓN:
+Sistema de Horario Semanal con gestión de semanas, navegación,
+copia de actividades y limpieza de datos.
+
+CARACTERÍSTICAS:
+- Panel lateral con lista de semanas hasta hoy
+- Botón "Agregar" para crear nueva semana
+- Navegación ◀ Ant / Sig ▶ entre semanas
+- Botón "🔧 Configurar" para establecer Semana 1
+- Botón "📋 Copiar Sem. ant." para duplicar actividades
+- Botón "🗑️ Limpiar" para borrar actividades de la semana
+- Grid 7 días × 16 horas (7 AM - 10 PM)
+- Carga automática de clases fijas desde HorarioClases
+- CRUD de actividades semanales en HorarioSem
+
 ******************************************
 -->
 
+<style>
+/* === ESTILOS GLOBALES === */
+.horariosem-container {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  min-height: 600px;
+}
+
+/* === PANEL LATERAL === */
+.horariosem-sidebar {
+  border-right: 2px solid #e0e0e0;
+  padding-right: 16px;
+}
+
+.horariosem-sidebar h3 {
+  font-size: 14px;
+  color: #667eea;
+  margin: 0 0 16px;
+  font-weight: 700;
+}
+
+.semana-item {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+}
+
+.semana-item:hover {
+  background: #e9ecef;
+  border-color: #667eea;
+}
+
+.semana-item.active {
+  background: #667eea;
+  color: white;
+}
+
+.semana-item.current {
+  position: relative;
+}
+
+.semana-item.current::after {
+  content: '←';
+  position: absolute;
+  right: 12px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.semana-item.current.active::after {
+  color: white;
+}
+
+.btn-agregar-semana {
+  width: 100%;
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+
+.btn-agregar-semana:hover {
+  background: #218838;
+}
+
+/* === ÁREA PRINCIPAL === */
+.horariosem-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.horariosem-header {
+  margin-bottom: 20px;
+}
+
+.horariosem-header h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #333;
+}
+
+.horariosem-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.btn-nav {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover {
+  background: #5568d3;
+}
+
+.btn-nav:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.semana-info {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  flex: 1;
+  text-align: center;
+}
+
+.horariosem-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-config {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-config:hover {
+  background: #138496;
+}
+
+.btn-copy {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-copy:hover {
+  background: #e0a800;
+}
+
+.btn-clean {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-clean:hover {
+  background: #c82333;
+}
+
+/* === GRID === */
+.horario-grid-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.horario-grid {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+}
+
+.horario-grid th,
+.horario-grid td {
+  border: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.horario-grid thead {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.horario-grid th {
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.horario-grid td {
+  height: 50px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.horario-grid td.col-hora {
+  background: #f8f9fa;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  padding: 8px;
+}
+
+.celda-clase {
+  height: 100%;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 4px;
+  gap: 2px;
+}
+
+.celda-clase:hover {
+  background: #f0f0f0;
+}
+
+.clase-item {
+  width: 100%;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3);
+  position: relative;
+}
+
+.clase-item.fija {
+  opacity: 0.7;
+}
+
+.clase-item.actividad {
+  cursor: pointer;
+}
+
+.clase-item.actividad:hover {
+  opacity: 0.9;
+  filter: brightness(1.1);
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0,0,0,0.3);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+}
+
+/* === MODALES === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 {
+  margin: 0 0 16px;
+  color: #333;
+  font-size: 18px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
+}
+
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102,126,234,.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .horariosem-container {
+    grid-template-columns: 1fr;
+  }
+  .horariosem-sidebar {
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+    padding-right: 0;
+    padding-bottom: 16px;
+  }
+  .horariosem-nav {
+    flex-wrap: wrap;
+  }
+  .semana-info {
+    width: 100%;
+    text-align: left;
+  }
+}
+</style>
+
 <div id="HorarioSemRoot"></div>
 
+<!-- MODAL CONFIGURAR SEMANA 1 -->
+<div id="modalConfigSemana" class="modal">
+  <div class="modal-content">
+    <h3>🔧 Configurar Semana 1</h3>
+    <form id="formConfigSemana" onsubmit="return HorarioSemModule.guardarConfig(event)">
+      <div class="form-group">
+        <label>Lunes de la Semana 1:</label>
+        <input type="date" id="inputFechaInicio" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="HorarioSemModule.cerrarModalConfig()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ACTIVIDAD -->
+<div id="modalActividad" class="modal">
+  <div class="modal-content">
+    <h3 id="tituloModalActividad">Agregar Actividad</h3>
+    <form id="formActividad" onsubmit="return HorarioSemModule.guardarActividad(event)">
+      <input type="hidden" id="actRowNumber">
+      <input type="hidden" id="actModoEdicion" value="false">
+      <input type="hidden" id="actFecha">
+      <input type="hidden" id="actHora">
+      
+      <div class="form-group">
+        <label>Tipo de Actividad:</label>
+        <select id="actTipo" required>
+          <option value="">Seleccionar...</option>
+          <option value="Repaso">Repaso</option>
+          <option value="Actividad">Actividad</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" id="actNombre" placeholder="Ej: Rep. Matemáticas" required>
+      </div>
+
+      <div class="form-group">
+        <label>Hora Inicio:</label>
+        <input type="time" id="actHoraIni" required>
+      </div>
+
+      <div class="form-group">
+        <label>Hora Fin:</label>
+        <input type="time" id="actHoraFin" required>
+      </div>
+
+      <div class="form-group">
+        <label>Color:</label>
+        <input type="color" id="actColor" value="#667eea">
+      </div>
+
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          id="btnEliminarAct" 
+          onclick="HorarioSemModule.eliminarActividad()"
+          style="display: none;">
+          Eliminar
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="HorarioSemModule.cerrarModalActividad()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" id="btnGuardarAct">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+// MOD-001: CONFIGURACIÓN [INICIO]
 (function () {
-  'use strict';
-  if (window.HorarioSemModule) return;
+'use strict';
 
-  const HorarioSemModule = {
-    state: {
-      offset: 0,
-      dias: [],
-      cursos: [],
-      clases: [],
-      actividades: [],
-      matrix: {},
-      celda: { fecha: null, hora: null }
+if (window.HorarioSemModule) {
+  console.log('📅 HorarioSemModule ya existe, ignorando carga');
+  return;
+}
+
+console.log('📅 HorarioSemModule V01.22 CLAUDE iniciando...');
+
+const CONFIG = {
+  HORA_INICIO: 7,
+  HORA_FIN: 22,
+  DIAS: ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
+  DIAS_CORTOS: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
+};
+// MOD-001: FIN
+
+// MOD-002: ESTADO [INICIO]
+const state = {
+  semanaActual: 1,
+  semanasDisponibles: [],
+  semanaActualHoy: 1,
+  fechaInicio: null,
+  diasSemana: [],
+  clases: [],
+  cursos: [],
+  actividades: [],
+  matriz: {},
+  inicializado: false
+};
+// MOD-002: FIN
+
+// MOD-003: INICIALIZACIÓN [INICIO]
+function init() {
+  console.log('📅 HorarioSemModule.init() llamado');
+  
+  if (state.inicializado) {
+    console.log('📅 Ya inicializado, ignorando');
+    return;
+  }
+  
+  if (!window.currentUser || !currentUser.codeAlum) {
+    console.warn('📅 currentUser no disponible, reintentando...');
+    setTimeout(init, 200);
+    return;
+  }
+  
+  state.inicializado = true;
+  console.log('📅 Inicializado para:', currentUser.codeAlum);
+  
+  cargarConfiguracion();
+}
+
+function cargarConfiguracion() {
+  console.log('📅 Cargando configuración...');
+  
+  google.script.run
+    .withSuccessHandler(handleConfigCargada)
+    .withFailureHandler(handleError)
+    .studentObtenerConfigSemana({ codeAlum: currentUser.codeAlum });
+}
+
+function handleConfigCargada(response) {
+  console.log('📅 Config response:', response);
+  
+  if (response && response.success && response.data) {
+    state.fechaInicio = response.data.FechaInicio;
+    console.log('📅 FechaInicio:', state.fechaInicio);
+    
+    calcularSemanaActual();
+    renderBase();
+    cargarDatos();
+  } else {
+    console.log('📅 Sin configuración, mostrar modal');
+    renderBase();
+    mostrarModalConfig();
+  }
+}
+
+function handleError(error) {
+  console.error('📅 Error:', error);
+  alert('Error de conexión. Recarga la página.');
+}
+// MOD-003: FIN
+
+// MOD-004: CÁLCULO DE SEMANAS [INICIO]
+function calcularSemanaActual() {
+  if (!state.fechaInicio) return;
+  
+  const hoy = new Date();
+  const inicio = new Date(state.fechaInicio);
+  
+  const diffTime = hoy - inicio;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  state.semanaActualHoy = Math.floor(diffDays / 7) + 1;
+  state.semanaActual = state.semanaActualHoy;
+  
+  // Generar lista de semanas disponibles (hasta hoy)
+  state.semanasDisponibles = [];
+  for (let i = 1; i <= state.semanaActualHoy; i++) {
+    state.semanasDisponibles.push(i);
+  }
+  
+  console.log('📅 Semana actual:', state.semanaActual);
+  console.log('📅 Semanas disponibles:', state.semanasDisponibles);
+}
+
+function calcularDiasSemana(numSemana) {
+  if (!state.fechaInicio) return [];
+  
+  const inicio = new Date(state.fechaInicio);
+  const diasOffset = (numSemana - 1) * 7;
+  
+  const lunes = new Date(inicio);
+  lunes.setDate(lunes.getDate() + diasOffset);
+  
+  const dias = [];
+  for (let i = 0; i < 7; i++) {
+    const dia = new Date(lunes);
+    dia.setDate(dia.getDate() + i);
+    dias.push(dia);
+  }
+  
+  return dias;
+}
+
+function formatearFecha(fecha) {
+  const dia = fecha.getDate();
+  const mes = fecha.getMonth() + 1;
+  return (dia < 10 ? '0' + dia : dia) + '/' + (mes < 10 ? '0' + mes : mes);
+}
+
+function formatearFechaISO(fecha) {
+  return fecha.toISOString().slice(0, 10);
+}
+
+function formatearRangoSemana(dias) {
+  if (!dias || dias.length === 0) return '';
+  
+  const inicio = formatearFecha(dias[0]);
+  const fin = formatearFecha(dias[6]);
+  
+  const mes = dias[0].toLocaleSt('es', { month: 'short' }).replace('.', '');
+  
+  return `${inicio.split('/')[0]}-${fin} ${mes.charAt(0).toUpperCase() + mes.slice(1)}`;
+}
+// MOD-004: FIN
+
+// MOD-005: RENDERIZADO BASE [INICIO]
+function renderBase() {
+  const root = document.getElementById('HorarioSemRoot');
+  if (!root) return;
+  
+  root.innerHTML = `
+    <div class="horariosem-container">
+      <div class="horariosem-sidebar">
+        <h3>Semanas</h3>
+        <div id="listaSemanas"></div>
+        <button class="btn-agregar-semana" onclick="HorarioSemModule.agregarSemana()">
+          + Agregar
+        </button>
+      </div>
+      
+      <div class="horariosem-main">
+        <div class="horariosem-header">
+          <h2>📅 Horario Semanal</h2>
+          
+          <div class="horariosem-nav">
+            <button 
+              class="btn-nav" 
+              id="btnAnt" 
+              onclick="HorarioSemModule.cambiarSemana(-1)">
+              ◀ Ant
+            </button>
+            <div class="semana-info" id="semanaInfo">Semana 1</div>
+            <button 
+              class="btn-nav" 
+              id="btnSig" 
+              onclick="HorarioSemModule.cambiarSemana(1)">
+              Sig ▶
+            </button>
+          </div>
+          
+          <div class="horariosem-actions">
+            <button 
+              class="btn-action btn-config" 
+              id="btnConfig"
+              onclick="HorarioSemModule.mostrarModalConfig()"
+              style="display: none;">
+              🔧 Configurar
+            </button>
+            <button 
+              class="btn-action btn-copy" 
+              onclick="HorarioSemModule.copiarSemanaAnterior()">
+              📋 Copiar Sem. ant.
+            </button>
+            <button 
+              class="btn-action btn-clean" 
+              onclick="HorarioSemModule.limpiarSemana()">
+              🗑️ Limpiar
+            </button>
+          </div>
+        </div>
+        
+        <div class="horario-grid-container">
+          <div class="loading" id="loadingHorarioSem">
+            <div class="spinner"></div>
+            <p>Cargando horario...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  if (!state.fechaInicio) {
+    document.getElementById('btnConfig').style.display = 'flex';
+  }
+  
+  renderListaSemanas();
+  actualizarNavegacion();
+}
+
+function renderListaSemanas() {
+  const container = document.getElementById('listaSemanas');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  state.semanasDisponibles.forEach(num => {
+    const div = document.createElement('div');
+    div.className = 'semana-item';
+    div.textContent = 'Sem ' + (num < 10 ? '0' + num : num);
+    
+    if (num === state.semanaActual) {
+      div.classList.add('active');
     }
-  };
+    
+    if (num === state.semanaActualHoy) {
+      div.classList.add('current');
+    }
+    
+    div.onclick = () => navegarASemana(num);
+    
+    container.appendChild(div);
+  });
+}
 
-  /* ================= INIT ================= */
-  HorarioSemModule.init = function () {
-    this.state.offset = window.PlanningModule?.state?.weekOffset || 0;
-    this.state.dias = this.calcSemana(this.state.offset);
-    this.renderBase();
-    this.loadAll();
-  };
+function actualizarNavegacion() {
+  const btnAnt = document.getElementById('btnAnt');
+  const btnSig = document.getElementById('btnSig');
+  const info = document.getElementById('semanaInfo');
+  
+  if (btnAnt) btnAnt.disabled = state.semanaActual <= 1;
+  if (btnSig) btnSig.disabled = state.semanaActual >= state.semanasDisponibles.length;
+  
+  if (info) {
+    state.diasSemana = calcularDiasSemana(state.semanaActual);
+    const rango = formatearRangoSemana(state.diasSemana);
+    info.textContent = `Semana ${state.semanaActual} · ${rango}`;
+  }
+}
+// MOD-005: FIN
 
-  /* ================= DATA ================= */
-  HorarioSemModule.loadAll = function () {
-    const p = { codeAlum: currentUser.codeAlum };
-    Promise.all([
-      this.call('studentObtenerCursos', p),
-      this.call('studentObtenerHorarioClases', p),
-      this.call('studentObtenerHorarioSem', p)
-    ]).then(([cursos, clases, actividades]) => {
-      this.state.cursos = cursos;
-      this.state.clases = clases;
-      this.state.actividades = actividades;
-      this.buildMatrix();
-      this.renderGrid();
+// MOD-006: NAVEGACIÓN [INICIO]
+function cambiarSemana(delta) {
+  const nuevaSemana = state.semanaActual + delta;
+  
+  if (nuevaSemana < 1 || nuevaSemana > state.semanasDisponibles.length) {
+    return;
+  }
+  
+  navegarASemana(nuevaSemana);
+}
+
+function navegarASemana(numSemana) {
+  state.semanaActual = numSemana;
+  renderListaSemanas();
+  actualizarNavegacion();
+  cargarDatos();
+}
+
+function agregarSemana() {
+  const siguiente = state.semanasDisponibles.length + 1;
+  state.semanasDisponibles.push(siguiente);
+  navegarASemana(siguiente);
+}
+// MOD-006: FIN
+
+// MOD-007: CARGA DE DATOS [INICIO]
+function cargarDatos() {
+  console.log('📅 Cargando datos para semana', state.semanaActual);
+  
+  mostrarLoading(true);
+  
+  const params = { codeAlum: currentUser.codeAlum };
+  
+  Promise.all([
+    llamarBackend('studentObtenerCursos', params),
+    llamarBackend('studentObtenerHorarioClases', params),
+    llamarBackend('studentObtenerHorarioSem', params)
+  ]).then(([cursos, clases, actividades]) => {
+    state.cursos = cursos;
+    state.clases = clases;
+    state.actividades = actividades;
+    
+    console.log('📅 Datos cargados:', {
+      cursos: state.cursos.length,
+      clases: state.clases.length,
+      actividades: state.actividades.length
     });
-  };
+    
+    construirMatriz();
+    renderGrid();
+    mostrarLoading(false);
+  }).catch(error => {
+    console.error('📅 Error cargando datos:', error);
+    mostrarLoading(false);
+  });
+}
 
-  HorarioSemModule.call = function (fn, p) {
-    return new Promise(res => {
-      google.script.run
-        .withSuccessHandler(r => res(r.success ? r.data : []))[fn](p);
-    });
-  };
+function llamarBackend(funcion, params) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(r => {
+        resolve(r && r.success ? r.data || [] : []);
+      })
+      .withFailureHandler(reject)
+      [funcion](params);
+  });
+}
 
-  /* ================= MATRIX ================= */
-  HorarioSemModule.buildMatrix = function () {
-    this.state.matrix = {};
-    this.state.dias.forEach(d => this.state.matrix[this.iso(d)] = {});
+function mostrarLoading(mostrar) {
+  const loading = document.getElementById('loadingHorarioSem');
+  if (loading) {
+    loading.style.display = mostrar ? 'block' : 'none';
+  }
+}
+// MOD-007: FIN
 
-    const push = (fecha, hora, obj) => {
-      this.state.matrix[fecha][hora] ||= [];
-      this.state.matrix[fecha][hora].push(obj);
-    };
-
-    const calcHoras = (ini, fin) => {
-      const [hi, mi] = ini.split(':').map(Number);
-      const [hf, mf] = fin.split(':').map(Number);
-      const arr = [];
-      for (let h = hi; h <= hf; h++) {
-        if (h === hf && mf === 0) continue;
-        arr.push({
-          hora: String(h).padStart(2,'0') + ':00',
-          pre: (h === hi && mi >= 30) ? '/' : '',
-          suf: (h === hf && mf >= 30) ? '/' : ''
-        });
+// MOD-008: CONSTRUCCIÓN DE MATRIZ [INICIO]
+function construirMatriz() {
+  console.log('📅 Construyendo matriz...');
+  
+  state.matriz = {};
+  state.diasSemana.forEach(dia => {
+    const fechaISO = formatearFechaISO(dia);
+    state.matriz[fechaISO] = {};
+  });
+  
+  // Agregar clases fijas
+  state.clases.forEach(clase => {
+    const fechaDia = matchDia(clase.Detalle);
+    if (!fechaDia) return;
+    
+    const horas = calcularHoras(clase.HoraIni, clase.HoraFin);
+    horas.forEach(h => {
+      if (!state.matriz[fechaDia][h.hora]) {
+        state.matriz[fechaDia][h.hora] = [];
       }
-      return arr;
-    };
-
-    /* Clases fijas */
-    this.state.clases.forEach(c => {
-      const f = this.matchDia(c.Detalle);
-      if (!f) return;
-      calcHoras(c.HoraIni, c.HoraFin).forEach(h =>
-        push(f, h.hora, {
-          txt: h.pre + c.Curso + h.suf,
-          color: this.colorCurso(c.Curso),
-          fijo: true
-        })
-      );
-    });
-
-    /* Actividades */
-    this.state.actividades.forEach(a => {
-      if (!this.state.matrix[a.FechaHS]) return;
-      calcHoras(a.HoraInicio, a.HoraFin).forEach(h =>
-        push(a.FechaHS, h.hora, {
-          txt: h.pre + a.Actividad + h.suf,
-          color: a.Color,
-          badge: a.TipoAct,
-          fijo: false,
-          data: a
-        })
-      );
-    });
-  };
-
-  /* ================= RENDER ================= */
-  HorarioSemModule.renderBase = function () {
-    document.getElementById('HorarioSemRoot').innerHTML = `
-      <h2>📅 Horario Semanal</h2>
-      <div id="gridHS"></div>
-      ${this.renderDialogs()}
-    `;
-  };
-
-  HorarioSemModule.renderGrid = function () {
-    const dias = this.state.dias;
-    let html = `<table class="horario-grid"><thead><tr><th>Hora</th>`;
-    dias.forEach(d => html += `<th>${d.getDate()}/${d.getMonth()+1}</th>`);
-    html += `</tr></thead><tbody>`;
-
-    for (let h = 7; h <= 22; h++) {
-      const hk = String(h).padStart(2,'0') + ':00';
-      html += `<tr><td>${h}:00</td>`;
-      dias.forEach(d => {
-        const f = this.iso(d);
-        const items = this.state.matrix[f][hk] || [];
-        html += `<td onclick="HorarioSemModule.clickCell('${f}','${hk}')">`;
-        items.forEach(i => {
-          html += `<div style="background:${i.color}" 
-              ${i.fijo?'':'onclick="HorarioSemModule.edit(event,'+JSON.stringify(i.data).replace(/"/g,'&quot;')+')"'}>${i.txt}</div>`;
-        });
-        html += `</td>`;
+      
+      state.matriz[fechaDia][h.hora].push({
+        texto: h.prefijo + clase.Curso + h.sufijo,
+        color: colorCurso(clase.Curso),
+        fija: true
       });
-      html += `</tr>`;
+    });
+  });
+  
+  // Agregar actividades
+  state.actividades.forEach(act => {
+    const fechaISO = act.FechaHS;
+    if (!state.matriz[fechaISO]) return;
+    
+    const horas = calcularHoras(act.HoraInicio, act.HoraFin);
+    horas.forEach(h => {
+      if (!state.matriz[fechaISO][h.hora]) {
+        state.matriz[fechaISO][h.hora] = [];
+      }
+      
+      state.matriz[fechaISO][h.hora].push({
+        texto: h.prefijo + act.Actividad + h.sufijo,
+        color: act.Color || '#667eea',
+        badge: act.TipoAct,
+        fija: false,
+        data: act
+      });
+    });
+  });
+  
+  console.log('📅 Matriz construida:', state.matriz);
+}
+
+function matchDia(detalle) {
+  if (!detalle) return null;
+  
+  const texto = String(detalle).toLowerCase().trim();
+  const diaEncontrado = CONFIG.DIAS.find(dia => {
+    const diaLower = dia.toLowerCase();
+    return texto.includes(diaLower) || diaLower.includes(texto);
+  });
+  
+  if (!diaEncontrado) return null;
+  
+  const indice = CONFIG.DIAS.indexOf(diaEncontrado);
+  return formatearFechaISO(state.diasSemana[indice]);
+}
+
+function calcularHoras(inicio, fin) {
+  const horaIniStr = normalizarHora(inicio);
+  const horaFinStr = normalizarHora(fin);
+  
+  if (!horaIniStr || !horaFinStr) return [];
+  
+  const [hi, mi] = horaIniStr.split(':').map(Number);
+  const [hf, mf] = horaFinStr.split(':').map(Number);
+  
+  const resultado = [];
+  
+  for (let h = hi; h <= hf; h++) {
+    if (h > CONFIG.HORA_FIN) break;
+    if (h === hf && mf === 0) continue;
+    
+    resultado.push({
+      hora: String(h).padStart(2, '0') + ':00',
+      prefijo: (h === hi && mi >= 30) ? '/' : '',
+      sufijo: (h === hf && mf > 0 && mf < 60) ? '/' : ''
+    });
+  }
+  
+  return resultado;
+}
+
+function normalizarHora(valor) {
+  if (!valor) return null;
+  
+  if (typeof valor === 'string') {
+    const match = valor.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      return match[1].padStart(2, '0') + ':' + match[2];
     }
-    document.getElementById('gridHS').innerHTML = html + `</tbody></table>`;
-  };
+  }
+  
+  if (typeof valor === 'object' && valor !== null) {
+    if ('hour' in valor && 'minute' in valor) {
+      return String(valor.hour).padStart(2, '0') + ':' + String(valor.minute).padStart(2, '0');
+    }
+  }
+  
+  return null;
+}
 
-  /* ================= UI ================= */
-  HorarioSemModule.clickCell = function (f,h) {
-    this.state.celda = {fecha:f, hora:h};
-    this.showTipo();
-  };
+function colorCurso(curso) {
+  const c = state.cursos.find(x => x.Curso === curso);
+  return c ? c.Color : '#667eea';
+}
+// MOD-008: FIN
 
-  HorarioSemModule.edit = function (e, data) {
-    e.stopPropagation();
-    this.openForm(data.TipoAct, data);
-  };
+// MOD-009: RENDERIZADO GRID [INICIO]
+function renderGrid() {
+  console.log('📅 Renderizando grid...');
+  
+  const container = document.querySelector('.horario-grid-container');
+  if (!container) return;
+  
+  let html = '<table class="horario-grid"><thead><tr><th class="col-hora">Hora</th>';
+  
+  state.diasSemana.forEach((dia, idx) => {
+    const diaCorto = CONFIG.DIAS_CORTOS[idx];
+    const fecha = formatearFecha(dia);
+    html += `<th class="col-dia">${diaCorto}<br>${fecha}</th>`;
+  });
+  
+  html += '</tr></thead><tbody>';
+  
+  for (let h = CONFIG.HORA_INICIO; h <= CONFIG.HORA_FIN; h++) {
+    const horaKey = String(h).padStart(2, '0') + ':00';
+    const horaDisplay = h < 12 ? h + ' AM' : (h === 12 ? '12 PM' : (h - 12) + ' PM');
+    
+    html += `<tr><td class="col-hora">${horaDisplay}</td>`;
+    
+    state.diasSemana.forEach(dia => {
+      const fechaISO = formatearFechaISO(dia);
+      const items = state.matriz[fechaISO][horaKey] || [];
+      
+      html += `<td><div class="celda-clase" onclick="HorarioSemModule.clickCelda('${fechaISO}','${horaKey}')">`;
+      
+      items.forEach(item => {
+        const claseExtra = item.fija ? 'fija' : 'actividad';
+        const badge = item.badge ? `<span class="badge">${item.badge[0]}</span>` : '';
+        const dataAttr = item.data ? `data-actividad='${JSON.stringify(item.data)}'` : '';
+        const onclick = item.fija ? '' : `onclick="event.stopPropagation(); HorarioSemModule.editarActividad(event, this)"`;
+        
+        html += `
+          <div class="clase-item ${claseExtra}" 
+               style="background:${item.color}" 
+               ${dataAttr}
+               ${onclick}>
+            ${item.texto}${badge}
+          </div>
+        `;
+      });
+      
+      html += '</div></td>';
+    });
+    
+    html += '</tr>';
+  }
+  
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  
+  console.log('📅 Grid renderizado');
+}
+// MOD-009: FIN
 
-  /* ================= HELPERS ================= */
-  HorarioSemModule.calcSemana = function (o) {
-    const d = new Date();
-    d.setDate(d.getDate() - (d.getDay()||7) + 1 + o*7);
-    return Array.from({length:7},(_,i)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+i));
-  };
-  HorarioSemModule.iso = d => d.toISOString().slice(0,10);
-  HorarioSemModule.matchDia = function (det) {
-    const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
-    const i = dias.findIndex(x => det?.toLowerCase().includes(x));
-    return i === -1 ? null : this.iso(this.state.dias[i]);
-  };
-  HorarioSemModule.colorCurso = function (c) {
-    return this.state.cursos.find(x=>x.Curso===c)?.Color || '#667eea';
-  };
+// MOD-010: INTERACCIÓN GRID [INICIO]
+function clickCelda(fecha, hora) {
+  console.log('📅 Click celda:', { fecha, hora });
+  abrirModalActividad(fecha, hora);
+}
 
-  window.HorarioSemModule = HorarioSemModule;
-  HorarioSemModule.init();
+function editarActividad(event, elemento) {
+  event.stopPropagation();
+  
+  const dataStr = elemento.getAttribute('data-actividad');
+  if (!dataStr) return;
+  
+  const actividad = JSON.parse(dataStr);
+  console.log('📅 Editar actividad:', actividad);
+  
+  abrirModalActividad(actividad.FechaHS, null, actividad);
+}
+// MOD-010: FIN
+
+// MOD-011: MODAL ACTIVIDAD [INICIO]
+function abrirModalActividad(fecha, hora, actividad) {
+  const modal = document.getElementById('modalActividad');
+  const titulo = document.getElementById('tituloModalActividad');
+  const form = document.getElementById('formActividad');
+  const btnEliminar = document.getElementById('btnEliminarAct');
+  const btnGuardar = document.getElementById('btnGuardarAct');
+  
+  form.reset();
+  
+  if (actividad) {
+    // Modo edición
+    titulo.textContent = 'Editar Actividad';
+    document.getElementById('actRowNumber').value = actividad._rowNumber || '';
+    document.getElementById('actModoEdicion').value = 'true';
+    document.getElementById('actFecha').value = actividad.FechaHS;
+    document.getElementById('actTipo').value = actividad.TipoAct;
+    document.getElementById('actNombre').value = actividad.Actividad;
+    document.getElementById('actHoraIni').value = actividad.HoraInicio;
+    document.getElementById('actHoraFin').value = actividad.HoraFin;
+    document.getElementById('actColor').value = actividad.Color || '#667eea';
+    btnEliminar.style.display = 'block';
+    btnGuardar.textContent = 'Actualizar';
+  } else {
+    // Modo agregar
+    titulo.textContent = 'Agregar Actividad';
+    document.getElementById('actModoEdicion').value = 'false';
+    document.getElementById('actFecha').value = fecha;
+    document.getElementById('actHora').value = hora || '';
+    document.getElementById('actColor').value = '#667eea';
+    
+    if (hora) {
+      document.getElementById('actHoraIni').value = hora;
+      const [h] = hora.split(':').map(Number);
+      const horaFin = String(Math.min(h + 1, CONFIG.HORA_FIN + 1)).padStart(2, '0') + ':00';
+      document.getElementById('actHoraFin').value = horaFin;
+    }
+    
+    btnEliminar.style.display = 'none';
+    btnGuardar.textContent = 'Guardar';
+  }
+  
+  modal.classList.add('active');
+}
+
+function cerrarModalActividad() {
+  const modal = document.getElementById('modalActividad');
+  modal.classList.remove('active');
+}
+
+function guardarActividad(event) {
+  event.preventDefault();
+  
+  const esEdicion = document.getElementById('actModoEdicion').value === 'true';
+  const rowNumber = document.getElementById('actRowNumber').value;
+  const fecha = document.getElementById('actFecha').value;
+  const tipo = document.getElementById('actTipo').value;
+  const nombre = document.getElementById('actNombre').value.trim();
+  const horaIni = document.getElementById('actHoraIni').value;
+  const horaFin = document.getElementById('actHoraFin').value;
+  const color = document.getElementById('actColor').value;
+  
+  if (!nombre || !horaIni || !horaFin) {
+    alert('Completa todos los campos');
+    return false;
+  }
+  
+  if (horaIni >= horaFin) {
+    alert('La hora de fin debe ser mayor a la de inicio');
+    return false;
+  }
+  
+  const btnGuardar = document.getElementById('btnGuardarAct');
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+  
+  const params = {
+    codeAlum: currentUser.codeAlum,
+    fechaHS: fecha,
+    tipoAct: tipo,
+    actividad: nombre,
+    horaInicio: horaIni,
+    horaFin: horaFin,
+    color: color
+  };
+  
+  if (esEdicion && rowNumber) {
+    params.rowNumber = parseInt(rowNumber);
+  }
+  
+  const funcion = esEdicion ? 'studentActualizarHorarioSem' : 'studentAgregarHorarioSem';
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      btnGuardar.disabled = false;
+      btnGuardar.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+      
+      if (r && r.success) {
+        if (window.showAlert) {
+          showAlert('success', esEdicion ? '✓ Actividad actualizada' : '✓ Actividad agregada');
+        }
+        cerrarModalActividad();
+        cargarDatos();
+      } else {
+        alert('Error: ' + (r ? r.error : 'Desconocido'));
+      }
+    })
+    .withFailureHandler(e => {
+      btnGuardar.disabled = false;
+      btnGuardar.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+      alert('Error de conexión');
+    })
+    [funcion](params);
+  
+  return false;
+}
+
+function eliminarActividad() {
+  const rowNumber = document.getElementById('actRowNumber').value;
+  
+  if (!rowNumber) {
+    alert('No se puede eliminar esta actividad');
+    return;
+  }
+  
+  if (!confirm('¿Eliminar esta actividad?\n\nEsta acción no se puede deshacer.')) {
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        if (window.showAlert) {
+          showAlert('success', '✓ Actividad eliminada');
+        }
+        cerrarModalActividad();
+        cargarDatos();
+      } else {
+        alert('Error: ' + (r ? r.error : 'Desconocido'));
+      }
+    })
+    .withFailureHandler(e => {
+      alert('Error de conexión');
+    })
+    .studentEliminarHorarioSem({ rowNumber: parseInt(rowNumber) });
+}
+// MOD-011: FIN
+
+// MOD-012: MODAL CONFIGURACIÓN [INICIO]
+function mostrarModalConfig() {
+  const modal = document.getElementById('modalConfigSemana');
+  
+  // Sugerir fecha: próximo lunes
+  const hoy = new Date();
+  const diaSemana = hoy.getDay() || 7; // Domingo = 7
+  const proximoLunes = new Date(hoy);
+  proximoLunes.setDate(hoy.getDate() + (8 - diaSemana));
+  
+  document.getElementById('inputFechaInicio').value = formatearFechaISO(proximoLunes);
+  
+  modal.classList.add('active');
+}
+
+function cerrarModalConfig() {
+  const modal = document.getElementById('modalConfigSemana');
+  modal.classList.remove('active');
+}
+
+function guardarConfig(event) {
+  event.preventDefault();
+  
+  const fechaInicio = document.getElementById('inputFechaInicio').value;
+  
+  if (!fechaInicio) {
+    alert('Selecciona una fecha');
+    return false;
+  }
+  
+  // Validar que sea lunes
+  const fecha = new Date(fechaInicio + 'T00:00:00');
+  if (fecha.getDay() !== 1) {
+    alert('La fecha debe ser un lunes');
+    return false;
+  }
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        if (window.showAlert) {
+          showAlert('success', '✓ Configuración guardada');
+        }
+        state.fechaInicio = fechaInicio;
+        cerrarModalConfig();
+        calcularSemanaActual();
+        renderBase();
+        cargarDatos();
+      } else {
+        alert('Error: ' + (r ? r.error : 'Desconocido'));
+      }
+    })
+    .withFailureHandler(e => {
+      alert('Error de conexión');
+    })
+    .studentGuardarConfigSemana({
+      codeAlum: currentUser.codeAlum,
+      fechaInicio: fechaInicio
+    });
+  
+  return false;
+}
+// MOD-012: FIN
+
+// MOD-013: COPIAR SEMANA ANTERIOR [INICIO]
+function copiarSemanaAnterior() {
+  if (state.semanaActual <= 1) {
+    alert('No hay semana anterior para copiar');
+    return;
+  }
+  
+  const mensaje = `¿Copiar todas las actividades de Semana ${state.semanaActual - 1} a Semana ${state.semanaActual}?`;
+  
+  if (!confirm(mensaje)) {
+    return;
+  }
+  
+  const diasSemanaAnterior = calcularDiasSemana(state.semanaActual - 1);
+  const fechaInicioAnterior = formatearFechaISO(diasSemanaAnterior[0]);
+  const fechaFinAnterior = formatearFechaISO(diasSemanaAnterior[6]);
+  
+  const fechaInicioActual = formatearFechaISO(state.diasSemana[0]);
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        const cantidad = r.data || 0;
+        if (window.showAlert) {
+          showAlert('success', `✓ Se copiaron ${cantidad} actividades de Sem ${state.semanaActual - 1}`);
+        }
+        cargarDatos();
+      } else {
+        alert('Error: ' + (r ? r.error : 'Desconocido'));
+      }
+    })
+    .withFailureHandler(e => {
+      alert('Error de conexión');
+    })
+    .studentCopiarSemana({
+      codeAlum: currentUser.codeAlum,
+      fechaInicioOrigen: fechaInicioAnterior,
+      fechaFinOrigen: fechaFinAnterior,
+      fechaInicioDestino: fechaInicioActual
+    });
+}
+// MOD-013: FIN
+
+// MOD-014: LIMPIAR SEMANA [INICIO]
+function limpiarSemana() {
+  const mensaje = `¿Eliminar TODAS las actividades de Semana ${state.semanaActual}?\n\nLas clases fijas NO se eliminarán.\nEsta acción no se puede deshacer.`;
+  
+  if (!confirm(mensaje)) {
+    return;
+  }
+  
+  const fechaInicio = formatearFechaISO(state.diasSemana[0]);
+  const fechaFin = formatearFechaISO(state.diasSemana[6]);
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        const cantidad = r.data || 0;
+        if (window.showAlert) {
+          showAlert('success', `✓ Se eliminaron ${cantidad} actividades`);
+        }
+        cargarDatos();
+      } else {
+        alert('Error: ' + (r ? r.error : 'Desconocido'));
+      }
+    })
+    .withFailureHandler(e => {
+      alert('Error de conexión');
+    })
+    .studentLimpiarSemana({
+      codeAlum: currentUser.codeAlum,
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin
+    });
+}
+// MOD-014: FIN
+
+// MOD-015: EXPOSICIÓN GLOBAL [INICIO]
+window.HorarioSemModule = {
+  init: init,
+  cambiarSemana: cambiarSemana,
+  navegarASemana: navegarASemana,
+  agregarSemana: agregarSemana,
+  mostrarModalConfig: mostrarModalConfig,
+  cerrarModalConfig: cerrarModalConfig,
+  guardarConfig: guardarConfig,
+  clickCelda: clickCelda,
+  editarActividad: editarActividad,
+  cerrarModalActividad: cerrarModalActividad,
+  guardarActividad: guardarActividad,
+  eliminarActividad: eliminarActividad,
+  copiarSemanaAnterior: copiarSemanaAnterior,
+  limpiarSemana: limpiarSemana
+};
+// MOD-015: FIN
+
+// MOD-016: AUTO INIT [INICIO]
+setTimeout(function() {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    console.log('📅 currentUser detectado, inicializando...');
+    init();
+  } else {
+    console.log('📅 currentUser no disponible, iniciando retry...');
+    init();
+  }
+}, 150);
+// MOD-016: FIN
+
+console.log('%c📅 HorarioSemModule V01.22 CLAUDE cargado',
+  'font-size:11px;color:#667eea;font-weight:bold');
+
 })();
 </script>
+
+<!-- MOD-017: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Sistema completo de Horario Semanal con gestión de semanas,
+navegación intuitiva, copia de actividades y limpieza de datos.
+
+DEPENDENCIAS BACKEND:
+● studentObtenerConfigSemana() - Lee configuración de Fechas
+● studentGuardarConfigSemana() - Guarda FechaInicio en Fechas
+● studentObtenerCursos() - Lista de cursos con colores
+● studentObtenerHorarioClases() - Clases fijas semanales
+● studentObtenerHorarioSem() - Actividades semanales
+● studentAgregarHorarioSem() - Crear actividad
+● studentActualizarHorarioSem() - Editar actividad
+● studentEliminarHorarioSem() - Borrar actividad
+● studentCopiarSemana() - Duplicar actividades de semana anterior
+● studentLimpiarSemana() - Borrar todas las actividades de una semana
+
+ESTRUCTURA DE DATOS:
+Sheet Fechas:
+  FechaReg | CodeAlum | FechaInicio | FechaFin
+  
+Sheet HorarioClases:
+  FechaReg | CodeAlum | Curso | HoraInicio | HoraFin | Detalle (día)
+  
+Sheet HorarioSem:
+  FechaReg | CodeAlum | FechaHS | TipoAct | Actividad | HoraInicio | HoraFin | Color
+
+LÓGICA DE SEMANAS:
+1. FechaInicio (Sem 1) se guarda en sheet Fechas
+2. Se calcula semana actual: floor((hoy - FechaInicio) / 7) + 1
+3. Panel lateral muestra semanas 1 hasta semana actual
+4. Usuario puede navegar o agregar nuevas semanas
+
+FLUJO COPIAR SEMANA:
+1. Usuario en Semana N → Click "Copiar Sem. ant."
+2. Backend busca actividades de Semana N-1
+3. Para cada actividad: duplica y suma 7 días a FechaHS
+4. Frontend recarga y muestra actividades copiadas
+
+FLUJO LIMPIAR SEMANA:
+1. Usuario en Semana N → Click "Limpiar"
+2. Confirma eliminación
+3. Backend elimina actividades con FechaHS entre lunes y domingo de Sem N
+4. Clases fijas NO se tocan (están en HorarioClases)
+5. Frontend recarga → Semana vacía (solo clases fijas)
+
+MÓDULOS:
+MOD-001: Configuración constantes
+MOD-002: Estado global
+MOD-003: Inicialización
+MOD-004: Cálculo de semanas
+MOD-005: Renderizado base
+MOD-006: Navegación entre semanas
+MOD-007: Carga de datos backend
+MOD-008: Construcción de matriz
+MOD-009: Renderizado grid
+MOD-010: Interacción grid
+MOD-011: Modal actividad (CRUD)
+MOD-012: Modal configuración Semana 1
+MOD-013: Copiar semana anterior
+MOD-014: Limpiar semana
+MOD-015: Exposición global
+MOD-016: Auto init
+MOD-017: Notas
+
+ADVERTENCIAS:
+● MOD-004: Requiere FechaInicio configurada, si no existe muestra modal
+● MOD-013: Solo funciona si semanaActual > 1
+● MOD-014: Elimina TODAS las actividades, no es reversible
+● MOD-012: Valida que fecha sea lunes antes de guardar
+
+PRÓXIMAS MEJORAS:
+● Validar rango de semanas (FechaFin)
+● Exportar semana a PDF
+● Vista mensual
+● Estadísticas de horas por tipo de actividad
+*/
+// MOD-017: FIN -->
