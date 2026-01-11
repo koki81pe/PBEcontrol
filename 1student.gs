@@ -1,47 +1,19 @@
+/* MOD-001: ENCABEZADO [INICIO] */
 /*
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.17 CLAUDE
-FECHA: 10/01/2026 01:15 (UTC-5)
-******************************************
-
-DESCRIPCIÓN:
-Lógica de negocio del estudiante. Funciones para panel del estudiante.
-NO accede directamente a Sheets, usa módulo DB (excepto MOD-009).
-
-MÓDULOS:
-MOD-001: Inicialización Student
-MOD-002: Cursos (4 funciones)
-MOD-003: Repasos (4 funciones)
-MOD-004: Evaluaciones (4 funciones)
-MOD-005: Tareas (4 funciones)
-MOD-006: Lecturas (4 funciones)
-MOD-007: HorarioClases (4 funciones)
-MOD-008: HorarioSem (5 funciones)
-MOD-009: Configuración Semanas (4 funciones) ← CORREGIDO V01.17
-MOD-010: Notas (2 funciones)
-MOD-011: Deberes (2 funciones)
-MOD-012: Exportación pública
-MOD-013: Notas finales
-
-CAMBIOS V01.17 CLAUDE:
-✅ FIX CRÍTICO: obtenerConfigSemana() y guardarConfigSemana()
-✅ Problema: DB.buscar() no funcionaba con sheet Fechas
-✅ Solución: Acceso directo a sheet con getSheetByName()
-✅ Ahora detecta correctamente si existe configuración
-
+VERSIÓN: 01.19 CLAUDE
+FECHA: 10/01/2026 18:00 (UTC-5)
 ******************************************
 */
+/* MOD-001: FIN */
 
-// MOD-001: INICIALIZACIÓN STUDENT [INICIO]
+/* MOD-002: INICIALIZACIÓN [INICIO] */
 var Student = (function() {
-// MOD-001: FIN
+/* MOD-002: FIN */
   
-// MOD-002: CURSOS [INICIO]
-/**
- * Obtener todos los cursos del estudiante
- */
+/* MOD-003: CURSOS [INICIO] */
 function obtenerCursos(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -52,10 +24,6 @@ function obtenerCursos(params) {
   }
 }
 
-/**
- * Agregar un curso nuevo
- * ⚠️ VALIDACIÓN: Curso NO puede duplicarse para un alumno
- */
 function agregarCurso(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
@@ -86,9 +54,6 @@ function agregarCurso(params) {
   }
 }
 
-/**
- * Actualizar un curso existente
- */
 function actualizarCurso(params) {
   try {
     var result = DB.buscar('Cursos', 'CodeAlum', params.codeAlum);
@@ -108,9 +73,6 @@ function actualizarCurso(params) {
   }
 }
 
-/**
- * Eliminar un curso
- */
 function eliminarCurso(params) {
   try {
     return DB.eliminar('Cursos', params.rowNumber);
@@ -119,12 +81,9 @@ function eliminarCurso(params) {
     return { success: false, error: 'Error al eliminar curso' };
   }
 }
-// MOD-002: FIN
+/* MOD-003: FIN */
 
-// MOD-003: REPASOS [INICIO]
-/**
- * Obtener todos los repasos del estudiante
- */
+/* MOD-004: REPASOS [INICIO] */
 function obtenerRepasos(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -135,10 +94,6 @@ function obtenerRepasos(params) {
   }
 }
 
-/**
- * Agregar un repaso nuevo
- * ⚠️ VALIDACIÓN: Curso+Tema NO puede duplicarse
- */
 function agregarRepaso(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Repasos', params.codeAlum);
@@ -174,9 +129,6 @@ function agregarRepaso(params) {
   }
 }
 
-/**
- * Actualizar un repaso existente
- */
 function actualizarRepaso(params) {
   try {
     var result = DB.buscar('Repasos', 'CodeAlum', params.codeAlum);
@@ -199,9 +151,6 @@ function actualizarRepaso(params) {
   }
 }
 
-/**
- * Eliminar un repaso
- */
 function eliminarRepaso(params) {
   try {
     return DB.eliminar('Repasos', params.rowNumber);
@@ -210,12 +159,9 @@ function eliminarRepaso(params) {
     return { success: false, error: 'Error al eliminar repaso' };
   }
 }
-// MOD-003: FIN
+/* MOD-004: FIN */
 
-// MOD-004: EVALUACIONES [INICIO]
-/**
- * Obtener todas las evaluaciones del estudiante
- */
+/* MOD-005: EVALUACIONES [INICIO] */
 function obtenerEvaluaciones(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -226,10 +172,6 @@ function obtenerEvaluaciones(params) {
   }
 }
 
-/**
- * Agregar una evaluación nueva
- * ⚠️ VALIDACIÓN: Curso+NomEval NO puede duplicarse
- */
 function agregarEvaluacion(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Eval', params.codeAlum);
@@ -264,9 +206,6 @@ function agregarEvaluacion(params) {
   }
 }
 
-/**
- * Actualizar una evaluación existente
- */
 function actualizarEvaluacion(params) {
   try {
     var result = DB.buscar('Eval', 'CodeAlum', params.codeAlum);
@@ -288,9 +227,6 @@ function actualizarEvaluacion(params) {
   }
 }
 
-/**
- * Eliminar una evaluación
- */
 function eliminarEvaluacion(params) {
   try {
     return DB.eliminar('Eval', params.rowNumber);
@@ -299,12 +235,9 @@ function eliminarEvaluacion(params) {
     return { success: false, error: 'Error al eliminar evaluación' };
   }
 }
-// MOD-004: FIN
+/* MOD-005: FIN */
 
-// MOD-005: TAREAS [INICIO]
-/**
- * Obtener todas las tareas del estudiante
- */
+/* MOD-006: TAREAS [INICIO] */
 function obtenerTareas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -315,10 +248,6 @@ function obtenerTareas(params) {
   }
 }
 
-/**
- * Agregar una tarea nueva
- * ⚠️ VALIDACIÓN: Curso+Tarea NO puede duplicarse
- */
 function agregarTarea(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Tareas', params.codeAlum);
@@ -354,9 +283,6 @@ function agregarTarea(params) {
   }
 }
 
-/**
- * Actualizar una tarea existente
- */
 function actualizarTarea(params) {
   try {
     var result = DB.buscar('Tareas', 'CodeAlum', params.codeAlum);
@@ -379,9 +305,6 @@ function actualizarTarea(params) {
   }
 }
 
-/**
- * Eliminar una tarea
- */
 function eliminarTarea(params) {
   try {
     return DB.eliminar('Tareas', params.rowNumber);
@@ -390,12 +313,9 @@ function eliminarTarea(params) {
     return { success: false, error: 'Error al eliminar tarea' };
   }
 }
-// MOD-005: FIN
+/* MOD-006: FIN */
 
-// MOD-006: LECTURAS [INICIO]
-/**
- * Obtener todas las lecturas del estudiante
- */
+/* MOD-007: LECTURAS [INICIO] */
 function obtenerLecturas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -406,10 +326,6 @@ function obtenerLecturas(params) {
   }
 }
 
-/**
- * Agregar una lectura nueva
- * ⚠️ VALIDACIÓN: Curso+Lectura NO puede duplicarse
- */
 function agregarLectura(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Lecturas', params.codeAlum);
@@ -448,9 +364,6 @@ function agregarLectura(params) {
   }
 }
 
-/**
- * Actualizar una lectura existente
- */
 function actualizarLectura(params) {
   try {
     var result = DB.buscar('Lecturas', 'CodeAlum', params.codeAlum);
@@ -476,9 +389,6 @@ function actualizarLectura(params) {
   }
 }
 
-/**
- * Eliminar una lectura
- */
 function eliminarLectura(params) {
   try {
     return DB.eliminar('Lecturas', params.rowNumber);
@@ -487,13 +397,9 @@ function eliminarLectura(params) {
     return { success: false, error: 'Error al eliminar lectura' };
   }
 }
-// MOD-006: FIN
+/* MOD-007: FIN */
 
-// MOD-007: HORARIO CLASES [INICIO]
-/**
- * Obtener horario de clases del estudiante
- * ⚠️ CRÍTICO: Mapea HoraInicio → HoraIni
- */
+/* MOD-008: HORARIO CLASES [INICIO] */
 function obtenerHorarioClases(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -520,10 +426,6 @@ function obtenerHorarioClases(params) {
   }
 }
 
-/**
- * Agregar una clase al horario
- * ⚠️ FLEXIBILIDAD: Acepta horaIni (frontend) o horaInicio (tests)
- */
 function agregarHorarioClase(params) {
   try {
     var clase = {
@@ -542,9 +444,6 @@ function agregarHorarioClase(params) {
   }
 }
 
-/**
- * Actualizar una clase del horario
- */
 function actualizarHorarioClase(params) {
   try {
     var result = DB.buscar('HorarioClases', 'CodeAlum', params.codeAlum);
@@ -565,9 +464,6 @@ function actualizarHorarioClase(params) {
   }
 }
 
-/**
- * Eliminar una clase del horario
- */
 function eliminarHorarioClase(params) {
   try {
     return DB.eliminar('HorarioClases', params.rowNumber);
@@ -576,34 +472,44 @@ function eliminarHorarioClase(params) {
     return { success: false, error: 'Error al eliminar clase del horario' };
   }
 }
-// MOD-007: FIN
+/* MOD-008: FIN */
 
-// MOD-008: HORARIO SEMANAL [INICIO]
-/**
- * Obtener horario semanal del estudiante
- */
+/* MOD-009: HORARIO SEMANAL [INICIO] */
 function obtenerHorarioSem(params) {
   try {
     var codeAlum = params.codeAlum;
-    return DB.obtenerPorAlumno('HorarioSem', codeAlum);
+    var result = DB.obtenerPorAlumno('HorarioSem', codeAlum);
+    
+    if (result.success && result.data) {
+      result.data = result.data.map(function(item) {
+        if (item.FechaHS && typeof item.FechaHS === 'string') {
+          if (item.FechaHS.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            var partes = item.FechaHS.split('/');
+            item.FechaHS = partes[2] + '-' + partes[1] + '-' + partes[0];
+          }
+        }
+        return item;
+      });
+    }
+    
+    return result;
   } catch(error) {
     Logger.log('Error en Student.obtenerHorarioSem(): ' + error.toString());
     return { success: false, error: 'Error al obtener horario semanal' };
   }
 }
 
-/**
- * Agregar actividad al horario semanal
- */
 function agregarHorarioSem(params) {
   try {
+    var fechaHSFormateada = convertirISOaDDMMAAAA(params.fechaHS);
+    
     var actividad = {
       FechaReg: Utils.fechaHoy(),
       CodeAlum: params.codeAlum,
       Actividad: params.actividad,
       HoraInicio: params.horaInicio,
       HoraFin: params.horaFin,
-      FechaHS: params.fechaHS,
+      FechaHS: fechaHSFormateada,
       TipoAct: params.tipoAct || '',
       Color: params.color || '#17a2b8',
       Sem: params.sem || ''
@@ -616,9 +522,6 @@ function agregarHorarioSem(params) {
   }
 }
 
-/**
- * V01.16 CLAUDE: Actualizar actividad del horario semanal
- */
 function actualizarHorarioSem(params) {
   try {
     var result = DB.buscar('HorarioSem', 'CodeAlum', params.codeAlum);
@@ -630,7 +533,11 @@ function actualizarHorarioSem(params) {
     actividad.Actividad = params.actividad || actividad.Actividad;
     actividad.HoraInicio = params.horaInicio || actividad.HoraInicio;
     actividad.HoraFin = params.horaFin || actividad.HoraFin;
-    actividad.FechaHS = params.fechaHS || actividad.FechaHS;
+    
+    if (params.fechaHS) {
+      actividad.FechaHS = convertirISOaDDMMAAAA(params.fechaHS);
+    }
+    
     actividad.TipoAct = params.tipoAct || actividad.TipoAct;
     actividad.Color = params.color || actividad.Color;
     actividad.Sem = params.sem || actividad.Sem;
@@ -642,9 +549,6 @@ function actualizarHorarioSem(params) {
   }
 }
 
-/**
- * Eliminar actividad del horario semanal
- */
 function eliminarHorarioSem(params) {
   try {
     return DB.eliminar('HorarioSem', params.rowNumber);
@@ -653,14 +557,9 @@ function eliminarHorarioSem(params) {
     return { success: false, error: 'Error al eliminar actividad del horario semanal' };
   }
 }
-// MOD-008: FIN
+/* MOD-009: FIN */
 
-// MOD-009: CONFIGURACIÓN SEMANAS [INICIO]
-/**
- * V01.17 CLAUDE: Obtener configuración de Semana 1
- * Lee de sheet Fechas el FechaInicio del alumno
- * ✅ FIX: Acceso directo a sheet en lugar de DB.buscar()
- */
+/* MOD-010: CONFIG SEMANAS [INICIO] */
 function obtenerConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -685,11 +584,32 @@ function obtenerConfigSemana(params) {
     
     for (var i = 1; i < data.length; i++) {
       if (data[i][codeAlumIdx] === codeAlum) {
+        var fechaInicio = data[i][fechaInicioIdx];
+        var fechaFin = data[i][fechaFinIdx] || '';
+        
+        if (fechaInicio instanceof Date) {
+          fechaInicio = Utilities.formatDate(fechaInicio, 
+            Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        } else if (typeof fechaInicio === 'string') {
+          if (fechaInicio.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            var partes = fechaInicio.split('/');
+            fechaInicio = partes[2] + '-' + partes[1] + '-' + partes[0];
+          }
+        }
+        
+        if (fechaFin instanceof Date) {
+          fechaFin = Utilities.formatDate(fechaFin, 
+            Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        } else if (typeof fechaFin === 'string' && fechaFin.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          var partesFin = fechaFin.split('/');
+          fechaFin = partesFin[2] + '-' + partesFin[1] + '-' + partesFin[0];
+        }
+        
         return {
           success: true,
           data: {
-            FechaInicio: data[i][fechaInicioIdx],
-            FechaFin: data[i][fechaFinIdx] || ''
+            FechaInicio: fechaInicio,
+            FechaFin: fechaFin
           }
         };
       }
@@ -702,11 +622,6 @@ function obtenerConfigSemana(params) {
   }
 }
 
-/**
- * V01.17 CLAUDE: Guardar configuración de Semana 1
- * Guarda FechaInicio en sheet Fechas
- * ✅ FIX: Acceso directo a sheet en lugar de DB
- */
 function guardarConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -732,7 +647,8 @@ function guardarConfigSemana(params) {
     
     for (var i = 1; i < data.length; i++) {
       if (data[i][codeAlumIdx] === codeAlum) {
-        sheet.getRange(i + 1, fechaInicioIdx + 1).setValue(fechaInicio);
+        var cell = sheet.getRange(i + 1, fechaInicioIdx + 1);
+        cell.setNumberFormat('@').setValue(fechaInicio);
         return { success: true };
       }
     }
@@ -751,6 +667,10 @@ function guardarConfigSemana(params) {
     }
     
     sheet.appendRow(nuevaFila);
+    
+    var lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow, fechaInicioIdx + 1).setNumberFormat('@');
+    
     return { success: true };
   } catch(error) {
     Logger.log('Error en Student.guardarConfigSemana(): ' + error.toString());
@@ -758,11 +678,6 @@ function guardarConfigSemana(params) {
   }
 }
 
-/**
- * V01.16 CLAUDE: Copiar actividades de semana anterior
- * Busca todas las actividades entre fechaInicioOrigen y fechaFinOrigen,
- * las duplica sumando 7 días a cada FechaHS
- */
 function copiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -823,11 +738,6 @@ function copiarSemana(params) {
   }
 }
 
-/**
- * V01.16 CLAUDE: Limpiar todas las actividades de una semana
- * Elimina actividades entre fechaInicio y fechaFin
- * NO toca las clases fijas (HorarioClases)
- */
 function limpiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -860,23 +770,141 @@ function limpiarSemana(params) {
     return { success: false, error: 'Error al limpiar semana' };
   }
 }
+/* MOD-010: FIN */
 
-/**
- * Helper: Formatear fecha a ISO (YYYY-MM-DD)
- */
-function formatearFechaISO(fecha) {
-  var year = fecha.getFullYear();
-  var month = String(fecha.getMonth() + 1).padStart(2, '0');
-  var day = String(fecha.getDate()).padStart(2, '0');
-  return year + '-' + month + '-' + day;
+/* MOD-011: GESTIÓN SEMANAS [INICIO] */
+function obtenerSemanas(codeAlum) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Semanas');
+    
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Semanas' };
+    }
+    
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var codeAlumIdx = headers.indexOf('CodeAlum');
+    var fechaInicioIdx = headers.indexOf('FechaInicio');
+    var fechaFinIdx = headers.indexOf('FechaFin');
+    var semanaIdx = headers.indexOf('Semana');
+    
+    if (codeAlumIdx === -1 || fechaInicioIdx === -1 || fechaFinIdx === -1 || semanaIdx === -1) {
+      return { success: false, error: 'Estructura de hoja Semanas incorrecta' };
+    }
+    
+    var semanas = [];
+    
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][codeAlumIdx] === codeAlum) {
+        semanas.push({
+          FechaReg: data[i][0],
+          CodeAlum: data[i][codeAlumIdx],
+          FechaInicio: data[i][fechaInicioIdx],
+          FechaFin: data[i][fechaFinIdx],
+          Semana: data[i][semanaIdx],
+          _rowNumber: i + 1
+        });
+      }
+    }
+    
+    semanas.sort(function(a, b) {
+      return parseInt(a.Semana) - parseInt(b.Semana);
+    });
+    
+    return { success: true, data: semanas };
+  } catch(error) {
+    Logger.log('Error en Student.obtenerSemanas(): ' + error.toString());
+    return { success: false, error: 'Error al obtener semanas' };
+  }
 }
-// MOD-009: FIN
 
-// MOD-010: NOTAS [INICIO]
-/**
- * Obtener promedio ponderado de un curso específico
- * Combina: Eval + Tareas + Lecturas
- */
+function crearSemana(params) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Semanas');
+    
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Semanas' };
+    }
+    
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var codeAlumIdx = headers.indexOf('CodeAlum');
+    var semanaIdx = headers.indexOf('Semana');
+    
+    if (codeAlumIdx === -1 || semanaIdx === -1) {
+      return { success: false, error: 'Estructura de hoja Semanas incorrecta' };
+    }
+    
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][codeAlumIdx] === params.codeAlum && 
+          data[i][semanaIdx] === params.semana) {
+        return { 
+          success: false, 
+          error: 'La Semana ' + params.semana + ' ya existe' 
+        };
+      }
+    }
+    
+    var fechaInicioFormateada = convertirISOaDDMMAAAA(params.fechaInicio);
+    var fechaFinFormateada = convertirISOaDDMMAAAA(params.fechaFin);
+    
+    var nuevaFila = [];
+    for (var j = 0; j < headers.length; j++) {
+      if (headers[j] === 'FechaReg') {
+        nuevaFila.push(Utils.fechaHoy());
+      } else if (headers[j] === 'CodeAlum') {
+        nuevaFila.push(params.codeAlum);
+      } else if (headers[j] === 'FechaInicio') {
+        nuevaFila.push(fechaInicioFormateada);
+      } else if (headers[j] === 'FechaFin') {
+        nuevaFila.push(fechaFinFormateada);
+      } else if (headers[j] === 'Semana') {
+        nuevaFila.push(params.semana);
+      } else {
+        nuevaFila.push('');
+      }
+    }
+    
+    sheet.appendRow(nuevaFila);
+    
+    var lastRow = sheet.getLastRow();
+    var fechaInicioCol = headers.indexOf('FechaInicio') + 1;
+    var fechaFinCol = headers.indexOf('FechaFin') + 1;
+    
+    sheet.getRange(lastRow, fechaInicioCol).setNumberFormat('@');
+    sheet.getRange(lastRow, fechaFinCol).setNumberFormat('@');
+    
+    return { success: true, data: lastRow };
+  } catch(error) {
+    Logger.log('Error en Student.crearSemana(): ' + error.toString());
+    return { success: false, error: 'Error al crear semana' };
+  }
+}
+
+function eliminarSemana(params) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Semanas');
+    
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Semanas' };
+    }
+    
+    sheet.deleteRow(params.rowNumber);
+    
+    return { success: true };
+  } catch(error) {
+    Logger.log('Error en Student.eliminarSemana(): ' + error.toString());
+    return { success: false, error: 'Error al eliminar semana' };
+  }
+}
+/* MOD-011: FIN */
+
+/* MOD-012: NOTAS [INICIO] */
 function obtenerNotasPorCurso(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -936,9 +964,6 @@ function obtenerNotasPorCurso(params) {
   }
 }
 
-/**
- * Obtener resumen de notas de todos los cursos
- */
 function obtenerResumenNotas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -975,12 +1000,9 @@ function obtenerResumenNotas(params) {
     return { success: false, error: 'Error al obtener resumen de notas' };
   }
 }
-// MOD-010: FIN
+/* MOD-012: FIN */
 
-// MOD-011: DEBERES [INICIO]
-/**
- * Obtener todos los deberes (Eval + Tareas + Lecturas)
- */
+/* MOD-013: DEBERES [INICIO] */
 function obtenerTodosDeberes(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1046,9 +1068,6 @@ function obtenerTodosDeberes(params) {
   }
 }
 
-/**
- * Obtener deberes filtrados por tipo
- */
 function obtenerDeberesPorTipo(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1063,9 +1082,24 @@ function obtenerDeberesPorTipo(params) {
     return { success: false, error: 'Error al obtener deberes por tipo' };
   }
 }
-// MOD-011: FIN
+/* MOD-013: FIN */
 
-// MOD-012: EXPORTACIÓN PÚBLICA [INICIO]
+/* MOD-014: HELPERS [INICIO] */
+function formatearFechaISO(fecha) {
+  var year = fecha.getFullYear();
+  var month = String(fecha.getMonth() + 1).padStart(2, '0');
+  var day = String(fecha.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
+function convertirISOaDDMMAAAA(fechaISO) {
+  if (!fechaISO) return '';
+  var partes = fechaISO.split('-');
+  return partes[2] + '/' + partes[1] + '/' + partes[0];
+}
+/* MOD-014: FIN */
+
+/* MOD-015: EXPORTACIÓN [INICIO] */
 return {
   obtenerCursos: obtenerCursos,
   agregarCurso: agregarCurso,
@@ -1099,65 +1133,53 @@ return {
   guardarConfigSemana: guardarConfigSemana,
   copiarSemana: copiarSemana,
   limpiarSemana: limpiarSemana,
+  obtenerSemanas: obtenerSemanas,
+  crearSemana: crearSemana,
+  eliminarSemana: eliminarSemana,
   obtenerNotasPorCurso: obtenerNotasPorCurso,
   obtenerResumenNotas: obtenerResumenNotas,
   obtenerTodosDeberes: obtenerTodosDeberes,
   obtenerDeberesPorTipo: obtenerDeberesPorTipo
 };
-// MOD-012: FIN
+/* MOD-015: FIN */
 
 })();
 
-// MOD-013: NOTAS [INICIO]
+/* MOD-016: NOTAS [INICIO] */
 /*
-DESCRIPCIÓN:
-Módulo Student con lógica de negocio del estudiante.
-Todas las funciones usan DB para acceso a datos (excepto MOD-009).
-
-DEPENDENCIAS:
-● MOD-002 a MOD-008, MOD-010, MOD-011 requieren módulo DB funcional
-● MOD-009 accede directamente a sheet Fechas (fix V01.17)
-
-ESTRUCTURA DE DATOS:
-Sheet Fechas:
-  FechaReg | CodeAlum | FechaInicio | FechaFin
-
-Sheet HorarioSem:
-  FechaReg | CodeAlum | Actividad | HoraInicio | HoraFin | FechaHS | TipoAct | Color | Sem
+CAMBIOS V01.19 CLAUDE:
+✅ Gestión de hoja Semanas (3 funciones nuevas)
+✅ Fix formato fechas HorarioSem: ISO → DD/MM/AAAA al guardar
+✅ Fix formato fechas HorarioSem: DD/MM/AAAA → ISO al leer
+✅ Helpers: convertirISOaDDMMAAAA(), formatearFechaISO()
+✅ Modularización CodeWorkshop estándar
 
 MÓDULOS:
-MOD-001: Inicialización
-MOD-002: Cursos (4 funciones)
-MOD-003: Repasos (4 funciones)
-MOD-004: Evaluaciones (4 funciones)
-MOD-005: Tareas (4 funciones)
-MOD-006: Lecturas (4 funciones)
-MOD-007: HorarioClases (4 funciones)
-MOD-008: HorarioSem (5 funciones)
-MOD-009: Configuración Semanas (4 funciones) - CORREGIDO V01.17
-MOD-010: Notas (2 funciones)
-MOD-011: Deberes (2 funciones)
-MOD-012: Exportación
-MOD-013: Notas
+MOD-001: Encabezado
+MOD-002: Inicialización
+MOD-003: Cursos (4 funciones)
+MOD-004: Repasos (4 funciones)
+MOD-005: Evaluaciones (4 funciones)
+MOD-006: Tareas (4 funciones)
+MOD-007: Lecturas (4 funciones)
+MOD-008: HorarioClases (4 funciones)
+MOD-009: HorarioSem (4 funciones) - FIX formato fechas
+MOD-010: Config Semanas (4 funciones)
+MOD-011: Gestión Semanas (3 funciones) - NUEVO V01.19
+MOD-012: Notas (2 funciones)
+MOD-013: Deberes (2 funciones)
+MOD-014: Helpers (2 funciones)
+MOD-015: Exportación
+MOD-016: Notas
 
-TOTAL FUNCIONES: 35
+TOTAL FUNCIONES: 38
 
-VALIDACIONES:
-● Curso: Nombre único por alumno
-● Repaso: Curso+Tema único
-● Evaluación: Curso+NomEval único
-● Tarea: Curso+Tarea único
-● Lectura: Curso+Lectura único
+HOJA SEMANAS:
+FechaReg | CodeAlum | FechaInicio | FechaFin | Semana
+Formato fechas: DD/MM/AAAA
 
-ADVERTENCIAS:
-● MOD-009: copiarSemana() requiere fechas en formato ISO
-● MOD-009: limpiarSemana() NO elimina clases fijas
-● MOD-007: obtenerHorarioClases() mapea HoraInicio → HoraIni
-● MOD-009: V01.17 usa acceso directo a sheet Fechas (no DB.buscar)
-
-PRÓXIMAS MEJORAS:
-● Agregar validación de rangos de fechas en copiarSemana()
-● Implementar copiarDia() para copiar un día específico
-● Agregar obtenerActividadesPorFecha() para filtros avanzados
+HOJA HORARIO SEMANAL:
+FechaReg | CodeAlum | Actividad | HoraInicio | HoraFin | FechaHS | TipoAct | Color | Sem
+Formato FechaHS: DD/MM/AAAA (guardado) → ISO (lectura)
 */
-// MOD-013: FIN
+/* MOD-016: FIN */
