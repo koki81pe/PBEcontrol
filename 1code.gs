@@ -1,62 +1,15 @@
+/* MOD-001: ENCABEZADO [INICIO] */
 /*
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1code.gs
-VERSIÓN: 01.27 CLAUDE
-FECHA: 09/01/2026 (UTC-5)
-******************************************
-
-DESCRIPCIÓN:
-Router principal, include(), autenticación y wrappers para google.script.run.
-Limpieza automática de Date/Time objects para serialización correcta.
-
-MÓDULOS:
-MOD-001: Router Principal (doGet)
-MOD-002: Include dinámico
-MOD-003: Autenticación
-MOD-004: Funciones auxiliares de limpieza
-MOD-005: Wrappers Student - Cursos (4)
-MOD-006: Wrappers Student - Repasos (4)
-MOD-007: Wrappers Student - Evaluaciones (4)
-MOD-008: Wrappers Student - Tareas (4)
-MOD-009: Wrappers Student - Lecturas (4)
-MOD-010: Wrappers Student - HorarioClases (4)
-MOD-011: Wrappers Student - HorarioSem (4)
-MOD-012: Wrappers Student - Config Semanas (4) ← NUEVO V01.27
-MOD-013: Wrappers Student - Notas (2)
-MOD-014: Wrappers Student - Deberes (2)
-MOD-015: Wrappers Admin (3)
-MOD-016: Notas finales
-
-CAMBIOS V01.27 CLAUDE:
-✅ Aplicado estándar CodeWorkshop completo
-✅ Agregado MOD-012: Config Semanas (4 wrappers)
-  - studentObtenerConfigSemana()
-  - studentGuardarConfigSemana()
-  - studentCopiarSemana()
-  - studentLimpiarSemana()
-✅ Soporte completo para HorarioSemanal V01.22
-✅ Total: 35 wrappers Student + 3 Admin = 38 wrappers
-
-CAMBIOS V01.26 CLAUDE:
-✅ FIX CRÍTICO: Detección y formateo de datetime.time objects
-✅ isTimeValue() detecta time objects disfrazados de Date
-✅ formatearTimeHH_MM() extrae hora correcta
-✅ Resultado: HoraInicio "30/12/1899" → "08:00"
-
-CAMBIOS V01.25 CLAUDE:
-✅ FIX CRÍTICO: Fechas formateadas a DD/MM/AAAA
-✅ formatearFechaDD_MM_AAAA() para formato corto
-✅ Resuelve filtros de fecha que fallaban
-
+VERSIÓN: 01.28 CLAUDE
+FECHA: 10/01/2026 18:30 (UTC-5)
 ******************************************
 */
+/* MOD-001: FIN */
 
-// MOD-001: ROUTER PRINCIPAL [INICIO]
-/**
- * Router principal del sistema
- * Maneja 3 casos: Login (base), Panel Student, Panel Admin
- */
+/* MOD-002: ROUTER PRINCIPAL [INICIO] */
 function doGet(e) {
   var page = e.parameter.page;
   var scriptUrl = ScriptApp.getService().getUrl(); 
@@ -87,23 +40,16 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
-// MOD-001: FIN
+/* MOD-002: FIN */
 
-// MOD-002: INCLUDE DINÁMICO [INICIO]
-/**
- * Inclusión dinámica de HTML
- * Indispensable para las pestañas
- */
+/* MOD-003: INCLUDE DINÁMICO [INICIO] */
 function include(filename) {
   var template = HtmlService.createTemplateFromFile(filename);
   return template.evaluate().getContent();
 }
-// MOD-002: FIN
+/* MOD-003: FIN */
 
-// MOD-003: AUTENTICACIÓN [INICIO]
-/**
- * Autenticación unificada Admin/Estudiante
- */
+/* MOD-004: AUTENTICACIÓN [INICIO] */
 function autenticar(params) {
   try {
     var clave = params.clave;
@@ -140,26 +86,9 @@ function autenticar(params) {
     return { success: false, error: 'Error de servidor' };
   }
 }
-// MOD-003: FIN
+/* MOD-004: FIN */
 
-// MOD-004: FUNCIONES AUXILIARES DE LIMPIEZA [INICIO]
-/**
- * Limpiar objetos para serialización de google.script.run
- * 
- * EVOLUCIÓN:
- * V01.24: Convierte Date a String
- * V01.25: Formatea fechas como DD/MM/AAAA
- * V01.26: Detecta y formatea time objects correctamente
- * 
- * PROBLEMA V01.25:
- * datetime.time(8, 0) del Sheet se convierte a Date object
- * pero representa SOLO la hora, no una fecha completa
- * formatearFechaDD_MM_AAAA() le sacaba la fecha epoch "30/12/1899"
- * 
- * SOLUCIÓN V01.26:
- * Detectar si un Date es realmente un TIME VALUE
- * Extraer hora con getHours() y getMinutes() en lugar de getDate()
- */
+/* MOD-005: LIMPIEZA DE DATOS [INICIO] */
 function cleanDataForSerialization(result) {
   if (!result || !result.success || !result.data) {
     return result;
@@ -176,10 +105,6 @@ function cleanDataForSerialization(result) {
   return result;
 }
 
-/**
- * Formatear Date a DD/MM/AAAA
- * V01.25 CLAUDE
- */
 function formatearFechaDD_MM_AAAA(fecha) {
   if (!fecha || !(fecha instanceof Date)) {
     return '';
@@ -195,12 +120,6 @@ function formatearFechaDD_MM_AAAA(fecha) {
   return dia + '/' + mes + '/' + anio;
 }
 
-/**
- * V01.26 CLAUDE: Detectar si un Date object es realmente un TIME VALUE
- * 
- * datetime.time(8, 0) se serializa como Date con fecha epoch 30/12/1899
- * La clave: el año es 1899 o 1900 (fecha base de Excel/Sheets para times)
- */
 function isTimeValue(value) {
   if (!(value instanceof Date)) {
     return false;
@@ -210,9 +129,6 @@ function isTimeValue(value) {
   return (year === 1899 || year === 1900);
 }
 
-/**
- * V01.26 CLAUDE: Formatear time value a HH:MM
- */
 function formatearTimeHH_MM(timeValue) {
   if (!(timeValue instanceof Date)) {
     return '';
@@ -232,11 +148,6 @@ function formatearTimeHH_MM(timeValue) {
   }
 }
 
-/**
- * Limpiar un objeto individual
- * V01.26: Detecta y formatea time objects correctamente
- * V01.25: Convierte Dates a DD/MM/AAAA y preserva _rowNumber
- */
 function cleanObject(obj) {
   var cleaned = {};
   
@@ -261,9 +172,9 @@ function cleanObject(obj) {
   
   return cleaned;
 }
-// MOD-004: FIN
+/* MOD-005: FIN */
 
-// MOD-005: WRAPPERS STUDENT - CURSOS [INICIO]
+/* MOD-006: WRAPPERS CURSOS [INICIO] */
 function studentObtenerCursos(params) { 
   var result = Student.obtenerCursos(params);
   return cleanDataForSerialization(result);
@@ -283,9 +194,9 @@ function studentEliminarCurso(params) {
   var result = Student.eliminarCurso(params);
   return cleanDataForSerialization(result);
 }
-// MOD-005: FIN
+/* MOD-006: FIN */
 
-// MOD-006: WRAPPERS STUDENT - REPASOS [INICIO]
+/* MOD-007: WRAPPERS REPASOS [INICIO] */
 function studentObtenerRepasos(params) { 
   var result = Student.obtenerRepasos(params);
   return cleanDataForSerialization(result);
@@ -305,9 +216,9 @@ function studentEliminarRepaso(params) {
   var result = Student.eliminarRepaso(params);
   return cleanDataForSerialization(result);
 }
-// MOD-006: FIN
+/* MOD-007: FIN */
 
-// MOD-007: WRAPPERS STUDENT - EVALUACIONES [INICIO]
+/* MOD-008: WRAPPERS EVALUACIONES [INICIO] */
 function studentObtenerEvaluaciones(params) { 
   var result = Student.obtenerEvaluaciones(params);
   return cleanDataForSerialization(result);
@@ -327,9 +238,9 @@ function studentEliminarEvaluacion(params) {
   var result = Student.eliminarEvaluacion(params);
   return cleanDataForSerialization(result);
 }
-// MOD-007: FIN
+/* MOD-008: FIN */
 
-// MOD-008: WRAPPERS STUDENT - TAREAS [INICIO]
+/* MOD-009: WRAPPERS TAREAS [INICIO] */
 function studentObtenerTareas(params) { 
   var result = Student.obtenerTareas(params);
   return cleanDataForSerialization(result);
@@ -349,9 +260,9 @@ function studentEliminarTarea(params) {
   var result = Student.eliminarTarea(params);
   return cleanDataForSerialization(result);
 }
-// MOD-008: FIN
+/* MOD-009: FIN */
 
-// MOD-009: WRAPPERS STUDENT - LECTURAS [INICIO]
+/* MOD-010: WRAPPERS LECTURAS [INICIO] */
 function studentObtenerLecturas(params) { 
   var result = Student.obtenerLecturas(params);
   return cleanDataForSerialization(result);
@@ -371,9 +282,9 @@ function studentEliminarLectura(params) {
   var result = Student.eliminarLectura(params);
   return cleanDataForSerialization(result);
 }
-// MOD-009: FIN
+/* MOD-010: FIN */
 
-// MOD-010: WRAPPERS STUDENT - HORARIO CLASES [INICIO]
+/* MOD-011: WRAPPERS HORARIO CLASES [INICIO] */
 function studentObtenerHorarioClases(params) { 
   var result = Student.obtenerHorarioClases(params);
   return cleanDataForSerialization(result);
@@ -393,9 +304,9 @@ function studentEliminarHorarioClase(params) {
   var result = Student.eliminarHorarioClase(params);
   return cleanDataForSerialization(result);
 }
-// MOD-010: FIN
+/* MOD-011: FIN */
 
-// MOD-011: WRAPPERS STUDENT - HORARIO SEMANAL [INICIO]
+/* MOD-012: WRAPPERS HORARIO SEMANAL [INICIO] */
 function studentObtenerHorarioSem(params) { 
   var result = Student.obtenerHorarioSem(params);
   return cleanDataForSerialization(result);
@@ -415,13 +326,9 @@ function studentEliminarHorarioSem(params) {
   var result = Student.eliminarHorarioSem(params);
   return cleanDataForSerialization(result);
 }
-// MOD-011: FIN
+/* MOD-012: FIN */
 
-// MOD-012: WRAPPERS STUDENT - CONFIGURACIÓN SEMANAS [INICIO]
-/**
- * V01.27 CLAUDE: Wrappers para gestión de semanas
- * Soporte completo para HorarioSemanal V01.22
- */
+/* MOD-013: WRAPPERS CONFIG SEMANAS [INICIO] */
 function studentObtenerConfigSemana(params) {
   var result = Student.obtenerConfigSemana(params);
   return cleanDataForSerialization(result);
@@ -441,9 +348,26 @@ function studentLimpiarSemana(params) {
   var result = Student.limpiarSemana(params);
   return cleanDataForSerialization(result);
 }
-// MOD-012: FIN
+/* MOD-013: FIN */
 
-// MOD-013: WRAPPERS STUDENT - NOTAS [INICIO]
+/* MOD-014: WRAPPERS GESTIÓN SEMANAS [INICIO] */
+function studentObtenerSemanas(params) {
+  var result = Student.obtenerSemanas(params.codeAlum);
+  return cleanDataForSerialization(result);
+}
+
+function studentCrearSemana(params) {
+  var result = Student.crearSemana(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentEliminarSemana(params) {
+  var result = Student.eliminarSemana(params);
+  return cleanDataForSerialization(result);
+}
+/* MOD-014: FIN */
+
+/* MOD-015: WRAPPERS NOTAS [INICIO] */
 function studentObtenerNotasPorCurso(params) { 
   var result = Student.obtenerNotasPorCurso(params);
   return cleanDataForSerialization(result);
@@ -453,9 +377,9 @@ function studentObtenerResumenNotas(params) {
   var result = Student.obtenerResumenNotas(params);
   return cleanDataForSerialization(result);
 }
-// MOD-013: FIN
+/* MOD-015: FIN */
 
-// MOD-014: WRAPPERS STUDENT - DEBERES [INICIO]
+/* MOD-016: WRAPPERS DEBERES [INICIO] */
 function studentObtenerTodosDeberes(params) { 
   var result = Student.obtenerTodosDeberes(params);
   return cleanDataForSerialization(result);
@@ -465,9 +389,9 @@ function studentObtenerDeberesPorTipo(params) {
   var result = Student.obtenerDeberesPorTipo(params);
   return cleanDataForSerialization(result);
 }
-// MOD-014: FIN
+/* MOD-016: FIN */
 
-// MOD-015: WRAPPERS ADMIN [INICIO]
+/* MOD-017: WRAPPERS ADMIN [INICIO] */
 function adminCrearAlumno(params) { 
   return Admin.crearAlumno(params); 
 }
@@ -479,31 +403,41 @@ function adminBuscarAlumno(params) {
 function adminEliminarAlumno(params) { 
   return Admin.eliminarAlumno(params); 
 }
-// MOD-015: FIN
+/* MOD-017: FIN */
 
-// MOD-016: NOTAS [INICIO]
+/* MOD-018: NOTAS [INICIO] */
 /*
-DESCRIPCIÓN:
-Router principal del sistema PBE Control con wrappers para
-serialización correcta de datos hacia el frontend.
-
-DEPENDENCIAS:
-● MOD-005 a MOD-014: Requieren módulo Student funcional
-● MOD-015: Requiere módulo Admin funcional
-● MOD-004: Funciones de limpieza críticas para Date/Time
+CAMBIOS V01.28 CLAUDE:
+✅ Agregado MOD-014: Gestión Semanas (3 wrappers)
+  - studentObtenerSemanas()
+  - studentCrearSemana()
+  - studentEliminarSemana()
+✅ Soporte completo para hoja Semanas
+✅ Total: 38 wrappers Student + 3 Admin = 41 wrappers
 
 MÓDULOS:
-MOD-001: Router Principal (1 función)
-MOD-002: Include dinámico (1 función)
-MOD-003: Autenticación (1 función)
-MOD-004: Limpieza de datos (5 funciones)
-MOD-005 a MOD-014: Wrappers Student (35 funciones)
-MOD-015: Wrappers Admin (3 funciones)
-MOD-016: Notas
+MOD-001: Encabezado
+MOD-002: Router Principal (1 función)
+MOD-003: Include dinámico (1 función)
+MOD-004: Autenticación (1 función)
+MOD-005: Limpieza de datos (5 funciones)
+MOD-006: Wrappers Cursos (4)
+MOD-007: Wrappers Repasos (4)
+MOD-008: Wrappers Evaluaciones (4)
+MOD-009: Wrappers Tareas (4)
+MOD-010: Wrappers Lecturas (4)
+MOD-011: Wrappers HorarioClases (4)
+MOD-012: Wrappers HorarioSem (4)
+MOD-013: Wrappers Config Semanas (4)
+MOD-014: Wrappers Gestión Semanas (3) ← NUEVO V01.28
+MOD-015: Wrappers Notas (2)
+MOD-016: Wrappers Deberes (2)
+MOD-017: Wrappers Admin (3)
+MOD-018: Notas
 
-TOTAL FUNCIONES: 46
+TOTAL FUNCIONES: 49
 - Router y utilidades: 8
-- Wrappers Student: 35
+- Wrappers Student: 38
 - Wrappers Admin: 3
 
 LIMPIEZA AUTOMÁTICA:
@@ -513,19 +447,8 @@ Todos los wrappers Student aplican cleanDataForSerialization():
 3. Formatea fechas como "DD/MM/AAAA"
 4. Convierte null/undefined a string vacío
 
-CAMPOS QUE SE LIMPIAN:
-- FechaReg, FechaEval, FechaClase, etc. → DD/MM/AAAA
-- HoraInicio, HoraFin → HH:MM
-- Valores null/undefined → ""
-
-ADVERTENCIAS:
-● MOD-004: isTimeValue() crítico para detectar time objects
-● MOD-004: Procesar time values ANTES de fechas en cleanObject()
-● MOD-012: Wrappers nuevos V01.27 para HorarioSemanal
-
-PRÓXIMAS MEJORAS:
-● Agregar caché de datos frecuentes
-● Implementar compresión para arrays grandes
-● Agregar logging de errores de serialización
+ADVERTENCIAS CRÍTICAS:
+● MOD-005: isTimeValue() procesa times ANTES de fechas
+● MOD-014: obtenerSemanas() recibe codeAlum directo, no params completo
 */
-// MOD-016: FIN
+/* MOD-018: FIN */
