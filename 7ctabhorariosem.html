@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.27 CLAUDE
-FECHA: 10/01/2026 07:30 (UTC-5)
+VERSIÓN: 01.28 LIBRE
+FECHA: 10/01/2026 19:00 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -621,6 +621,7 @@ console.log('📅 HorarioSemanalModule V01.25 CLAUDE iniciando...');
 let clasesData = [];
 let actividadesData = [];
 let cursosData = [];
+let semanasData = [];
 let horarioMatrix = {};
 let configSemana = null;
 let semanaActual = 1;
@@ -659,6 +660,7 @@ function init() {
   console.log('📅 Inicializado para:', currentUser.codeAlum);
   
   cargarConfigSemana();
+  cargarSemanas();
 }
 <!-- MOD-007: FIN -->
 
@@ -692,6 +694,29 @@ function cargarConfigSemana() {
 }
 <!-- MOD-008: FIN -->
 
+<!-- MOD-008A: FUNCIÓN CARGA SEMANAS [INICIO] -->
+function cargarSemanas() {
+  console.log('📅 Cargando semanas desde BD...');
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        semanasData = r.data || [];
+        console.log('📅 Semanas cargadas:', semanasData.length);
+        renderListaSemanas();
+      } else {
+        console.log('📅 Sin semanas, usar semana actual');
+        renderListaSemanas();
+      }
+    })
+    .withFailureHandler(e => {
+      console.error('📅 Error al cargar semanas:', e);
+      renderListaSemanas();
+    })
+    .studentObtenerSemanas({ codeAlum: currentUser.codeAlum });
+}
+<!-- MOD-008A: FIN -->
+
 <!-- MOD-009: FUNCIÓN CALCULAR SEMANA ACTUAL [INICIO] -->
 function calcularSemanaActual() {
   const hoy = new Date();
@@ -721,13 +746,25 @@ function renderListaSemanas() {
   
   let html = '';
   
-  for (let i = 1; i <= semanaActual; i++) {
-    const activeClass = i === semanaActual ? 'active' : '';
-    html += `
-      <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${i})">
-        Semana ${i}
-      </div>
-    `;
+  if (semanasData.length > 0) {
+    semanasData.forEach(sem => {
+      const numSem = parseInt(sem.Semana);
+      const activeClass = numSem === semanaActual ? 'active' : '';
+      html += `
+        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${numSem})">
+          Semana ${numSem}
+        </div>
+      `;
+    });
+  } else {
+    for (let i = 1; i <= semanaActual; i++) {
+      const activeClass = i === semanaActual ? 'active' : '';
+      html += `
+        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${i})">
+          Semana ${i}
+        </div>
+      `;
+    }
   }
   
   lista.innerHTML = html;
@@ -1096,8 +1133,33 @@ function navegarSemana(direccion) {
 }
 
 function agregarNuevaSemana() {
-  // Avanzar a la siguiente semana sin restricciones
-  cambiarSemana(semanaActual + 1);
+  const nuevaSemana = semanaActual + 1;
+  const fechas = calcularFechasSemana(nuevaSemana);
+  
+  const params = {
+    codeAlum: currentUser.codeAlum,
+    semana: nuevaSemana,
+    fechaInicio: formatearFechaISO(fechas.lunes),
+    fechaFin: formatearFechaISO(fechas.domingo)
+  };
+  
+  console.log('📅 Creando semana:', params);
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        mostrarNotificacion('success', `Semana ${nuevaSemana} creada`);
+        cargarSemanas();
+        cambiarSemana(nuevaSemana);
+      } else {
+        mostrarNotificacion('error', r.error || 'Error al crear semana');
+      }
+    })
+    .withFailureHandler(e => {
+      console.error('Error:', e);
+      mostrarNotificacion('error', 'Error de conexión');
+    })
+    .studentCrearSemana(params);
 }
 <!-- MOD-020: FIN -->
 
@@ -1467,21 +1529,22 @@ console.log('%c📅 HorarioSemanalModule V01.25 CLAUDE cargado',
 
 <!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
+CAMBIOS V01.28 LIBRE:
+✅ Integración con hoja Semanas
+✅ MOD-008A: Nueva función cargarSemanas()
+✅ MOD-010: renderListaSemanas() usa semanasData de BD
+✅ MOD-020: agregarNuevaSemana() crea registro en hoja Semanas
+✅ Persistencia completa de semanas entre sesiones
+✅ Sin restricción de semanas futuras
+
 DESCRIPCIÓN:
 Sistema de Horario Semanal con panel lateral de semanas, navegación,
 configuración de Semana 1, copia de actividades y limpieza.
-
-CAMBIOS V01.25 CLAUDE:
-✅ Aislamiento completo de estilos con prefijo .hs-
-✅ IDs únicos: hsGridContainer, loadingHS, modalConfigSemana, modalActividad
-✅ FIX CRÍTICO: Loading se remueve antes de renderizar grid
-✅ Sin contaminación con HorarioClase
-✅ Backend V01.18 normaliza fechas a ISO correctamente
-✅ Modularización completa según CodeWorkshop v2.1
+Las semanas se almacenan en hoja Semanas con formato DD/MM/AAAA.
 
 CARACTERÍSTICAS:
-- Panel lateral con lista de semanas hasta hoy
-- Botón "Agregar" para crear nueva semana
+- Panel lateral con lista de semanas desde BD
+- Botón "➕ Agregar Semana" crea registro en BD
 - Navegación ◀ Ant / Sig ▶ entre semanas
 - Botón "🔧 Configurar" para establecer Semana 1
 - Botón "📋 Copiar Sem. ant." para duplicar actividades
@@ -1490,59 +1553,33 @@ CARACTERÍSTICAS:
 - Carga automática de clases fijas desde HorarioClases
 - CRUD de actividades semanales en HorarioSem
 
-DEPENDENCIAS:
-- MOD-007: Requiere window.currentUser.codeAlum
-- MOD-008: Requiere studentObtenerConfigSemana() backend
-- MOD-013: Requiere studentObtenerCursos() backend
-- MOD-014: Requiere studentObtenerHorarioClases() backend
-- MOD-015: Requiere studentObtenerHorarioSem() backend
-- MOD-021: Requiere studentGuardarConfigSemana() backend
-- MOD-022: Requiere studentAgregarHorarioSem() y 
-  studentActualizarHorarioSem() backend
-- MOD-023: Requiere studentCopiarSemana() y 
-  studentLimpiarSemana() backend
+DEPENDENCIAS BACKEND:
+- studentObtenerConfigSemana()
+- studentObtenerSemanas() ← NUEVO V01.28
+- studentCrearSemana() ← NUEVO V01.28
+- studentObtenerCursos()
+- studentObtenerHorarioClases()
+- studentObtenerHorarioSem()
+- studentGuardarConfigSemana()
+- studentAgregarHorarioSem()
+- studentActualizarHorarioSem()
+- studentEliminarHorarioSem()
+- studentCopiarSemana()
+- studentLimpiarSemana()
 
 ESTRUCTURA DE DATOS:
-ConfigSemana {
-  FechaInicio (ISO: YYYY-MM-DD)
+Semanas {
+  FechaReg, CodeAlum, FechaInicio, FechaFin, Semana
 }
 
 HorarioSem {
   FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, 
-  FechaHS, TipoAct, Color, Sem
-}
-
-HorarioClases {
-  FechaReg, CodeAlum, Curso, HoraIni, HoraFin, Detalle
-}
-
-Cursos {
-  Curso, Completo, Color
+  FechaHS (DD/MM/AAAA), TipoAct, Color, Sem
 }
 
 ADVERTENCIAS:
-- MOD-006: DIAS es constante, no usar .push()
-- MOD-009: Semana actual se calcula desde FechaInicio
-- MOD-012: calcularFechasSemana() ajusta a lunes automático
-- MOD-016: Matriz combina clases fijas + actividades
-- MOD-017: calcularHoras() no valida fuera rango 7-22
-- MOD-018: renderGrid() sobrescribe innerHTML, elimina loading
-- MOD-020: navegarSemana() no permite semanas futuras
-- MOD-023: limpiarSemana() NO elimina clases fijas
-
-AISLAMIENTO:
-- Todos los estilos CSS usan prefijo .hs-
-- Todos los IDs únicos: hsGridContainer, loadingHS, 
-  modalConfigSemana, modalActividad
-- No hay contaminación con HorarioClase (prefijo .hc-)
-- IIFE con 'use strict' para encapsulamiento completo
-
-PRÓXIMAS MEJORAS:
-- Implementar drag & drop para mover actividades
-- Agregar vista de impresión semanal
-- Exportación a PDF/imagen
-- Filtro por tipo de actividad
-- Estadísticas de horas por semana
-- Notificaciones de actividades próximas
+- MOD-008A: Debe llamarse después de cargarConfigSemana()
+- MOD-010: Si semanasData vacío, genera lista temporal
+- MOD-020: agregarNuevaSemana() recalcula fechas automáticamente
 -->
 <!-- MOD-025: FIN -->
