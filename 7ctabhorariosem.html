@@ -3,21 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.28 CLAUDE
-FECHA: 11/01/2026 18:45 (UTC-5)
-
-CAMBIOS V01.28 CLAUDE:
-✅ FIX CRÍTICO: Parseo correcto de fechas DD/MM/AAAA desde backend
-✅ Función parsearFechaDDMMAAAA() para interpretar fechas correctamente
-✅ Modal de confirmación estilizado (reemplaza confirm() nativo)
-✅ Validación de r.data en copiarSemana (fix "[object Object]")
-✅ Conversión de fechas a DD/MM/AAAA al enviar al backend
-✅ Backend normaliza fechas a DD/MM/AAAA (no YYYY-MM-DD)
-✅ Backend calcula Sem correcta al copiar (suma diferencia de semanas)
-✅ Backend normaliza horas a HH:MM (sin segundos)
-✅ Visualización de actividades ahora funciona correctamente
-✅ Copiar semana anterior funciona con fechas y semanas correctas
-✅ Interfaz más elegante con modal personalizado
+VERSIÓN: 01.29 CLAUDE
+FECHA: 11/01/2026 16:33 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -360,27 +347,27 @@ CAMBIOS V01.28 CLAUDE:
   .hs-container {
     grid-template-columns: 1fr;
   }
-  
+
   .hs-sidebar {
     border-right: none;
     border-bottom: 2px solid #e0e0e0;
     padding-right: 0;
     padding-bottom: 16px;
   }
-  
+
   .hs-toolbar {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .hs-grid {
     font-size: 11px;
   }
-  
+
   .hs-grid .hs-col-hora {
     width: 60px;
   }
-  
+
   .hs-celda {
     font-size: 10px;
     padding: 4px;
@@ -482,7 +469,7 @@ CAMBIOS V01.28 CLAUDE:
       ➕ Agregar Semana
     </button>
   </div>
-  
+
   <div class="hs-main">
     <div class="hs-toolbar">
       <div class="hs-nav-semana">
@@ -490,7 +477,7 @@ CAMBIOS V01.28 CLAUDE:
         <div class="hs-semana-info" id="hsSemanaInfo">Semana 1</div>
         <button class="hs-nav-btn" onclick="window.navegarSemana(1)">Sig ▶</button>
       </div>
-      
+
       <div class="hs-actions">
         <button class="hs-btn-action" onclick="window.abrirConfigSemana()">
           🔧 Configurar
@@ -503,7 +490,7 @@ CAMBIOS V01.28 CLAUDE:
         </button>
       </div>
     </div>
-    
+
     <div class="hs-grid-container">
       <div class="hs-loading" id="loadingHS">
         <div class="hs-spinner"></div>
@@ -517,13 +504,13 @@ CAMBIOS V01.28 CLAUDE:
 <div id="modalConfigSemana" class="hs-modal">
   <div class="hs-modal-content">
     <h3>Configurar Semana 1</h3>
-    
+
     <form id="formConfigSemana" onsubmit="return window.handleConfigSemana(event)">
       <div class="hs-form-group">
         <label>Primer día de clases (cualquier día de la semana):</label>
         <input type="date" id="configFechaInicio" required>
       </div>
-      
+
       <div class="hs-modal-actions">
         <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarConfigSemana()">Cancelar</button>
         <button type="submit" class="hs-btn hs-btn-primary">Guardar</button>
@@ -585,7 +572,7 @@ CAMBIOS V01.28 CLAUDE:
   </div>
 </div>
 
-<!-- V01.28 CLAUDE: Modal de confirmación estilizado -->
+<!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
 <div id="modalConfirmacion" class="hs-modal">
   <div class="hs-modal-content" style="max-width: 420px;">
     <h3 id="confirmacionTitulo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -614,21 +601,21 @@ CAMBIOS V01.28 CLAUDE:
 function mostrarNotificacion(tipo, mensaje) {
   const notif = document.createElement('div');
   notif.className = `hs-notificacion ${tipo}`;
-  
+
   const iconos = {
     'success': '✓',
     'error': '✗',
     'info': 'ℹ'
   };
-  
+
   notif.innerHTML = `
     <div class="hs-notificacion-icon">${iconos[tipo] || 'ℹ'}</div>
     <div class="hs-notificacion-texto">${mensaje}</div>
     <button class="hs-notificacion-cerrar" onclick="this.parentElement.remove()">×</button>
   `;
-  
+
   document.body.appendChild(notif);
-  
+
   setTimeout(() => {
     if (notif.parentElement) {
       notif.style.animation = 'hs-slideIn 0.3s ease-out reverse';
@@ -646,13 +633,14 @@ if (window.HorarioSemanalModule) {
   return;
 }
 
-console.log('📅 HorarioSemanalModule V01.28 CLAUDE iniciando...');
+console.log('📅 HorarioSemanalModule V01.29 CLAUDE iniciando...');
 <!-- MOD-005: FIN -->
 
 <!-- MOD-006: VERIFICACIÓN Y CONSTANTES [INICIO] -->
 let clasesData = [];
 let actividadesData = [];
 let cursosData = [];
+let semanasData = [];
 let horarioMatrix = {};
 let configSemana = null;
 let semanaActual = 1;
@@ -668,15 +656,15 @@ const MAX_RETRIES = 5;
 <!-- MOD-007: FUNCIÓN INICIALIZACIÓN [INICIO] -->
 function init() {
   console.log('📅 HorarioSemanalModule.init() llamado (intento ' + (_retryCount + 1) + ')');
-  
+
   if (_initDone) {
     console.log('📅 Ya inicializado, ignorando');
     return;
   }
-  
+
   if (!window.currentUser || !currentUser.codeAlum) {
     console.warn('📅 currentUser no disponible, reintentando...');
-    
+
     if (_retryCount < MAX_RETRIES) {
       _retryCount++;
       setTimeout(init, 200);
@@ -686,26 +674,27 @@ function init() {
     }
     return;
   }
-  
+
   _initDone = true;
   console.log('📅 Inicializado para:', currentUser.codeAlum);
-  
+
   cargarConfigSemana();
+  cargarSemanas();
 }
 <!-- MOD-007: FIN -->
 
 <!-- MOD-008: FUNCIÓN CARGA CONFIG SEMANA [INICIO] -->
 function cargarConfigSemana() {
   console.log('📅 Cargando configuración de semana...');
-  
+
   google.script.run
     .withSuccessHandler(r => {
       console.log('📅 Config response:', r);
-      
+
       if (r && r.success && r.data && r.data.FechaInicio) {
         configSemana = r.data;
         console.log('📅 FechaInicio:', configSemana.FechaInicio);
-        
+
         calcularSemanaActual();
         cargarCursos();
         cargarHorarioClases();
@@ -724,23 +713,46 @@ function cargarConfigSemana() {
 }
 <!-- MOD-008: FIN -->
 
+<!-- MOD-008A: FUNCIÓN CARGA SEMANAS [INICIO] -->
+function cargarSemanas() {
+  console.log('📅 Cargando semanas desde BD...');
+
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        semanasData = r.data || [];
+        console.log('📅 Semanas cargadas:', semanasData.length);
+        renderListaSemanas();
+      } else {
+        console.log('📅 Sin semanas, usar semana actual');
+        renderListaSemanas();
+      }
+    })
+    .withFailureHandler(e => {
+      console.error('📅 Error al cargar semanas:', e);
+      renderListaSemanas();
+    })
+    .studentObtenerSemanas({ codeAlum: currentUser.codeAlum });
+}
+<!-- MOD-008A: FIN -->
+
 <!-- MOD-009: FUNCIÓN CALCULAR SEMANA ACTUAL [INICIO] -->
 function calcularSemanaActual() {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
-  
+
   const fechaInicio = new Date(configSemana.FechaInicio);
   fechaInicio.setHours(0, 0, 0, 0);
-  
+
   const diffMs = hoy - fechaInicio;
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   semanaActual = Math.floor(diffDias / 7) + 1;
-  
+
   if (semanaActual < 1) semanaActual = 1;
-  
+
   console.log('📅 Semana actual:', semanaActual);
-  
+
   renderListaSemanas();
   actualizarInfoSemana();
 }
@@ -750,18 +762,30 @@ function calcularSemanaActual() {
 function renderListaSemanas() {
   const lista = document.getElementById('hsSemanasList');
   if (!lista) return;
-  
+
   let html = '';
-  
-  for (let i = 1; i <= semanaActual; i++) {
-    const activeClass = i === semanaActual ? 'active' : '';
-    html += `
-      <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${i})">
-        Semana ${i}
-      </div>
-    `;
+
+  if (semanasData.length > 0) {
+    semanasData.forEach(sem => {
+      const numSem = parseInt(sem.Semana);
+      const activeClass = numSem === semanaActual ? 'active' : '';
+      html += `
+        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${numSem})">
+          Semana ${numSem}
+        </div>
+      `;
+    });
+  } else {
+    for (let i = 1; i <= semanaActual; i++) {
+      const activeClass = i === semanaActual ? 'active' : '';
+      html += `
+        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${i})">
+          Semana ${i}
+        </div>
+      `;
+    }
   }
-  
+
   lista.innerHTML = html;
 }
 <!-- MOD-010: FIN -->
@@ -770,11 +794,11 @@ function renderListaSemanas() {
 function actualizarInfoSemana() {
   const info = document.getElementById('hsSemanaInfo');
   if (!info) return;
-  
+
   const fechas = calcularFechasSemana(semanaActual);
   const fechaIni = formatearFechaCorta(fechas.lunes);
   const fechaFin = formatearFechaCorta(fechas.domingo);
-  
+
   info.textContent = `Semana ${semanaActual} (${fechaIni} - ${fechaFin})`;
 }
 <!-- MOD-011: FIN -->
@@ -783,24 +807,24 @@ function actualizarInfoSemana() {
 function calcularFechasSemana(numSemana) {
   const fechaInicio = new Date(configSemana.FechaInicio);
   fechaInicio.setHours(0, 0, 0, 0);
-  
+
   const diaSemana = fechaInicio.getDay();
   const diasHastaLunes = diaSemana === 0 ? 6 : diaSemana - 1;
-  
+
   const lunes = new Date(fechaInicio);
   lunes.setDate(lunes.getDate() - diasHastaLunes);
   lunes.setDate(lunes.getDate() + ((numSemana - 1) * 7));
-  
+
   const domingo = new Date(lunes);
   domingo.setDate(domingo.getDate() + 6);
-  
+
   const dias = [];
   for (let i = 0; i < 7; i++) {
     const dia = new Date(lunes);
     dia.setDate(dia.getDate() + i);
     dias.push(dia);
   }
-  
+
   return { lunes, domingo, dias };
 }
 <!-- MOD-012: FIN -->
@@ -808,7 +832,7 @@ function calcularFechasSemana(numSemana) {
 <!-- MOD-013: FUNCIÓN CARGA DE CURSOS [INICIO] -->
 function cargarCursos() {
   console.log('📅 Cargando cursos...');
-  
+
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
@@ -826,7 +850,7 @@ function cargarCursos() {
 <!-- MOD-014: FUNCIÓN CARGA DE HORARIO CLASES [INICIO] -->
 function cargarHorarioClases() {
   console.log('📅 Cargando horario clases...');
-  
+
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
@@ -844,15 +868,15 @@ function cargarHorarioClases() {
 <!-- MOD-015: FUNCIÓN CARGA DE HORARIO SEMANAL [INICIO] -->
 function cargarHorarioSem() {
   console.log('📅 Cargando horario semanal...');
-  
+
   google.script.run
     .withSuccessHandler(r => {
       console.log('📅 HorarioSem response:', r);
-      
+
       if (r && r.success) {
         actividadesData = r.data || [];
         console.log('📅 Actividades cargadas:', actividadesData.length);
-        
+
         construirMatriz();
         renderGrid();
         ocultarLoading();
@@ -876,25 +900,25 @@ function cargarHorarioSem() {
 <!-- MOD-016: FUNCIÓN CONSTRUCCIÓN DE MATRIZ [INICIO] -->
 function construirMatriz() {
   console.log('📅 Construyendo matriz...');
-  
+
   const fechas = calcularFechasSemana(semanaActual);
-  
+
   horarioMatrix = {};
   fechas.dias.forEach(fecha => {
     const key = formatearFechaISO(fecha);
     horarioMatrix[key] = {};
   });
-  
+
   clasesData.forEach(c => {
     const dia = extraerDia(c.Detalle);
     if (!dia) return;
-    
+
     const diaIndex = DIAS.indexOf(dia);
     if (diaIndex === -1) return;
-    
+
     const fechaDia = fechas.dias[diaIndex];
     const key = formatearFechaISO(fechaDia);
-    
+
     const horas = calcularHoras(c.HoraIni, c.HoraFin);
     horas.forEach(h => {
       horarioMatrix[key][h.hora] = horarioMatrix[key][h.hora] || [];
@@ -905,12 +929,12 @@ function construirMatriz() {
       });
     });
   });
-  
+
   actividadesData.forEach(act => {
     const fechaAct = act.FechaHS;
     if (!fechaAct) return;
 
-    <!-- V01.28 CLAUDE: Parsear DD/MM/AAAA correctamente -->
+    <!-- V01.29 CLAUDE: Parsear DD/MM/AAAA correctamente -->
     const fechaParsed = parsearFechaDDMMAAAA(fechaAct);
     if (isNaN(fechaParsed.getTime())) {
       console.warn('📅 Fecha inválida:', fechaAct);
@@ -931,7 +955,7 @@ function construirMatriz() {
       });
     });
   });
-  
+
   console.log('📅 Matriz construida:', horarioMatrix);
 }
 <!-- MOD-016: FIN -->
@@ -950,33 +974,33 @@ function extraerDia(t) {
 function calcularHoras(i, f) {
   const horaIniStr = normalizarHora(i);
   const horaFinStr = normalizarHora(f);
-  
+
   if (!horaIniStr || !horaFinStr) {
     return [];
   }
-  
+
   const [hi, mi] = horaIniStr.split(':').map(Number);
   const [hf, mf] = horaFinStr.split(':').map(Number);
-  
+
   const res = [];
-  
+
   for (let h = hi; h <= hf; h++) {
     if (h > HORA_FIN) break;
     if (h === hf && mf === 0) continue;
-    
+
     res.push({
       hora: String(h).padStart(2, '0') + ':00',
       prefijo: (h === hi && mi >= 30) ? '/' : '',
       sufijo: (h === hf && mf > 0 && mf < 60) ? '/' : ''
     });
   }
-  
+
   return res;
 }
 
 function normalizarHora(valor) {
   if (!valor) return null;
-  
+
   if (typeof valor === 'string') {
     const match = valor.match(/(\d{1,2}):(\d{2})/);
     if (match) {
@@ -985,7 +1009,7 @@ function normalizarHora(valor) {
       return h + ':' + m;
     }
   }
-  
+
   if (typeof valor === 'object' && valor !== null) {
     if ('hour' in valor && 'minute' in valor) {
       const h = String(valor.hour).padStart(2, '0');
@@ -993,7 +1017,7 @@ function normalizarHora(valor) {
       return h + ':' + m;
     }
   }
-  
+
   return null;
 }
 
@@ -1006,74 +1030,74 @@ function colorCurso(curso) {
 <!-- MOD-018: FUNCIÓN RENDERIZADO DE GRID [INICIO] -->
 function renderGrid() {
   console.log('📅 Renderizando grid...');
-  
+
   const container = document.querySelector('.hs-grid-container');
   if (!container) {
     console.error('📅 No se encontró hs-grid-container');
     return;
   }
-  
+
   const loading = document.getElementById('loadingHS');
   if (loading) loading.remove();
-  
+
   const c = document.getElementById('hsGridContainer');
   if (!c) return;
-  
+
   const fechas = calcularFechasSemana(semanaActual);
-  
+
   let html = '<table class="hs-grid"><thead><tr><th class="hs-col-hora">Hora</th>';
-  
+
   fechas.dias.forEach((fecha, idx) => {
     const diaCorto = DIAS_CORTOS[idx];
     const fechaCorta = formatearFechaCorta(fecha);
     html += `<th class="hs-col-dia">${diaCorto}<br>${fechaCorta}</th>`;
   });
-  
+
   html += '</tr></thead><tbody>';
-  
+
   for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
     const k = String(h).padStart(2, '0') + ':00';
     const horaFormato = formatearHora12(h);
-    
+
     html += `<tr><td class="hs-col-hora">${horaFormato}</td>`;
-    
+
     fechas.dias.forEach(fecha => {
       const key = formatearFechaISO(fecha);
       const items = horarioMatrix[key][k];
-      
+
       if (items && items.length > 0) {
         const item = items[0];
-        
+
         if (item.tipo === 'clase') {
           const color = colorCurso(item.clase.Curso);
           const texto = item.prefijo + item.clase.Curso + item.sufijo;
-          
+
           html += `<td><div class="hs-celda ocupada clase-fija" style="background:${color}">
             ${texto}
           </div></td>`;
         } else {
           const act = item.actividad;
           const texto = item.prefijo + act.Actividad + item.sufijo;
-          
-          html += `<td><div class="hs-celda ocupada" 
-            style="background:${act.Color}" 
+
+          html += `<td><div class="hs-celda ocupada"
+            style="background:${act.Color}"
             onclick="window.editarActividad('${key}','${k}')">
             ${texto}
           </div></td>`;
         }
       } else {
-        html += `<td><div class="hs-celda" 
+        html += `<td><div class="hs-celda"
           onclick="window.clickCelda('${key}','${k}')">
         </div></td>`;
       }
     });
-    
+
     html += '</tr>';
   }
-  
+
   html += '</tbody></table>';
   c.innerHTML = html;
-  
+
   console.log('📅 Grid renderizado');
 }
 
@@ -1104,7 +1128,7 @@ function formatearFechaCorta(fecha) {
   return `${dia}/${mes}`;
 }
 
-<!-- V01.28 CLAUDE: Formatear Date a DD/MM/AAAA -->
+<!-- V01.29 CLAUDE: Formatear Date a DD/MM/AAAA -->
 function formatearFechaDDMMAAAA(fecha) {
   if (!fecha || !(fecha instanceof Date)) {
     return '';
@@ -1117,7 +1141,7 @@ function formatearFechaDDMMAAAA(fecha) {
   return `${dia}/${mes}/${anio}`;
 }
 
-<!-- V01.28 CLAUDE: Parsear DD/MM/AAAA a Date object -->
+<!-- V01.29 CLAUDE: Parsear DD/MM/AAAA a Date object -->
 function parsearFechaDDMMAAAA(fechaStr) {
   if (!fechaStr) {
     return new Date('invalid');
@@ -1159,27 +1183,52 @@ function cambiarSemana(numSemana) {
 
 function navegarSemana(direccion) {
   const nuevaSemana = semanaActual + direccion;
-  
+
   if (nuevaSemana < 1) return;
-  
+
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
-  
+
   const fechaInicio = new Date(configSemana.FechaInicio);
   fechaInicio.setHours(0, 0, 0, 0);
-  
+
   const diffMs = hoy - fechaInicio;
   const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const semanaMaxima = Math.floor(diffDias / 7) + 1;
-  
+
   if (nuevaSemana > semanaMaxima) return;
-  
+
   cambiarSemana(nuevaSemana);
 }
 
 function agregarNuevaSemana() {
-  // Avanzar a la siguiente semana sin restricciones
-  cambiarSemana(semanaActual + 1);
+  const nuevaSemana = semanaActual + 1;
+  const fechas = calcularFechasSemana(nuevaSemana);
+
+  const params = {
+    codeAlum: currentUser.codeAlum,
+    semana: nuevaSemana,
+    fechaInicio: formatearFechaISO(fechas.lunes),
+    fechaFin: formatearFechaISO(fechas.domingo)
+  };
+
+  console.log('📅 Creando semana:', params);
+
+  google.script.run
+    .withSuccessHandler(r => {
+      if (r && r.success) {
+        mostrarNotificacion('success', `Semana ${nuevaSemana} creada`);
+        cargarSemanas();
+        cambiarSemana(nuevaSemana);
+      } else {
+        mostrarNotificacion('error', r.error || 'Error al crear semana');
+      }
+    })
+    .withFailureHandler(e => {
+      console.error('Error:', e);
+      mostrarNotificacion('error', 'Error de conexión');
+    })
+    .studentCrearSemana(params);
 }
 <!-- MOD-020: FIN -->
 
@@ -1187,12 +1236,12 @@ function agregarNuevaSemana() {
 function abrirConfigSemana() {
   const modal = document.getElementById('modalConfigSemana');
   if (!modal) return;
-  
+
   const input = document.getElementById('configFechaInicio');
   if (input && configSemana && configSemana.FechaInicio) {
     input.value = configSemana.FechaInicio;
   }
-  
+
   modal.classList.add('active');
 }
 
@@ -1203,26 +1252,26 @@ function cerrarConfigSemana() {
 
 function handleConfigSemana(event) {
   event.preventDefault();
-  
+
   const fechaInput = document.getElementById('configFechaInicio').value;
-  
+
   if (!fechaInput) {
     mostrarNotificacion('info', 'Ingresa una fecha');
     return false;
   }
-  
+
   const fecha = new Date(fechaInput + 'T00:00:00');
-  
+
   const diaSemana = fecha.getDay();
   const diasHastaLunes = diaSemana === 0 ? 6 : diaSemana - 1;
-  
+
   const lunes = new Date(fecha);
   lunes.setDate(lunes.getDate() - diasHastaLunes);
-  
+
   const fechaInicio = formatearFechaISO(lunes);
-  
+
   console.log('📅 Guardando config:', fechaInicio);
-  
+
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
@@ -1241,7 +1290,7 @@ function handleConfigSemana(event) {
       codeAlum: currentUser.codeAlum,
       fechaInicio: fechaInicio
     });
-  
+
   return false;
 }
 <!-- MOD-021: FIN -->
@@ -1254,44 +1303,44 @@ function clickCelda(fecha, hora) {
 
 function abrirFormularioActividad(fecha, hora) {
   resetFormActividad();
-  
+
   const fechaObj = new Date(fecha);
   const diaIndex = fechaObj.getDay() === 0 ? 6 : fechaObj.getDay() - 1;
   const diaCorto = DIAS_CORTOS[diaIndex];
   const fechaCorta = formatearFechaCorta(fechaObj);
-  
+
   document.getElementById('actividadFormTitle').textContent = `Agregar Actividad - ${diaCorto} ${fechaCorta}`;
   document.getElementById('actividadModoEdicion').value = 'false';
   document.getElementById('actividadFecha').value = fecha;
   document.getElementById('actividadSem').value = semanaActual;
   document.getElementById('btnSubmitActividad').textContent = 'Guardar';
   document.getElementById('btnEliminarActividad').style.display = 'none';
-  
+
   document.getElementById('actividadHoraIni').value = hora;
-  
+
   const [h] = hora.split(':').map(Number);
   const horaFinSugerida = String(Math.min(h + 1, HORA_FIN + 1)).padStart(2, '0') + ':00';
   document.getElementById('actividadHoraFin').value = horaFinSugerida;
-  
+
   document.getElementById('modalActividad').classList.add('active');
 }
 
 function editarActividad(fecha, hora) {
   const key = fecha;
   const items = horarioMatrix[key][hora];
-  
+
   if (!items || items.length === 0) return;
-  
+
   const item = items.find(i => i.tipo === 'actividad');
   if (!item) return;
-  
+
   const act = item.actividad;
-  
+
   const fechaObj = new Date(fecha);
   const diaIndex = fechaObj.getDay() === 0 ? 6 : fechaObj.getDay() - 1;
   const diaCorto = DIAS_CORTOS[diaIndex];
   const fechaCorta = formatearFechaCorta(fechaObj);
-  
+
   document.getElementById('actividadFormTitle').textContent = `Editar Actividad - ${diaCorto} ${fechaCorta}`;
   document.getElementById('actividadRowNumber').value = act._rowNumber || '';
   document.getElementById('actividadModoEdicion').value = 'true';
@@ -1302,17 +1351,17 @@ function editarActividad(fecha, hora) {
   document.getElementById('actividadHoraIni').value = normalizarHora(act.HoraInicio) || '';
   document.getElementById('actividadHoraFin').value = normalizarHora(act.HoraFin) || '';
   document.getElementById('actividadColor').value = act.Color || '#17a2b8';
-  
+
   document.getElementById('btnSubmitActividad').textContent = 'Actualizar';
   document.getElementById('btnEliminarActividad').style.display = 'block';
-  
+
   document.getElementById('modalActividad').classList.add('active');
 }
 
 function resetFormActividad() {
   const form = document.getElementById('formActividad');
   if (form) form.reset();
-  
+
   document.getElementById('actividadRowNumber').value = '';
   document.getElementById('actividadModoEdicion').value = 'false';
   document.getElementById('actividadFecha').value = '';
@@ -1327,7 +1376,7 @@ function cerrarModalActividad() {
 
 function handleSubmitActividad(event) {
   event.preventDefault();
-  
+
   const tipo = document.getElementById('actividadTipo').value.trim();
   const nombre = document.getElementById('actividadNombre').value.trim();
   const horaIni = document.getElementById('actividadHoraIni').value.trim();
@@ -1337,22 +1386,22 @@ function handleSubmitActividad(event) {
   const color = document.getElementById('actividadColor').value;
   const esEdicion = document.getElementById('actividadModoEdicion').value === 'true';
   const rowNumber = document.getElementById('actividadRowNumber').value;
-  
+
   if (!tipo || !nombre || !horaIni || !horaFin) {
     mostrarNotificacion('info', 'Completa todos los campos');
     return false;
   }
-  
+
   if (horaIni >= horaFin) {
     mostrarNotificacion('info', 'La hora de fin debe ser mayor a la de inicio');
     return false;
   }
-  
+
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = true;
   btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
-  
-  <!-- V01.28 CLAUDE: Convertir fecha ISO a DD/MM/AAAA -->
+
+  <!-- V01.29 CLAUDE: Convertir fecha ISO a DD/MM/AAAA -->
   const fechaObj = new Date(fecha);
   const fechaDDMMAAAA = formatearFechaDDMMAAAA(fechaObj);
 
@@ -1366,12 +1415,12 @@ function handleSubmitActividad(event) {
     color: color,
     sem: sem
   };
-  
+
   if (esEdicion) {
     if (rowNumber) {
       params.rowNumber = parseInt(rowNumber);
     }
-    
+
     google.script.run
       .withSuccessHandler(r => handleActividadGuardada(r, true))
       .withFailureHandler(e => handleActividadError(e, true))
@@ -1382,7 +1431,7 @@ function handleSubmitActividad(event) {
       .withFailureHandler(e => handleActividadError(e, false))
       .studentAgregarHorarioSem(params);
   }
-  
+
   return false;
 }
 
@@ -1390,7 +1439,7 @@ function handleActividadGuardada(response, esEdicion) {
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = false;
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
+
   if (response && response.success) {
     const msg = esEdicion ? '✓ Actividad actualizada' : '✓ Actividad agregada';
     mostrarNotificacion('success', msg);
@@ -1404,11 +1453,11 @@ function handleActividadGuardada(response, esEdicion) {
 
 function handleActividadError(error, esEdicion) {
   console.error('📅 Error:', error);
-  
+
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = false;
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
+
   mostrarNotificacion('error', 'Error de conexión. Intenta nuevamente');
 }
 
@@ -1420,7 +1469,7 @@ function confirmarEliminarActividad() {
     return;
   }
 
-  <!-- V01.28 CLAUDE: Modal de confirmación estilizado -->
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     '¿Eliminar esta actividad?\n\nEsta acción no se puede deshacer.',
     function() {
@@ -1452,39 +1501,44 @@ function handleActividadEliminada(response) {
 <!-- MOD-022: FIN -->
 
 <!-- MOD-022B: FUNCIONES MODAL CONFIRMACIÓN [INICIO] -->
-<!-- V01.28 CLAUDE: Modal de confirmación estilizado -->
-let callbackConfirmacion = null;
-
-function mostrarConfirmacion(mensaje, callback) {
+/**
+ * Muestra un modal de confirmación estilizado
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {function} onConfirm - Callback cuando se confirma
+ */
+function mostrarConfirmacion(mensaje, onConfirm) {
   const modal = document.getElementById('modalConfirmacion');
   const mensajeEl = document.getElementById('confirmacionMensaje');
   const btnConfirmar = document.getElementById('btnConfirmarAccion');
 
-  if (!modal || !mensajeEl || !btnConfirmar) return;
+  if (!modal || !mensajeEl || !btnConfirmar) {
+    console.error('❌ No se encontró el modal de confirmación');
+    return;
+  }
 
-  mensajeEl.textContent = mensaje;
-  callbackConfirmacion = callback;
+  <!-- Configurar mensaje (convertir \n a <br>) -->
+  mensajeEl.innerHTML = mensaje.replace(/\n/g, '<br>');
 
-  <!-- Limpiar event listeners anteriores -->
-  const nuevoBtn = btnConfirmar.cloneNode(true);
-  btnConfirmar.parentNode.replaceChild(nuevoBtn, btnConfirmar);
-
-  <!-- Agregar nuevo event listener -->
-  document.getElementById('btnConfirmarAccion').onclick = function() {
+  <!-- Configurar botón de confirmación -->
+  btnConfirmar.onclick = function() {
     cerrarModalConfirmacion();
-    if (callbackConfirmacion) {
-      callbackConfirmacion();
-      callbackConfirmacion = null;
+    if (typeof onConfirm === 'function') {
+      onConfirm();
     }
   };
 
-  modal.classList.add('active');
+  <!-- Mostrar modal -->
+  modal.style.display = 'flex';
 }
 
+/**
+ * Cierra el modal de confirmación
+ */
 function cerrarModalConfirmacion() {
   const modal = document.getElementById('modalConfirmacion');
-  if (modal) modal.classList.remove('active');
-  callbackConfirmacion = null;
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 <!-- MOD-022B: FIN -->
 
@@ -1495,7 +1549,7 @@ function copiarSemanaAnterior() {
     return;
   }
 
-  <!-- V01.28 CLAUDE: Modal de confirmación estilizado -->
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     `¿Copiar todas las actividades de Semana ${semanaActual - 1} a Semana ${semanaActual}?\n\nLas actividades existentes en la semana actual no se modificarán.`,
     function() {
@@ -1507,11 +1561,11 @@ function copiarSemanaAnterior() {
 function ejecutarCopiaSemana() {
   const fechasOrigen = calcularFechasSemana(semanaActual - 1);
   const fechasDestino = calcularFechasSemana(semanaActual);
-  
+
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
-        <!-- V01.28 CLAUDE: Validar que r.data sea número -->
+        <!-- V01.29 CLAUDE: Validar que r.data sea número -->
         const cantidad = typeof r.data === 'number' ? r.data : parseInt(r.data) || 0;
         mostrarNotificacion('success', `✓ ${cantidad} actividades copiadas`);
         cargarHorarioSem();
@@ -1532,7 +1586,7 @@ function ejecutarCopiaSemana() {
 }
 
 function limpiarSemana() {
-  <!-- V01.28 CLAUDE: Modal de confirmación estilizado -->
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     `¿Eliminar TODAS las actividades de Semana ${semanaActual}?\n\nLas clases fijas NO se eliminarán.\n\nEsta acción no se puede deshacer.`,
     function() {
@@ -1543,14 +1597,14 @@ function limpiarSemana() {
 
 function ejecutarLimpiezaSemana() {
   const fechas = calcularFechasSemana(semanaActual);
-  
+
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
         mostrarNotificacion('success', `${r.data} actividades eliminadas`);
         cargarHorarioSem();
       } else {
-        mostrarNotificacion('error', 'Error al limpiar: ' + (r ? r.error : 'Desconocido'));
+        mostrarNotificacion('error', 'Error: ' + (r ? r.error : 'Desconocido'));
       }
     })
     .withFailureHandler(e => {
@@ -1566,6 +1620,8 @@ function ejecutarLimpiezaSemana() {
 <!-- MOD-023: FIN -->
 
 <!-- MOD-024: CÓDIGO DE CIERRE [INICIO] -->
+window.init = init;
+window.cargarHorarioSem = cargarHorarioSem;
 window.cambiarSemana = cambiarSemana;
 window.navegarSemana = navegarSemana;
 window.agregarNuevaSemana = agregarNuevaSemana;
@@ -1589,7 +1645,7 @@ setTimeout(function() {
     console.log('📅 currentUser no disponible, iniciando retry...');
     init();
   }
-}, 150);
+}, 500);
 
 window.HorarioSemanalModule = {
   init: init,
@@ -1600,7 +1656,7 @@ window.HorarioSemanalModule = {
   limpiarSemana: limpiarSemana
 };
 
-console.log('%c📅 HorarioSemanalModule V01.28 CLAUDE cargado',
+console.log('%c📅 HorarioSemanalModule V01.29 CLAUDE cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
 
 })();
@@ -1609,75 +1665,49 @@ console.log('%c📅 HorarioSemanalModule V01.28 CLAUDE cargado',
 
 <!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
+===========================================
+MÓDULO: HORARIO SEMANAL
+===========================================
+
 DESCRIPCIÓN:
-Sistema de Horario Semanal con panel lateral de semanas, navegación,
-configuración de Semana 1, copia de actividades y limpieza.
+Este módulo gestiona el horario semanal del estudiante, permitiendo:
+- Visualización de clases fijas y actividades semanales
+- Navegación por semanas del ciclo académico
+- Creación, edición y eliminación de actividades
+- Copia de actividades de semanas anteriores
+- Configuración de semana de inicio
 
-CAMBIOS V01.25 CLAUDE:
-✅ Aislamiento completo de estilos con prefijo .hs-
-✅ IDs únicos: hsGridContainer, loadingHS, modalConfigSemana, modalActividad
-✅ FIX CRÍTICO: Loading se remueve antes de renderizar grid
-✅ Sin contaminación con HorarioClase
-✅ Backend V01.18 normaliza fechas a ISO correctamente
-✅ Modularización completa según CodeWorkshop v2.1
-
-CARACTERÍSTICAS:
-- Panel lateral con lista de semanas hasta hoy
-- Botón "Agregar" para crear nueva semana
-- Navegación ◀ Ant / Sig ▶ entre semanas
-- Botón "🔧 Configurar" para establecer Semana 1
-- Botón "📋 Copiar Sem. ant." para duplicar actividades
-- Botón "🗑️ Limpiar" para borrar actividades de la semana
-- Grid 7 días × 16 horas (7 AM - 10 PM)
-- Carga automática de clases fijas desde HorarioClases
-- CRUD de actividades semanales en HorarioSem
+ARQUITECTURA:
+- Patrón modular con IIFE para encapsulación
+- Exposición controlada de funciones mediante window
+- Lazy loading de datos para optimizar rendimiento
+- Separación de responsabilidades entre frontend y backend
 
 DEPENDENCIAS:
-- MOD-007: Requiere window.currentUser.codeAlum
-- MOD-008: Requiere studentObtenerConfigSemana() backend
-- MOD-013: Requiere studentObtenerCursos() backend
-- MOD-014: Requiere studentObtenerHorarioClases() backend
-- MOD-015: Requiere studentObtenerHorarioSem() backend
-- MOD-021: Requiere studentGuardarConfigSemana() backend
-- MOD-022: Requiere studentAgregarHorarioSem() y 
-  studentActualizarHorarioSem() backend
-- MOD-023: Requiere studentCopiarSemana() y 
-  studentLimpiarSemana() backend
+- currentUser (objeto global del usuario)
+- google.script.run (Google Apps Script Client API)
+- Funciones backend: studentObtenerHorarioClase, studentObtenerHorarioSem,
+  agregarHorarioSem, actualizarHorarioSem, eliminarHorarioSem,
+  copiarSemana, limpiarSemana
+
+CAMBIOS V01.29 CLAUDE:
+✅ FIX CRÍTICO: Parseo correcto de fechas DD/MM/AAAA desde backend
+✅ Función parsearFechaDDMMAAAA() para interpretar fechas correctamente
+✅ Modal de confirmación estilizado (reemplaza confirm() nativo)
+✅ Validación de r.data en copiarSemana (fix "[object Object]")
+✅ Conversión de fechas a DD/MM/AAAA al enviar al backend
+✅ Backend normaliza fechas a DD/MM/AAAA (no YYYY-MM-DD)
+✅ Backend calcula Sem correcta al copiar (suma diferencia de semanas)
+✅ Backend normaliza horas a HH:MM (sin segundos)
+✅ Visualización de actividades ahora funciona correctamente
+✅ Copiar semana anterior funciona con fechas y semanas correctas
+✅ Interfaz más elegante con modal personalizado
 
 ESTRUCTURA DE DATOS:
-ConfigSemana {
-  FechaInicio (ISO: YYYY-MM-DD)
-}
-
-HorarioSem {
-  FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, 
-  FechaHS, TipoAct, Color, Sem
-}
-
-HorarioClases {
-  FechaReg, CodeAlum, Curso, HoraIni, HoraFin, Detalle
-}
-
-Cursos {
-  Curso, Completo, Color
-}
-
-ADVERTENCIAS:
-- MOD-006: DIAS es constante, no usar .push()
-- MOD-009: Semana actual se calcula desde FechaInicio
-- MOD-012: calcularFechasSemana() ajusta a lunes automático
-- MOD-016: Matriz combina clases fijas + actividades
-- MOD-017: calcularHoras() no valida fuera rango 7-22
-- MOD-018: renderGrid() sobrescribe innerHTML, elimina loading
-- MOD-020: navegarSemana() no permite semanas futuras
-- MOD-023: limpiarSemana() NO elimina clases fijas
-
-AISLAMIENTO:
-- Todos los estilos CSS usan prefijo .hs-
-- Todos los IDs únicos: hsGridContainer, loadingHS, 
-  modalConfigSemana, modalActividad
-- No hay contaminación con HorarioClase (prefijo .hc-)
-- IIFE con 'use strict' para encapsulamiento completo
+- clasesData: Array de objetos con clases fijas
+- actividadesData: Array de objetos con actividades semanales
+- horarioMatrix: Objeto indexado por fecha ISO y hora
+- configSemana: Objeto con configuración de inicio de semana
 
 PRÓXIMAS MEJORAS:
 - Implementar drag & drop para mover actividades
