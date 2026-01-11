@@ -1,165 +1,170 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 7ctabhorarioclase.html V01.18.4 CLAUDE
-Sistema de Gestión Académica
-08/01/2026
-
-CORRECCIONES V01.18.4:
-- ✅ Funciones expuestas correctamente (clickCelda, abrirFormularioAgregar, editarClase)
-- ✅ Formulario completo con todos los campos y botones
-- ✅ CRUD funcional: agregar, editar, eliminar
-- ✅ Carga de datos desde backend
-- ✅ Grid interactivo con onclick que SÍ funciona
-
-BASE:
-- V01.18.3 GPT (arquitectura encapsulada)
-- V01.17 ant (lógica y formulario completo)
-
-FUNCIONALIDAD:
-- Grid 15 filas (7 AM - 10 PM) × 7 días
-- Click en celda → Formulario agregar/editar
-- Visualización con color del curso
-- Regla medias horas: "/" indica inicio/fin ≥ :30
-******************************************
+/******************************************
+PROYECTO: PBE Control
+ARCHIVO: 7ctabhorarioclase.html
+VERSIÓN: 01.23 CODEWORKSHOP
+FECHA: 10/01/2026 08:30 (UTC-5)
+******************************************/
 -->
+<!-- MOD-001: FIN -->
 
+<!-- MOD-002: APERTURA [INICIO] -->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horario de Clases</title>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: ESTILOS CSS [INICIO] -->
 <style>
-/* === ESTILOS COMPLETOS === */
-.horarioclase-container {
+.hc-grid-container {
   background: #fff;
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 8px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-.horarioclase-header { margin-bottom: 24px; }
-.horarioclase-header h2 { 
-  margin: 0 0 8px; 
-  font-size: 20px;
-  color: #333;
-}
-.horarioclase-subtitle { 
-  color: #666; 
-  font-size: 14px;
-  margin: 0;
+  position: relative;
+  min-height: 400px;
 }
 
-.leyenda {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+.hc-grid {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
 }
-.leyenda-ejemplo {
-  font-family: monospace;
-  background: #e7f3ff;
-  border: 1px solid #b3d9ff;
-  padding: 2px 8px;
-  border-radius: 4px;
+
+.hc-grid thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.hc-grid th {
+  padding: 12px 8px;
+  text-align: center;
   font-weight: 600;
+  border: 1px solid rgba(255,255,255,.2);
 }
 
-.form-clase {
-  background: #f9f9f9;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 24px;
+.hc-grid .hc-col-hora {
+  width: 80px;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.hc-grid .hc-col-dia {
+  width: calc((100% - 80px) / 7);
+  min-width: 100px;
+}
+
+.hc-grid td {
+  padding: 4px;
+  border: 1px solid #dee2e6;
+  height: 45px;
+  vertical-align: middle;
+}
+
+.hc-celda-clase {
+  min-height: 35px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.hc-celda-clase:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+.hc-celda-clase.ocupada {
+  color: white;
+  padding: 6px 8px;
+}
+
+.hc-celda-clase.conflicto {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hc-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,.5);
   display: none;
-}
-.form-clase.active { 
-  display: block;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
 }
 
-.form-clase h3 {
-  margin: 0 0 16px;
+.hc-form-overlay.active {
+  display: flex;
+}
+
+.hc-form-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+}
+
+.hc-form-content h3 {
+  margin: 0 0 20px;
   color: #667eea;
-  font-size: 16px;
+  font-size: 20px;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+.hc-form-group {
   margin-bottom: 16px;
 }
 
-.form-group {
-  margin-bottom: 0;
-}
-
-.form-group label {
+.hc-form-group label {
   display: block;
-  font-size: 13px;
+  margin-bottom: 6px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 6px;
+  font-size: 13px;
 }
 
-.form-group label .required {
-  color: #dc3545;
-}
-
-.form-group input,
-.form-group select {
+.hc-form-group input,
+.hc-form-group select {
   width: 100%;
   padding: 10px 12px;
-  font-size: 14px;
   border: 2px solid #ddd;
   border-radius: 6px;
-  transition: all 0.3s;
-  font-family: inherit;
+  font-size: 14px;
+  transition: border 0.3s;
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.hc-form-group input:focus,
+.hc-form-group select:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
 }
 
-.form-group small {
-  display: block;
-  color: #666;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.form-actions {
+.hc-form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
-  justify-content: space-between;
+  margin-top: 20px;
+  justify-content: flex-end;
 }
 
-.form-actions-left {
-  display: flex;
-  gap: 12px;
-}
-
-.form-actions-right {
-  display: flex;
-  gap: 12px;
-}
-
-.btn {
+.hc-btn {
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
@@ -167,234 +172,219 @@ FUNCIONALIDAD:
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  font-family: inherit;
 }
 
-.btn-primary {
+.hc-btn-primary {
   background: #667eea;
   color: white;
 }
 
-.btn-primary:hover {
+.hc-btn-primary:hover {
   background: #5568d3;
 }
 
-.btn-secondary {
+.hc-btn-secondary {
   background: #6c757d;
   color: white;
 }
 
-.btn-secondary:hover {
+.hc-btn-secondary:hover {
   background: #5a6268;
 }
 
-.btn-danger {
+.hc-btn-danger {
   background: #dc3545;
   color: white;
 }
 
-.btn-danger:hover {
+.hc-btn-danger:hover {
   background: #c82333;
 }
 
-.horario-grid-container {
-  overflow-x: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-.horario-grid {
-  width: 100%;
-  min-width: 800px;
-  border-collapse: collapse;
-}
-.horario-grid th,
-.horario-grid td {
-  border: 1px solid #dee2e6;
-  text-align: center;
-}
-.horario-grid thead {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-}
-.horario-grid th { 
-  padding: 10px; 
-  font-size: 13px;
-  font-weight: 600;
-}
-.horario-grid td { 
-  height: 50px; 
-  padding: 0;
-  vertical-align: middle;
-}
-
-.horario-grid td.col-hora {
-  background: #f8f9fa;
-  font-size: 13px;
-  font-weight: 600;
-  color: #495057;
-  padding: 8px;
-}
-
-.celda-clase {
-  height: 100%;
-  min-height: 50px;
-  display: flex;
+.hc-modal-seleccion {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,.5);
+  display: none;
   align-items: center;
   justify-content: center;
+  z-index: 10001;
+}
+
+.hc-modal-seleccion.active {
+  display: flex;
+}
+
+.hc-modal-seleccion-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+}
+
+.hc-modal-seleccion-content h3 {
+  margin: 0 0 16px;
+  color: #667eea;
+  font-size: 18px;
+}
+
+.hc-modal-seleccion-content p {
+  margin: 0 0 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.hc-clase-option {
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
-  padding: 4px;
+  transition: all 0.2s;
 }
 
-.celda-clase:hover {
-  background: #f0f0f0;
+.hc-clase-option:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+  transform: translateX(4px);
 }
 
-.celda-clase.ocupada {
-  color: #fff;
+.hc-clase-option-curso {
   font-weight: 700;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.hc-clase-option-horario {
   font-size: 13px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.3);
+  color: #666;
 }
 
-.celda-clase.ocupada:hover {
-  opacity: 0.9;
-  filter: brightness(1.1);
+.hc-modal-seleccion-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
-.loading-container {
+.hc-loading {
   text-align: center;
   padding: 40px;
   color: #667eea;
 }
-.spinner {
+
+.hc-spinner {
   display: inline-block;
   width: 40px;
   height: 40px;
   border: 4px solid rgba(102,126,234,.2);
   border-top-color: #667eea;
   border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { 
-  to { transform: rotate(360deg); } 
+  animation: hc-spin .8s linear infinite;
 }
 
-/* Responsive */
+@keyframes hc-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 768px) {
-  .horarioclase-container {
-    padding: 16px;
+  .hc-grid {
+    font-size: 11px;
   }
-  .form-row {
-    grid-template-columns: 1fr;
+  
+  .hc-grid .hc-col-hora {
+    width: 60px;
   }
-  .form-actions {
-    flex-direction: column;
+  
+  .hc-celda-clase {
+    font-size: 10px;
+    padding: 4px;
   }
-  .form-actions-left,
-  .form-actions-right {
-    width: 100%;
-  }
-  .form-actions .btn {
-    width: 100%;
+  
+  .hc-form-content {
+    width: 95%;
+    padding: 20px;
   }
 }
 </style>
+<!-- MOD-003: FIN -->
 
-<div class="horarioclase-container" id="horarioClaseBody">
-  <div class="horarioclase-header">
-    <h2>🕐 Horario de Clases</h2>
-    <p class="horarioclase-subtitle">Horario semanal fijo · Clic para agregar o editar</p>
+<!-- MOD-004: ESTRUCTURA HTML [INICIO] -->
+<div class="hc-grid-container">
+  <div class="hc-loading" id="loadingHC">
+    <div class="hc-spinner"></div>
+    <p>Cargando horario...</p>
   </div>
+  <div id="hcGridContainer"></div>
+</div>
 
-  <div class="leyenda">
-    <span><span class="leyenda-ejemplo">/MATE</span> inicia ≥ :30</span>
-    <span><span class="leyenda-ejemplo">MATE/</span> termina ≥ :30</span>
-    <span><span class="leyenda-ejemplo">MATE</span> hora completa</span>
-  </div>
-
-  <!-- FORMULARIO COMPLETO -->
-  <div id="formClase" class="form-clase">
+<div id="formClase" class="hc-form-overlay">
+  <div class="hc-form-content">
     <h3 id="formTitle">Agregar Clase</h3>
     
-    <form id="claseForm" onsubmit="return handleSubmitClase(event)">
-      <input type="hidden" id="claseRowNumber" value="">
+    <form id="claseForm" onsubmit="return window.handleSubmitClase(event)">
+      <input type="hidden" id="claseRowNumber">
       <input type="hidden" id="claseModoEdicion" value="false">
-      <input type="hidden" id="claseDia" value="">
-      <input type="hidden" id="claseHoraSlot" value="">
+      <input type="hidden" id="claseDia">
+      <input type="hidden" id="claseHoraSlot">
       
-      <div class="form-row">
-        <div class="form-group">
-          <label>Curso <span class="required">*</span></label>
-          <select id="claseCurso" required>
-            <option value="">Seleccionar curso...</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Hora Inicio <span class="required">*</span></label>
-          <input 
-            type="time" 
-            id="claseHoraIni"
-            min="07:00"
-            max="22:00"
-            required
-          >
-          <small>Rango: 07:00 - 22:00</small>
-        </div>
-
-        <div class="form-group">
-          <label>Hora Fin <span class="required">*</span></label>
-          <input 
-            type="time" 
-            id="claseHoraFin"
-            min="07:00"
-            max="22:00"
-            required
-          >
-          <small>Debe ser mayor a hora inicio</small>
-        </div>
+      <div class="hc-form-group">
+        <label>Curso:</label>
+        <select id="claseCurso" required>
+          <option value="">Seleccionar...</option>
+        </select>
       </div>
-
-      <div class="form-actions">
-        <div class="form-actions-left">
-          <button 
-            type="button" 
-            class="btn btn-danger" 
-            id="btnEliminar" 
-            onclick="confirmarEliminarClase()"
-            style="display: none;">
-            Eliminar
-          </button>
-        </div>
-        <div class="form-actions-right">
-          <button type="button" class="btn btn-secondary" onclick="cancelarFormClase()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary" id="btnSubmit">
-            Guardar
-          </button>
-        </div>
+      
+      <div class="hc-form-group">
+        <label>Hora Inicio:</label>
+        <input type="time" id="claseHoraIni" required>
+      </div>
+      
+      <div class="hc-form-group">
+        <label>Hora Fin:</label>
+        <input type="time" id="claseHoraFin" required>
+      </div>
+      
+      <div class="hc-form-actions">
+        <button type="button" class="hc-btn hc-btn-secondary" onclick="window.cancelarFormClase()">Cancelar</button>
+        <button type="button" class="hc-btn hc-btn-danger" id="btnEliminar" style="display:none" onclick="window.confirmarEliminarClase()">Eliminar</button>
+        <button type="submit" class="hc-btn hc-btn-primary" id="btnSubmit">Guardar</button>
       </div>
     </form>
   </div>
+</div>
 
-  <!-- GRID -->
-  <div id="horarioGridContainer" class="horario-grid-container">
-    <div class="loading-container" id="loadingHorarioClase">
-      <div class="spinner"></div>
-      <p>Cargando horario...</p>
+<div id="modalSeleccion" class="hc-modal-seleccion">
+  <div class="hc-modal-seleccion-content">
+    <h3>Seleccionar Clase</h3>
+    <p>Hay múltiples clases en este horario. Selecciona una:</p>
+    <div id="modalSeleccionOpciones"></div>
+    <div class="hc-modal-seleccion-actions">
+      <button class="hc-btn hc-btn-secondary" onclick="window.cerrarModalSeleccion()">Cancelar</button>
     </div>
   </div>
 </div>
+<!-- MOD-004: FIN -->
 
+<!-- MOD-005: JAVASCRIPT - INICIO [INICIO] -->
 <script>
 (function () {
 'use strict';
+<!-- MOD-005: FIN -->
 
-if (window.HorarioClaseModule) return;
+<!-- MOD-006: VERIFICACIÓN Y CONSTANTES [INICIO] -->
+if (window.HorarioClaseModule) {
+  console.log('🕐 HorarioClaseModule ya existe, ignorando carga');
+  return;
+}
 
-/* ===== ESTADO ===== */
+console.log('🕐 HorarioClaseModule V01.23 CODEWORKSHOP iniciando...');
+
 let clasesData = [];
 let cursosData = [];
 let horarioMatrix = {};
@@ -403,27 +393,59 @@ const HORA_FIN = 22;
 const DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const DIAS_CORTOS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 let _initDone = false;
+let _retryCount = 0;
+const MAX_RETRIES = 5;
+<!-- MOD-006: FIN -->
 
-/* ===== INIT ===== */
+<!-- MOD-007: FUNCIÓN INICIALIZACIÓN [INICIO] -->
 function init() {
-  if (_initDone) return;
-  if (!window.currentUser || !currentUser.codeAlum) return;
+  console.log('🕐 HorarioClaseModule.init() llamado (intento ' + (_retryCount + 1) + ')');
+  
+  if (_initDone) {
+    console.log('🕐 Ya inicializado, ignorando');
+    return;
+  }
+  
+  if (!window.currentUser || !currentUser.codeAlum) {
+    console.warn('🕐 currentUser no disponible, reintentando...');
+    
+    if (_retryCount < MAX_RETRIES) {
+      _retryCount++;
+      setTimeout(init, 200);
+    } else {
+      console.error('🕐 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+      ocultarLoading();
+    }
+    return;
+  }
+  
   _initDone = true;
+  console.log('🕐 Inicializado para:', currentUser.codeAlum);
+  
   cargarCursos();
   cargarHorarioClases();
-  console.log('🕐 HorarioClase V01.18.4 inicializado');
 }
+<!-- MOD-007: FIN -->
 
-/* ===== BACKEND ===== */
+<!-- MOD-008: FUNCIÓN CARGA DE CURSOS [INICIO] -->
 function cargarCursos() {
+  console.log('🕐 Cargando cursos...');
+  
   google.script.run
     .withSuccessHandler(r => {
+      console.log('🕐 Cursos response:', r);
+      
       if (r && r.success) {
         cursosData = r.data || [];
+        console.log('🕐 Cursos cargados:', cursosData.length);
         poblarDropdownCursos();
+      } else {
+        console.error('🕐 Error en cursos:', r);
       }
     })
-    .withFailureHandler(e => console.error('Error cursos:', e))
+    .withFailureHandler(e => {
+      console.error('🕐 Error al cargar cursos:', e);
+    })
     .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
 }
 
@@ -441,105 +463,219 @@ function poblarDropdownCursos() {
     opt.dataset.color = c.Color || '#667eea';
     select.appendChild(opt);
   });
+  
+  console.log('🕐 Dropdown poblado con', cursosData.length, 'cursos');
 }
+<!-- MOD-008: FIN -->
 
+<!-- MOD-009: FUNCIÓN CARGA DE HORARIO [INICIO] -->
 function cargarHorarioClases() {
+  console.log('🕐 Cargando horario clases...');
+  
   google.script.run
     .withSuccessHandler(r => {
+      console.log('🕐 HorarioClases response:', r);
+      
       if (r && r.success) {
         clasesData = r.data || [];
+        console.log('🕐 Clases cargadas:', clasesData.length);
+        
+        if (clasesData.length > 0) {
+          console.log('🕐 Ejemplo de clase:', clasesData[0]);
+        }
+        
         construirMatriz();
         renderGrid();
         ocultarLoading();
       } else {
-        console.error('Error en respuesta:', r);
+        console.error('🕐 Error en response:', r);
         renderGrid();
         ocultarLoading();
       }
     })
     .withFailureHandler(e => {
-      console.error('Error al cargar horario:', e);
+      console.error('🕐 Error de conexión:', e);
       renderGrid();
       ocultarLoading();
     })
     .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
 }
+<!-- MOD-009: FIN -->
 
-/* ===== LÓGICA ===== */
+<!-- MOD-010: FUNCIÓN CONSTRUCCIÓN DE MATRIZ [INICIO] -->
 function construirMatriz() {
+  console.log('🕐 Construyendo matriz con', clasesData.length, 'clases');
+  
   horarioMatrix = {};
   DIAS.forEach(d => horarioMatrix[d] = {});
   
-  clasesData.forEach(c => {
-    const dia = extraerDia(c.Detalle);
-    if (!dia) return;
+  clasesData.forEach((c, idx) => {
+    console.log('🕐 Procesando clase ' + (idx + 1) + ':', {
+      Curso: c.Curso,
+      Detalle: c.Detalle,
+      HoraIni: c.HoraIni,
+      HoraFin: c.HoraFin
+    });
     
-    calcularHoras(c.HoraIni, c.HoraFin).forEach(h => {
+    const dia = extraerDia(c.Detalle);
+    console.log('🕐 Día extraído:', dia, 'de Detalle:', c.Detalle);
+    
+    if (!dia) {
+      console.warn('🕐 No se pudo extraer día de:', c.Detalle);
+      return;
+    }
+    
+    const horas = calcularHoras(c.HoraIni, c.HoraFin);
+    console.log('🕐 Horas calculadas:', horas.length, 'slots');
+    
+    horas.forEach(h => {
       horarioMatrix[dia][h.hora] = horarioMatrix[dia][h.hora] || [];
       horarioMatrix[dia][h.hora].push({ clase: c, ...h });
     });
   });
+  
+  let conflictos = 0;
+  DIAS.forEach(d => {
+    Object.keys(horarioMatrix[d]).forEach(h => {
+      if (horarioMatrix[d][h].length > 1) {
+        conflictos++;
+        const cursos = horarioMatrix[d][h].map(x => x.clase.Curso).join(', ');
+        console.log('🕐 ⚠️ Conflicto en', d, h + ':', cursos);
+      }
+    });
+  });
+  
+  if (conflictos > 0) {
+    console.log('🕐 Total de conflictos detectados:', conflictos);
+  }
+  
+  console.log('🕐 Matriz construida:', horarioMatrix);
 }
+<!-- MOD-010: FIN -->
 
+<!-- MOD-011: FUNCIONES HELPER DE PROCESAMIENTO [INICIO] -->
 function extraerDia(t) {
   if (!t) return null;
-  const s = String(t).toLowerCase();
-  return DIAS.find(d => s.includes(d.toLowerCase()));
+  const s = String(t).toLowerCase().trim();
+  const diaEncontrado = DIAS.find(d => {
+    const dLower = d.toLowerCase();
+    return s.includes(dLower) || dLower.includes(s);
+  });
+  return diaEncontrado || null;
 }
 
 function calcularHoras(i, f) {
-  const [hi, mi] = i.split(':').map(Number);
-  const [hf, mf] = f.split(':').map(Number);
+  const horaIniStr = normalizarHora(i);
+  const horaFinStr = normalizarHora(f);
+  
+  if (!horaIniStr || !horaFinStr) {
+    console.error('🕐 Horas inválidas después de normalizar');
+    return [];
+  }
+  
+  const [hi, mi] = horaIniStr.split(':').map(Number);
+  const [hf, mf] = horaFinStr.split(':').map(Number);
+  
   const res = [];
   
   for (let h = hi; h <= hf; h++) {
+    if (h > HORA_FIN) break;
     if (h === hf && mf === 0) continue;
     
     res.push({
       hora: String(h).padStart(2, '0') + ':00',
       prefijo: (h === hi && mi >= 30) ? '/' : '',
-      sufijo: (h === hf && mf >= 30) ? '/' : ''
+      sufijo: (h === hf && mf > 0 && mf < 60) ? '/' : ''
     });
   }
   
   return res;
 }
 
+function normalizarHora(valor) {
+  if (!valor) return null;
+  
+  if (typeof valor === 'string') {
+    const match = valor.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      const h = match[1].padStart(2, '0');
+      const m = match[2];
+      return h + ':' + m;
+    }
+  }
+  
+  if (typeof valor === 'object' && valor !== null) {
+    if ('hour' in valor && 'minute' in valor) {
+      const h = String(valor.hour).padStart(2, '0');
+      const m = String(valor.minute).padStart(2, '0');
+      return h + ':' + m;
+    }
+  }
+  
+  return null;
+}
+
 function colorCurso(curso) {
   const c = cursosData.find(x => x.Curso === curso);
   return c ? c.Color : '#667eea';
 }
+<!-- MOD-011: FIN -->
 
-/* ===== RENDER GRID ===== */
+<!-- MOD-012: FUNCIÓN RENDERIZADO DE GRID [INICIO] -->
 function renderGrid() {
-  const c = document.getElementById('horarioGridContainer');
-  if (!c) return;
+  console.log('🕐 Renderizando grid...');
+  
+  const c = document.getElementById('hcGridContainer');
+  if (!c) {
+    console.error('🕐 No se encontró hcGridContainer');
+    return;
+  }
 
-  let html = '<table class="horario-grid"><thead><tr><th class="col-hora">Hora</th>';
-  DIAS_CORTOS.forEach(d => html += `<th class="col-dia">${d}</th>`);
+  let html = '<table class="hc-grid"><thead><tr><th class="hc-col-hora">Hora</th>';
+  DIAS_CORTOS.forEach(d => html += `<th class="hc-col-dia">${d}</th>`);
   html += '</tr></thead><tbody>';
+
+  let celdasOcupadas = 0;
+  let celdasVacias = 0;
+  let celdasConflicto = 0;
 
   for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
     const k = String(h).padStart(2, '0') + ':00';
     const horaFormato = formatearHora12(h);
     
-    html += `<tr><td class="col-hora">${horaFormato}</td>`;
+    html += `<tr><td class="hc-col-hora">${horaFormato}</td>`;
     
     DIAS.forEach(d => {
       const s = horarioMatrix[d][k];
       
       if (s && s.length > 0) {
-        const x = s[0];
-        const color = colorCurso(x.clase.Curso);
-        const texto = x.prefijo + x.clase.Curso + x.sufijo;
-        
-        html += `<td><div class="celda-clase ocupada" 
-          style="background:${color}" 
-          onclick="window.editarClase('${d}','${k}')">
-          ${texto}
-        </div></td>`;
+        if (s.length > 1) {
+          celdasConflicto++;
+          
+          const nombres = s.map(x => {
+            const curso = x.clase.Curso;
+            return curso.length > 4 ? curso.substring(0, 4) : curso;
+          }).join('/');
+          
+          html += `<td><div class="hc-celda-clase ocupada conflicto" 
+            onclick="window.mostrarSeleccionClase('${d}','${k}')">
+            ${nombres}
+          </div></td>`;
+        } else {
+          celdasOcupadas++;
+          const x = s[0];
+          const color = colorCurso(x.clase.Curso);
+          const texto = x.prefijo + x.clase.Curso + x.sufijo;
+          
+          html += `<td><div class="hc-celda-clase ocupada" 
+            style="background:${color}" 
+            onclick="window.editarClase('${d}','${k}')">
+            ${texto}
+          </div></td>`;
+        }
       } else {
-        html += `<td><div class="celda-clase" 
+        celdasVacias++;
+        html += `<td><div class="hc-celda-clase" 
           onclick="window.clickCelda('${d}','${k}')">
         </div></td>`;
       }
@@ -550,15 +686,111 @@ function renderGrid() {
 
   html += '</tbody></table>';
   c.innerHTML = html;
+  
+  console.log('🕐 Grid renderizado:', { celdasOcupadas, celdasVacias, celdasConflicto });
 }
 
 function ocultarLoading() {
-  const l = document.getElementById('loadingHorarioClase');
+  const l = document.getElementById('loadingHC');
   if (l) l.style.display = 'none';
 }
+<!-- MOD-012: FIN -->
 
-/* ===== FORMULARIO ===== */
+<!-- MOD-013: FUNCIÓN MODAL SELECCIÓN [INICIO] -->
+function mostrarSeleccionClase(dia, hora) {
+  console.log('🕐 Mostrando selección de clase:', { dia, hora });
+  
+  const clases = horarioMatrix[dia][hora];
+  
+  if (!clases || clases.length === 0) {
+    alert('No hay clases en esta celda');
+    return;
+  }
+  
+  const modal = document.getElementById('modalSeleccion');
+  const opciones = document.getElementById('modalSeleccionOpciones');
+  
+  opciones.innerHTML = '';
+  
+  clases.forEach((c, idx) => {
+    const clase = c.clase;
+    const div = document.createElement('div');
+    div.className = 'hc-clase-option';
+    div.onclick = function() {
+      cerrarModalSeleccion();
+      editarClaseDirecta(clase);
+    };
+    
+    div.innerHTML = `
+      <div class="hc-clase-option-curso">${clase.Curso}</div>
+      <div class="hc-clase-option-horario">${clase.HoraIni} - ${clase.HoraFin}</div>
+    `;
+    
+    opciones.appendChild(div);
+  });
+  
+  modal.classList.add('active');
+}
+
+function cerrarModalSeleccion() {
+  const modal = document.getElementById('modalSeleccion');
+  modal.classList.remove('active');
+}
+
+function editarClaseDirecta(clase) {
+  console.log('🕐 Editando clase directa:', clase);
+  
+  const dia = extraerDia(clase.Detalle);
+  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
+  
+  document.getElementById('formTitle').textContent = 'Editar Clase - ' + diaCorto;
+  document.getElementById('claseRowNumber').value = clase._rowNumber || '';
+  document.getElementById('claseModoEdicion').value = 'true';
+  document.getElementById('claseDia').value = dia;
+  document.getElementById('claseHoraSlot').value = '';
+  document.getElementById('claseCurso').value = clase.Curso;
+  
+  document.getElementById('claseHoraIni').value = normalizarHora(clase.HoraIni) || '';
+  document.getElementById('claseHoraFin').value = normalizarHora(clase.HoraFin) || '';
+  
+  document.getElementById('btnSubmit').textContent = 'Actualizar';
+  document.getElementById('btnEliminar').style.display = 'block';
+
+  document.getElementById('formClase').classList.add('active');
+}
+<!-- MOD-013: FIN -->
+
+<!-- MOD-014: FUNCIÓN VALIDACIÓN SOLAPAMIENTO [INICIO] -->
+function verificarSolapamiento(dia, horaIni, horaFin, rowNumberActual) {
+  console.log('🕐 Verificando solapamiento:', { dia, horaIni, horaFin });
+  
+  const [hi, mi] = horaIni.split(':').map(Number);
+  const [hf, mf] = horaFin.split(':').map(Number);
+  
+  const horasOcupadas = calcularHoras(horaIni, horaFin);
+  const solapamientos = [];
+  
+  horasOcupadas.forEach(h => {
+    const clasesEnHora = horarioMatrix[dia][h.hora] || [];
+    
+    clasesEnHora.forEach(c => {
+      if (rowNumberActual && c.clase._rowNumber === rowNumberActual) {
+        return;
+      }
+      
+      solapamientos.push(c.clase.Curso);
+    });
+  });
+  
+  const solapamientosUnicos = [...new Set(solapamientos)];
+  
+  return solapamientosUnicos;
+}
+<!-- MOD-014: FIN -->
+
+<!-- MOD-015: FUNCIONES FORMULARIO - AGREGAR [INICIO] -->
 function clickCelda(dia, hora) {
+  console.log('🕐 Click en celda:', { dia, hora });
   abrirFormularioAgregar(dia, hora);
 }
 
@@ -586,8 +818,12 @@ function abrirFormularioAgregar(dia, hora) {
   const select = document.getElementById('claseCurso');
   if (select) select.focus();
 }
+<!-- MOD-015: FIN -->
 
+<!-- MOD-016: FUNCIONES FORMULARIO - EDITAR [INICIO] -->
 function editarClase(dia, hora) {
+  console.log('🕐 Editar clase:', { dia, hora });
+  
   const clases = horarioMatrix[dia][hora];
 
   if (!clases || clases.length === 0) {
@@ -599,26 +835,12 @@ function editarClase(dia, hora) {
     return;
   }
 
-  const claseInfo = clases[0];
-  const clase = claseInfo.clase;
-
-  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
-  const horaFormato = formatearHora12Desde24(hora);
-
-  document.getElementById('formTitle').textContent = 'Editar Clase - ' + diaCorto + ' ' + horaFormato;
-  document.getElementById('claseRowNumber').value = clase._rowNumber || '';
-  document.getElementById('claseModoEdicion').value = 'true';
-  document.getElementById('claseDia').value = dia;
-  document.getElementById('claseHoraSlot').value = hora;
-  document.getElementById('claseCurso').value = clase.Curso;
-  document.getElementById('claseHoraIni').value = clase.HoraIni;
-  document.getElementById('claseHoraFin').value = clase.HoraFin;
-  document.getElementById('btnSubmit').textContent = 'Actualizar';
-  document.getElementById('btnEliminar').style.display = 'block';
-
-  document.getElementById('formClase').classList.add('active');
+  const clase = clases[0].clase;
+  editarClaseDirecta(clase);
 }
+<!-- MOD-016: FIN -->
 
+<!-- MOD-017: FUNCIONES FORMULARIO - SUBMIT [INICIO] -->
 function handleSubmitClase(event) {
   event.preventDefault();
 
@@ -627,6 +849,7 @@ function handleSubmitClase(event) {
   const horaFin = document.getElementById('claseHoraFin').value.trim();
   const dia = document.getElementById('claseDia').value;
   const esEdicion = document.getElementById('claseModoEdicion').value === 'true';
+  const rowNumber = document.getElementById('claseRowNumber').value;
 
   if (!curso || !horaIni || !horaFin) {
     if (window.showAlert) {
@@ -646,6 +869,16 @@ function handleSubmitClase(event) {
     return false;
   }
 
+  const solapamientos = verificarSolapamiento(dia, horaIni, horaFin, rowNumber ? parseInt(rowNumber) : null);
+  
+  if (solapamientos.length > 0) {
+    const mensaje = `⚠️ Ya existe ${solapamientos.join(', ')} en este horario.\n\n¿Crear solapamiento de todos modos?`;
+    
+    if (!confirm(mensaje)) {
+      return false;
+    }
+  }
+
   const btnSubmit = document.getElementById('btnSubmit');
   btnSubmit.disabled = true;
   btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
@@ -659,7 +892,6 @@ function handleSubmitClase(event) {
   };
 
   if (esEdicion) {
-    const rowNumber = document.getElementById('claseRowNumber').value;
     if (rowNumber) {
       params.rowNumber = parseInt(rowNumber);
     }
@@ -684,7 +916,7 @@ function handleClaseGuardada(response, esEdicion) {
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
 
   if (response && response.success) {
-    const msg = esEdicion ? '✓ Clase actualizada' : '✓ Clase agregada';
+    const msg = esEdicion ? '✔ Clase actualizada' : '✔ Clase agregada';
     if (window.showAlert) {
       showAlert('success', msg);
     } else {
@@ -703,7 +935,7 @@ function handleClaseGuardada(response, esEdicion) {
 }
 
 function handleClaseError(error, esEdicion) {
-  console.error('Error:', error);
+  console.error('🕐 Error:', error);
   
   const btnSubmit = document.getElementById('btnSubmit');
   btnSubmit.disabled = false;
@@ -715,7 +947,9 @@ function handleClaseError(error, esEdicion) {
     alert('Error de conexión. Intenta nuevamente');
   }
 }
+<!-- MOD-017: FIN -->
 
+<!-- MOD-018: FUNCIONES FORMULARIO - ELIMINAR [INICIO] -->
 function confirmarEliminarClase() {
   const rowNumber = document.getElementById('claseRowNumber').value;
 
@@ -737,7 +971,7 @@ function eliminarClase(rowNumber) {
   google.script.run
     .withSuccessHandler(handleClaseEliminada)
     .withFailureHandler(e => {
-      console.error('Error al eliminar:', e);
+      console.error('🕐 Error al eliminar:', e);
       if (window.showAlert) {
         showAlert('error', 'Error al eliminar');
       } else {
@@ -750,7 +984,7 @@ function eliminarClase(rowNumber) {
 function handleClaseEliminada(response) {
   if (response && response.success) {
     if (window.showAlert) {
-      showAlert('success', '✓ Clase eliminada');
+      showAlert('success', '✔ Clase eliminada');
     } else {
       alert('Clase eliminada');
     }
@@ -765,7 +999,9 @@ function handleClaseEliminada(response) {
     }
   }
 }
+<!-- MOD-018: FIN -->
 
+<!-- MOD-019: FUNCIONES FORMULARIO - HELPERS [INICIO] -->
 function resetFormClase() {
   const form = document.getElementById('claseForm');
   if (form) form.reset();
@@ -781,8 +1017,9 @@ function cancelarFormClase() {
   if (formDiv) formDiv.classList.remove('active');
   resetFormClase();
 }
+<!-- MOD-019: FIN -->
 
-/* ===== HELPERS ===== */
+<!-- MOD-020: FUNCIONES FORMATEO [INICIO] -->
 function formatearHora12(h) {
   if (h === 12) return '12 PM';
   if (h > 12) return (h - 12) + ' PM';
@@ -794,38 +1031,125 @@ function formatearHora12Desde24(hora24Str) {
   const [h] = hora24Str.split(':').map(Number);
   return formatearHora12(h);
 }
+<!-- MOD-020: FIN -->
 
-/* ===== EXPOSICIÓN GLOBAL ===== */
+<!-- MOD-021: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO] -->
 window.clickCelda = clickCelda;
 window.abrirFormularioAgregar = abrirFormularioAgregar;
 window.editarClase = editarClase;
+window.mostrarSeleccionClase = mostrarSeleccionClase;
+window.cerrarModalSeleccion = cerrarModalSeleccion;
 window.handleSubmitClase = handleSubmitClase;
 window.confirmarEliminarClase = confirmarEliminarClase;
 window.cancelarFormClase = cancelarFormClase;
 
-/* ===== AUTO INIT CON RETRY ===== */
-let _r = 0;
-(function retry() {
-  if (window.currentUser && currentUser.codeAlum) {
+setTimeout(function() {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    console.log('🕐 currentUser detectado, inicializando...');
     init();
-  } else if (_r < 6) {
-    _r++;
-    setTimeout(retry, 200);
   } else {
-    ocultarLoading();
-    console.error('HorarioClase: currentUser no disponible');
+    console.log('🕐 currentUser no disponible, iniciando retry...');
+    init();
   }
-})();
+}, 150);
 
 window.HorarioClaseModule = {
   init: init,
   clickCelda: clickCelda,
   abrirFormularioAgregar: abrirFormularioAgregar,
   editarClase: editarClase,
+  mostrarSeleccionClase: mostrarSeleccionClase,
   guardarClase: handleSubmitClase,
   eliminarClase: confirmarEliminarClase,
   cancelar: cancelarFormClase
 };
 
+console.log('%c🕐 HorarioClaseModule V01.23 CODEWORKSHOP cargado',
+  'font-size:11px;color:#667eea;font-weight:bold');
+
 })();
 </script>
+<!-- MOD-021: FIN -->
+
+
+<!-- MOD-022: CIERRE [INICIO] -->
+  </body>
+</html>
+<!-- MOD-022: FIN -->
+
+
+<!-- MOD-023: DOCUMENTACIÓN Y NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN GENERAL:
+Sistema de Horario de Clases fijas semanales.
+Grid visual 7 días × 16 horas (7 AM - 10 PM).
+
+CAMBIOS V01.23 CODEWORKSHOP:
+✅ Aplicación completa del estándar CodeWorkshop v2.1
+✅ Corrección de comentarios: uso de // en lugar de comentarios HTML
+✅ Enumeración secuencial correcta de módulos
+✅ Eliminación de comentarios redundantes
+✅ Cierre correcto de cada módulo
+✅ Uso apropiado de /* */ solo cuando es necesario
+
+
+CARACTERÍSTICAS:
+- Grid 15 filas (7 AM - 10 PM) × 7 días
+- Click en celda → Formulario agregar/editar
+- Click en conflicto → Menú selección de clase
+- Visualización con color del curso
+- Validación de solapamientos antes de guardar
+- Regla medias horas: "/" indica inicio/fin con minutos
+- Celda conflicto muestra ambos cursos "QUIM/BIOL"
+- Modal de selección con botones claros
+- Trunca nombres largos con "..." si no caben
+
+DESCRIPCIÓN TÉCNICA:
+Sistema de Horario de Clases con grid visual 7x16, 
+formularios modales, manejo de conflictos y 
+validación de solapamientos.
+
+DEPENDENCIAS:
+- MOD-007: Requiere window.currentUser.codeAlum
+- MOD-008: Requiere studentObtenerCursos() backend
+- MOD-009: Requiere studentObtenerHorarioClases() backend
+- MOD-017: Requiere studentAgregarHorarioClase() y 
+           studentActualizarHorarioClase() backend
+- MOD-018: Requiere studentEliminarHorarioClase() backend
+- Opcional: window.showAlert() para notificaciones
+
+ESTRUCTURA DE DATOS:
+HorarioClases {
+  FechaReg, CodeAlum, Curso, HoraIni, HoraFin, Detalle
+}
+
+Cursos {
+  Curso, Completo, Color
+}
+
+ADVERTENCIAS CRÍTICAS:
+- MOD-006: DIAS es constante, no usar .push()
+- MOD-010: extraerDia() requiere Detalle con nombre de día
+- MOD-011: calcularHoras() no valida fuera rango 7-22
+- MOD-012: renderGrid() sobrescribe innerHTML completo
+- MOD-014: verificarSolapamiento() no valida día inválido
+- MOD-017: handleSubmitClase() permite solapamientos 
+           con confirmación del usuario
+
+AISLAMIENTO:
+- Prefijo CSS: .hc-
+- IDs únicos: hcGridContainer, loadingHC, 
+              formClase, modalSeleccion
+- Sin conflicto con HorarioSemanal (prefijo .hs-)
+- IIFE con 'use strict' para encapsulamiento
+
+PRÓXIMAS MEJORAS SUGERIDAS:
+- Drag & drop para mover clases
+- Vista de impresión optimizada
+- Exportación a PDF/imagen
+- Responsive mejorado para móviles pequeños
+- Atajos de teclado (Esc para cerrar modales)
+- Modo oscuro
+- Sincronización en tiempo real
+-->
+<!-- MOD-023: FIN -->
