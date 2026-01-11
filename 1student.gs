@@ -594,6 +594,7 @@ function obtenerHorarioSem(params) {
 
 /**
  * Agregar actividad al horario semanal
+ * V01.18 CLAUDE: Normaliza horas a HH:MM
  */
 function agregarHorarioSem(params) {
   try {
@@ -601,14 +602,14 @@ function agregarHorarioSem(params) {
       FechaReg: Utils.fechaHoy(),
       CodeAlum: params.codeAlum,
       Actividad: params.actividad,
-      HoraInicio: params.horaInicio,
-      HoraFin: params.horaFin,
+      HoraInicio: normalizarHoraHHMM(params.horaInicio),
+      HoraFin: normalizarHoraHHMM(params.horaFin),
       FechaHS: params.fechaHS,
       TipoAct: params.tipoAct || '',
       Color: params.color || '#17a2b8',
       Sem: params.sem || ''
     };
-    
+
     return DB.agregar('HorarioSem', actividad);
   } catch(error) {
     Logger.log('Error en Student.agregarHorarioSem(): ' + error.toString());
@@ -617,7 +618,8 @@ function agregarHorarioSem(params) {
 }
 
 /**
- * V01.16 CLAUDE: Actualizar actividad del horario semanal
+ * V01.18 CLAUDE: Actualizar actividad del horario semanal
+ * Normaliza horas a HH:MM
  */
 function actualizarHorarioSem(params) {
   try {
@@ -625,16 +627,16 @@ function actualizarHorarioSem(params) {
     if (!result.success) {
       return { success: false, error: 'Actividad no encontrada' };
     }
-    
+
     var actividad = result.data;
     actividad.Actividad = params.actividad || actividad.Actividad;
-    actividad.HoraInicio = params.horaInicio || actividad.HoraInicio;
-    actividad.HoraFin = params.horaFin || actividad.HoraFin;
+    actividad.HoraInicio = params.horaInicio ? normalizarHoraHHMM(params.horaInicio) : actividad.HoraInicio;
+    actividad.HoraFin = params.horaFin ? normalizarHoraHHMM(params.horaFin) : actividad.HoraFin;
     actividad.FechaHS = params.fechaHS || actividad.FechaHS;
     actividad.TipoAct = params.tipoAct || actividad.TipoAct;
     actividad.Color = params.color || actividad.Color;
     actividad.Sem = params.sem || actividad.Sem;
-    
+
     return DB.actualizar('HorarioSem', actividad);
   } catch(error) {
     Logger.log('Error en Student.actualizarHorarioSem(): ' + error.toString());
@@ -759,9 +761,14 @@ function guardarConfigSemana(params) {
 }
 
 /**
- * V01.16 CLAUDE: Copiar actividades de semana anterior
+ * V01.18 CLAUDE: Copiar actividades de semana anterior
  * Busca todas las actividades entre fechaInicioOrigen y fechaFinOrigen,
  * las duplica sumando 7 días a cada FechaHS
+ *
+ * FIXES V01.18:
+ * ✅ FechaHS en formato DD/MM/AAAA (no YYYY-MM-DD)
+ * ✅ Sem calculado correctamente (suma diferencia de semanas)
+ * ✅ Horas normalizadas a HH:MM (sin segundos)
  */
 function copiarSemana(params) {
   try {
@@ -769,53 +776,57 @@ function copiarSemana(params) {
     var fechaInicioOrigen = new Date(params.fechaInicioOrigen);
     var fechaFinOrigen = new Date(params.fechaFinOrigen);
     var fechaInicioDestino = new Date(params.fechaInicioDestino);
-    
+
     var todasActividades = DB.obtenerPorAlumno('HorarioSem', codeAlum);
-    
+
     if (!todasActividades.success) {
       return { success: true, data: 0 };
     }
-    
+
     var actividadesACopiar = [];
-    
+
     for (var i = 0; i < todasActividades.data.length; i++) {
       var act = todasActividades.data[i];
-      var fechaAct = new Date(act.FechaHS);
-      
+      var fechaAct = parsearFechaAny(act.FechaHS);
+
       if (fechaAct >= fechaInicioOrigen && fechaAct <= fechaFinOrigen) {
         actividadesACopiar.push(act);
       }
     }
-    
+
+    var diffSemanas = Math.round((fechaInicioDestino - fechaInicioOrigen) / (1000 * 60 * 60 * 24 * 7));
+
     var copiadas = 0;
-    
+
     for (var j = 0; j < actividadesACopiar.length; j++) {
       var original = actividadesACopiar[j];
-      var fechaOriginal = new Date(original.FechaHS);
-      
+      var fechaOriginal = parsearFechaAny(original.FechaHS);
+
       var diffDias = Math.floor((fechaOriginal - fechaInicioOrigen) / (1000 * 60 * 60 * 24));
-      
+
       var nuevaFecha = new Date(fechaInicioDestino);
       nuevaFecha.setDate(nuevaFecha.getDate() + diffDias);
-      
+
+      var nuevaSem = (original.Sem || 1) + diffSemanas;
+
       var nuevaActividad = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: codeAlum,
         Actividad: original.Actividad,
-        HoraInicio: original.HoraInicio,
-        HoraFin: original.HoraFin,
-        FechaHS: formatearFechaISO(nuevaFecha),
+        HoraInicio: normalizarHoraHHMM(original.HoraInicio),
+        HoraFin: normalizarHoraHHMM(original.HoraFin),
+        FechaHS: formatearFechaDDMMAAAA(nuevaFecha),
         TipoAct: original.TipoAct,
         Color: original.Color,
-        Sem: original.Sem
+        Sem: nuevaSem
       };
-      
+
       var resultado = DB.agregar('HorarioSem', nuevaActividad);
       if (resultado.success) {
         copiadas++;
       }
     }
-    
+
     return { success: true, data: copiadas };
   } catch(error) {
     Logger.log('Error en Student.copiarSemana(): ' + error.toString());
@@ -869,6 +880,87 @@ function formatearFechaISO(fecha) {
   var month = String(fecha.getMonth() + 1).padStart(2, '0');
   var day = String(fecha.getDate()).padStart(2, '0');
   return year + '-' + month + '-' + day;
+}
+
+/**
+ * V01.18 CLAUDE: Formatear fecha a DD/MM/AAAA
+ */
+function formatearFechaDDMMAAAA(fecha) {
+  if (!fecha || !(fecha instanceof Date)) {
+    return '';
+  }
+
+  var dia = fecha.getDate();
+  var mes = fecha.getMonth() + 1;
+  var anio = fecha.getFullYear();
+
+  dia = dia < 10 ? '0' + dia : dia;
+  mes = mes < 10 ? '0' + mes : mes;
+
+  return dia + '/' + mes + '/' + anio;
+}
+
+/**
+ * V01.18 CLAUDE: Parsear fecha en cualquier formato (DD/MM/AAAA o YYYY-MM-DD o ISO)
+ * Retorna Date object o fecha inválida
+ */
+function parsearFechaAny(fechaStr) {
+  if (!fechaStr) {
+    return new Date('invalid');
+  }
+
+  if (fechaStr instanceof Date) {
+    return fechaStr;
+  }
+
+  var str = String(fechaStr).trim();
+
+  // Formato DD/MM/AAAA
+  if (str.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+    var partes = str.split('/');
+    var dia = parseInt(partes[0], 10);
+    var mes = parseInt(partes[1], 10) - 1;
+    var anio = parseInt(partes[2], 10);
+    return new Date(anio, mes, dia);
+  }
+
+  // Formato YYYY-MM-DD o ISO completo
+  if (str.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
+    return new Date(str);
+  }
+
+  // Intentar parseo directo
+  return new Date(str);
+}
+
+/**
+ * V01.18 CLAUDE: Normalizar hora a HH:MM (quitar segundos)
+ */
+function normalizarHoraHHMM(hora) {
+  if (!hora) {
+    return '';
+  }
+
+  var str = String(hora).trim();
+
+  // Si ya está en formato HH:MM, retornar
+  if (str.match(/^\d{1,2}:\d{2}$/)) {
+    var partes = str.split(':');
+    var h = partes[0].padStart(2, '0');
+    var m = partes[1];
+    return h + ':' + m;
+  }
+
+  // Si está en formato HH:MM:SS, quitar segundos
+  if (str.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+    var partes = str.split(':');
+    var h = partes[0].padStart(2, '0');
+    var m = partes[1];
+    return h + ':' + m;
+  }
+
+  // Retornar sin modificar si no coincide
+  return str;
 }
 // MOD-009: FIN
 
