@@ -1,267 +1,704 @@
-Todas las páginas, funciones, tabs y subtabs ya funcionan bastante bien.
-Solo no funcionan 7ctabhorarioclase.html ni 7ctabhorariosem.html.
+📋 ESTÁNDAR CODEWORKSHOP v2.2
+Formato de código modular para modificaciones quirúrgicas sin reinterpretaciones.
 
-Puede que no hayas podido ver todos los códigos; quizá algo no se grabó correctamente en el SolidCode o se cortó tu lectura ya que es un compilado de todos los códigos y se hace muy largo. Pero igual creo que basta con enfocarnos en lo que falta.
+🎯 FILOSOFÍA CODEWORKSHOP - Protección Total del Código
+PROBLEMA QUE RESOLVEMOS:
+Cuando una IA modifica código, tiende a reinterpretar TODO el archivo, introduciendo cambios no deseados en secciones que debían permanecer intactas.
+SOLUCIÓN:
+Dividir el código en módulos delimitados (MOD-XXX) que pueden reemplazarse quirúrgicamente SIN tocar el resto del archivo.
+REGLA DE ORO:
+TODO el código debe estar dentro de módulos MOD-XXX. Cualquier línea fuera de un módulo está DESPROTEGIDA y puede:
+Ser ignorada al regenerar
+Perderse en modificaciones
+Causar que el código resultante esté incompleto
+OBJETIVO:
+Modificaciones quirúrgicas, precisas y confiables. Como cambiar una pieza de un auto sin tocar el motor.
+MANTRA:
+"No debe haber parte del código sin modular. Si no está dentro de un módulo MOD-XXX, está en riesgo de perderse."
 
-Concentrémonos en 7ctabhorarioclase.html.
+🆕 CAMBIOS EN v2.2 (CRÍTICO)
+⚠️ NUEVA REGLA: SISTEMA DE COMENTARIOS POR TIPO DE ARCHIVO
+El problema de v2.1 era la ambigüedad en archivos HTML con <script> y <style>. La v2.2 establece reglas CLARAS y ESTRICTAS:
+🔹 ARCHIVOS .GS (Google Apps Script / JavaScript puro)
+Usar SOLO sintaxis JavaScript para todos los comentarios:
+Comentarios de una línea: //
+Comentarios de múltiples líneas: /* */
+// MOD-001: ENCABEZADO [INICIO]
+/*
+*****************************************
+PROYECTO: Sistema de Ventas
+ARCHIVO: ventas.gs
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+*/
+// MOD-001: FIN
 
-Al respecto, ya conseguimos un código bastante bueno; pero no perfecto, la V01.18.3GPT.
-Lo bueno, el GRID:
-* Carga el GRID y su aspecto es aceptable, las celdas se ven bien.
-* Las Filas por Hora están bien, las Columnas por Día de la Semana, están bien también.
-* El título del contenido, la descripción y la leyenda están bien.
+// MOD-002: FUNCIÓN PRINCIPAL [INICIO]
+function calcular() {
+  // Comentario interno explicativo
+  let x = 5;
+  return x;
+}
+// MOD-002: FIN
 
-Lo malo:
-* No carga las horas de clase existentes.
-* No funciona el CRUD: Al darle clic no se habilita el box o modal para agregar una nueva hora de clase o editarla.
+🔹 ARCHIVOS .HTML (REGLA ABSOLUTA)
+Usar SOLO sintaxis HTML <!-- --> para ABSOLUTAMENTE TODO:
+Delimitadores de módulos MOD-XXX: <!-- -->
+Comentarios dentro de <script>: <!-- -->
+Comentarios dentro de <style>: <!-- -->
+Cualquier otro comentario: <!-- -->
+<!-- MOD-001: ENCABEZADO [INICIO] -->
+<!--
+*****************************************
+PROYECTO: Mi Aplicación Web
+ARCHIVO: index.html
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+-->
+<!-- MOD-001: FIN -->
 
-Te pasaré el códgio de  7ctabhorarioclase.html V01.18.3GPT:
-raw.githubusercontent.com/koki81pe/PBEcontrol/refs/heads/main/7ctabhorarioclase.html
+<!-- MOD-005: JAVASCRIPT [INICIO] -->
+<script>
+<!-- Función de inicialización -->
+function init() {
+  <!-- Variable de control -->
+  let x = 5;
+  console.log('Iniciado');
+}
+</script>
+<!-- MOD-005: FIN -->
 
-Te paso el código de la versión de horarioclase anterior de la que quizá puedas apoyarte o si no lo consideras lo descartas:
-raw.githubusercontent.com/koki81pe/PBEcontrol/refs/heads/V01Notabcall/7ctabhorarioclase.html
+<!-- MOD-006: ESTILOS [INICIO] -->
+<style>
+<!-- Estilos del contenedor principal -->
+.container {
+  max-width: 1200px;
+}
+</style>
+<!-- MOD-006: FIN -->
 
-Te paso el log al usar V01.18.3GPT y darle clic a una celda del Horario de Clase:
-exec?page=student:11 Unrecognized feature: 'ambient-light-sensor'.
-exec?page=student:11 Unrecognized feature: 'speaker'.
-exec?page=student:11 Unrecognized feature: 'vibrate'.
-exec?page=student:11 Unrecognized feature: 'vr'.
-about:blank:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
-userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'ambient-light-sensor'.
-userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'speaker'.
-userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'vibrate'.
-userCodeAppPanel?cre…eOAuthDialog=true:1 Unrecognized feature: 'vr'.
- ✅ Usuario inicializado correctamente: Object
- 🎓 PBE Control - Panel Estudiante V01.20
- ✓ currentUser inicializado ANTES de cargar tabs
- 📚 CursosModule V01.23 CLAUDE cargado
- 🔄 Sub-tab Repasos V01.19 GPT EXTRA Cargado
- 📦 4atabcursosyrep V01.22 CLAUDE cargado
- 📋 TodosModule V01.21 CLAUDE cargado
- 📝 Sub-tab Evaluaciones Cargado
- ✏️ Sub-tab Tareas Cargado
- 📖 LecturasModule V01.20 CLAUDE cargado
- 📝 Tab Deberes Cargado [V01.18 CLAUDE]
- Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas
- Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha
- currentUser disponible: true
- Lazy-init habilitado para todos los sub-tabs
- 🕐 HorarioClase V01.18.3 inicializado
-userCodeAppPanel?cre…AuthDialog=true:107 Uncaught 
- 🗓️ CalendarioModule V01.19 CLAUDE iniciando...
- 🗓️ CalendarioModule V01.19 CLAUDE cargado
- 📅 Planning V01.18 cargado
- 📦 4atabcursosyrep V01.22 CLAUDE: Activando Cursos por defecto
- Variable global currentUser: Object
- Net state changed from IDLE to BUSY
- Funciones globales: showAlert, showLoading, hideLoading, switchTab
- [4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos
- [4btabdeberes] 🔄 switchSubTabDeberes llamada con: todos
- [4btabdeberes] ✅ Sub-tab activado: todos
- Sub-tab Deberes cambiado a: todos
- [4btabdeberes] 📋 Inicializando TodosModule...
-userCodeAppPanel?cre…OAuthDialog=true:63 Uncaught 
- 🟢 Inicializando subtab: cursos
- 📚 CursosModule.init() llamado (intento 1)
- 📚 CursosModule inicializado correctamente para: TEST05
- 📚 Cargando cursos para: TEST05
- 📚 currentUser detectado, auto-inicializando...
- 📚 CursosModule.init() llamado (intento 1)
- 📚 CursosModule ya inicializado, ignorando
- 📋 currentUser detectado, auto-inicializando...
- 📋 TodosModule.inicializar() llamado (intento 1)
- 📋 TodosModule inicializado para: TEST05
- 📋 Cargando deberes para: TEST05
- 📖 currentUser detectado, auto-inicializando...
- 📖 LecturasModule.inicializar() llamado (intento 1)
- 📖 LecturasModule inicializado para: TEST05
- 📖 Cargando cursos...
- 📖 Cargando lecturas para: TEST05
- 🗓️ currentUser detectado, auto-inicializando...
- 🗓️ CalendarioModule.init() llamado (intento 1)
- 🗓️ CalendarioModule inicializado para: TEST05
- 🗓️ Cargando datos del calendario...
- 🗓️ Llamando a: studentObtenerEvaluaciones
- 🗓️ Llamando a: studentObtenerTareas
- 🗓️ Llamando a: studentObtenerLecturas
- 🗓️ Llamando a: studentObtenerHorarioSem
- 📚 Respuesta recibida: Object
- 📚 Cursos cargados: 6
- 📚 Tabla renderizada con 6 cursos
- 📖 Respuesta lecturas: Object
-VM188:165 📖 Lecturas cargadas: 2
-VM188:176 📖 Aplicando filtro. Valor actual: 
-VM188:181 📖 Mostrando TODAS las lecturas: 2
-VM188:189 📖 Filtradas: 2 de 2
-VM188:287 📖 Tabla renderizada con 2 lecturas
-VM193:141 🗓️ studentObtenerHorarioSem response: Object
-VM193:172 🗓️ studentObtenerHorarioSem ejemplo: Object
-VM193:178 🗓️ studentObtenerHorarioSem mapeados: 1
-VM188:68 📖 Respuesta cursos: Object
-VM188:81 📖 Cursos cargados: 6
-VM188:112 📖 Dropdowns poblados con 6 cursos
-VM193:141 🗓️ studentObtenerTareas response: Object
-VM193:172 🗓️ studentObtenerTareas ejemplo: Object
-VM193:178 🗓️ studentObtenerTareas mapeados: 3
-VM193:141 🗓️ studentObtenerLecturas response: Object
-VM193:172 🗓️ studentObtenerLecturas ejemplo: Object
-VM193:178 🗓️ studentObtenerLecturas mapeados: 2
-VM193:141 🗓️ studentObtenerEvaluaciones response: Object
-VM193:172 🗓️ studentObtenerEvaluaciones ejemplo: Object
-VM193:178 🗓️ studentObtenerEvaluaciones mapeados: 4
-VM193:114 🗓️ Total de actividades cargadas: 10
-VM193:115 🗓️ Desglose: Object
-VM193:193 🗓️ Renderizando calendario: Enero 2026
-VM193:252 🗓️ Calendario renderizado con 42 celdas
-VM185:366 📋 Respuesta del backend: Object
-VM185:389 📋 Deberes cargados: 9
-VM185:390 📋 Ejemplo de fecha del backend: 05/01/2026
-VM185:403 📋 Deberes ordenados por fecha
-VM185:201 📋 Dropdown de cursos poblado con 5 cursos: Array(5)
-VM185:296 📋 Aplicando filtros - Tipo: todos Curso:  Fecha: todos
-VM185:343 📋 Filtrados: 9 de 9
-VM185:281 📋 Tabla renderizada con 9 deberes
-VM195:37 Tab cambiado a: planning
-VM194:30 [Planning] Sub-tab activo: horarioclase
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-2599463051-warden_bin_i18n_warden__es.js:149 Net state changed from BUSY to IDLE
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-VM194:30 [Planning] Sub-tab activo: horariosem
-VM195:37 Tab cambiado a: cursosyrep
-VM195:37 Tab cambiado a: planning
-VM194:30 [Planning] Sub-tab activo: horariosem
-VM194:30 [Planning] Sub-tab activo: horarioclase
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-agregar @ VM190:124
-onclick @ userCodeAppPanel?createOAuthDialog=true:1
-VM190:124 Uncaught TypeError: window.clickCelda is not a function
-    at Object.agregar (<anonymous>:124:31)
-    at HTMLDivElement.onclick (userCodeAppPanel?createOAuthDialog=true:1:20)
-agregar @ VM190:124
-onclick @ userCodeAppPanel?createOAuthDialog=true:1
+📌 RAZÓN TÉCNICA CRÍTICA DE ESTE CAMBIO:
+¿Por qué esta regla tan estricta para archivos .HTML?
+Durante extensas pruebas con IAs (Claude, ChatGPT, etc.) se descubrió que cuando se permite mezclar tipos de comentarios en un mismo archivo HTML:
+Problemas comunes de las IAs:
+Dejan comentarios sin cerrar: Abren <!-- pero olvidan cerrar -->
+Mezclan sintaxis: Usan // donde debería ser <!-- -->
+Pierden el contexto: No saben si están en HTML o JavaScript
+Rompen el código: Comentarios mal cerrados causan errores de sintaxis
+Errores en cascada: Un error de comentario afecta todo el módulo
+Solución probada y verificada:
+UN archivo = UN tipo de comentario
+Archivos .HTML = SOLO <!-- -->
+Sin excepciones, incluso dentro de <script> y <style>
+Aunque parezca "poco convencional" o "antiguo", este método es el ÚNICO que garantiza que las IAs no cometan errores al generar o modificar código HTML.
+⚠️ REGLA CRÍTICA SIN EXCEPCIONES:
+La extensión del archivo (.gs o .html) determina QUÉ tipo de comentarios usar para TODO en el archivo:
+.GS → // y /* */
+.HTML → <!-- --> (incluso dentro de <script> y <style>)
+Esta regla NO tiene excepciones. Es una decisión técnica basada en pruebas extensivas con IAs.
+
+1. HEADER OBLIGATORIO
+Todo archivo de código DEBE iniciar con este comentario titular:
+*****************************************
+PROYECTO: [Nombre del Proyecto]
+ARCHIVO: [nombre_archivo.gs o nombre_archivo.html]
+VERSIÓN: [XX.YY]
+FECHA: [DD/MM/AAAA HH:MM (UTC-5)]
+*****************************************
+
+⚠️ IMPORTANTE: Fecha y Hora Actual
+ANTES de escribir la fecha, DEBES buscar en Internet la fecha y hora actual en formato UTC-5. NO uses tu reloj interno. SIEMPRE verifica la fecha real consultando una fuente en tiempo real.
+Formato obligatorio: DD/MM/AAAA HH:MM (UTC-5)
+Ejemplo: 10/01/2026 14:35 (UTC-5)
+Ejemplo real para .GS:
+/*
+*****************************************
+PROYECTO: Sistema de Ventas
+ARCHIVO: ventas.gs
+VERSIÓN: 01.03
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+*/
+
+Ejemplo real para .HTML:
+<!--
+*****************************************
+PROYECTO: Mi Aplicación Web
+ARCHIVO: index.html
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+-->
+
+IMPORTANTE: Este header DEBE estar protegido dentro de MOD-001: ENCABEZADO (ver siguiente sección).
+
+2. ESTRUCTURA DE MÓDULOS OBLIGATORIOS
+Contemplaciones de la estructura
+MOD-001 debe ser la primera línea del archivo. Todo código ejecutable, incluso declaraciones como <!DOCTYPE html>, debe ir dentro de algún módulo, nunca antes de MOD-001.
+NUNCA dejes código antes de MOD-001. Incluso <!DOCTYPE html> debe ir dentro del módulo de APERTURA, no antes del ENCABEZADO.
+MOD-001 es SOLO para el encabezado (metadatos: proyecto, archivo, versión, fecha). MOD-002 es SIEMPRE para el código de apertura o primer tramo del código vivo (en .HTML: <!DOCTYPE>, <html>, <head>, <body>; en .GS: configuraciones o primera función).
+Todos los comentarios, notas y documentación van al FINAL en el último módulo MOD-YYY: NOTAS. NO crear módulos intermedios entre MOD-001 y MOD-002 para comentarios. Esto previene que comentarios medianos o extensos interfieran con la modularización del código ejecutable, permitiendo que herramientas como CodeWorkShop realicen reemplazos quirúrgicos sin afectar la documentación.
+
+Todo código DEBE seguir esta estructura de módulos en orden:
+MOD-001: ENCABEZADO (Obligatorio en todos los archivos)
+Propósito: Proteger los metadatos del proyecto (nombre, archivo, versión, fecha).
+Para archivos .GS:
+// MOD-001: ENCABEZADO [INICIO]
+/*
+*****************************************
+PROYECTO: Sistema de Ventas
+ARCHIVO: ventas.gs
+VERSIÓN: 01.03
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+*/
+// MOD-001: FIN
+
+Para archivos .HTML:
+<!-- MOD-001: ENCABEZADO [INICIO] -->
+<!--
+*****************************************
+PROYECTO: Mi Aplicación Web
+ARCHIVO: index.html
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+-->
+<!-- MOD-001: FIN -->
 
 
-También comentarios de Gemini al revisar el Log:
-En la versión V01.18.3 GPT, el código está "encapsulado". Esto significa que las funciones como `clickCelda`, `abrirFormularioAgregar` o `editarClase` ahora viven dentro de un contenedor privado llamado `HorarioClaseModule`.
-El error ocurre porque:
-1. Al hacer clic en la celda, el navegador busca una función global llamada `clickCelda`.
-2. Como esa función ahora está guardada dentro de `HorarioClaseModule`, el sistema no la encuentra y lanza el error que ves en el log.
-3. Al fallar el clic, el formulario no se abre y el flujo se detiene.
-🛠️ La Solución Quirúrgica (V01.18.4)
-Para que el CRUD funcione, debemos conectar los clics de la tabla con las funciones internas del módulo. Debes localizar la función `renderGrid()` en tu archivo V01.18.3 y realizar este cambio específico:
-Busca estas líneas (aprox. 154-168):
-JavaScript
+MOD-002: APERTURA (Condicional - Solo para archivos HTML/estructurales)
+Propósito: Proteger la estructura obligatoria de apertura del documento HTML.
+Cuándo usarlo:
+Obligatorio en archivos HTML
+Opcional en archivos .gs (solo si hay código de inicialización especial)
+Ejemplo para HTML:
+<!-- MOD-002: APERTURA HTML [INICIO] -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Aplicación</title>
+  <?!= include('style'); ?>
+</head>
+<body>
+<!-- MOD-002: FIN -->
 
-```
-// CÓDIGO CON ERROR (V01.18.3):
-if(s){
-  html+=`
+Nota: Si tu archivo .gs no tiene código de apertura especial, el siguiente módulo después del ENCABEZADO será MOD-002 con tu primera función o configuración.
 
-...
+MOD-003 en adelante: CÓDIGO FUNCIONAL
+Cada función o sección lógica debe estar delimitada con su propio módulo:
+Para archivos .GS:
+// MOD-003: VALIDAR DATOS [INICIO]
+function validarDatos(datos) {
+  if (!datos) throw new Error("Sin datos");
+  return true;
+}
+// MOD-003: FIN
 
-`;
-} else {
-  html+=``;
+// MOD-004: PROCESAR VENTAS [INICIO]
+function procesarVenta(venta) {
+  validarDatos(venta);
+  return calcularTotal(venta);
+}
+// MOD-004: FIN
+
+// MOD-005: CALCULAR TOTAL [INICIO]
+function calcularTotal(venta) {
+  return venta.items.reduce((sum, item) => sum + item.precio, 0);
+}
+// MOD-005: FIN
+
+Para archivos .HTML:
+<!-- MOD-003: CONTENIDO PRINCIPAL [INICIO] -->
+<div class="container">
+  <h1>Bienvenido</h1>
+  <div id="app"></div>
+</div>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: ESTILOS [INICIO] -->
+<style>
+<!-- Estilos del contenedor -->
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+</style>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-005: JAVASCRIPT [INICIO] -->
+<script>
+<!-- Función de inicialización -->
+function init() {
+  <!-- Carga el contenido en el div app -->
+  document.getElementById('app').innerHTML = 'Cargado';
+}
+<!-- Ejecutar al cargar la página -->
+window.onload = init;
+</script>
+<!-- MOD-005: FIN -->
+
+
+MOD-XXX: CÓDIGO DE CIERRE (Penúltimo módulo - Obligatorio)
+Propósito: Contener todo el código que se ejecuta al final del archivo.
+Incluye:
+Inicialización de variables globales
+Event listeners
+Código de arranque
+Console logs de debugging
+Cualquier código suelto que no esté dentro de funciones
+Cierre de estructura HTML (si aplica)
+Ejemplo para archivos .GS:
+// MOD-006: CÓDIGO DE CIERRE [INICIO]
+// Log de inicialización
+Logger.log('Sistema de ventas cargado');
+Logger.log('Versión: 01.03');
+
+// Validación inicial
+if (!CONFIG.hoja) {
+  throw new Error('Configuración incompleta');
+}
+// MOD-006: FIN
+
+Ejemplo para archivos .HTML:
+<!-- MOD-006: CÓDIGO DE CIERRE [INICIO] -->
+  <?!= include('scripts'); ?>
+</body>
+</html>
+<!-- MOD-006: FIN -->
+
+Nota: Si no hay código de cierre, el módulo puede estar vacío pero DEBE existir:
+// MOD-006: CÓDIGO DE CIERRE [INICIO]
+// No hay código de cierre en este archivo
+// MOD-006: FIN
+
+
+MOD-YYY: NOTAS (Último módulo - Obligatorio)
+Propósito: Documentación, advertencias, dependencias y referencias.
+Para archivos .GS:
+// MOD-007: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Sistema de ventas con validación de datos y cálculo de totales.
+
+DEPENDENCIAS:
+- MOD-003: Requiere que datos sea un objeto válido
+- MOD-004: Llama a MOD-003 y MOD-005
+
+ADVERTENCIAS:
+- MOD-005: No maneja valores negativos, validar antes
+
+REFERENCIAS:
+- API de pagos: https://ejemplo.com/api
+- Documentación: https://docs.ejemplo.com
+
+PRÓXIMAS MEJORAS:
+- Implementar validación de moneda
+- Agregar soporte para descuentos
+*/
+// MOD-007: FIN
+
+Para archivos .HTML:
+<!-- MOD-007: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Página principal de la aplicación web.
+
+DEPENDENCIAS:
+- MOD-002: Requiere archivos style.html y scripts.html
+
+ADVERTENCIAS:
+- El contenido dinámico se carga en el div#app
+
+PRÓXIMAS MEJORAS:
+- Agregar loading spinner
+- Implementar manejo de errores
+-->
+<!-- MOD-007: FIN -->
+
+
+⚠️ REGLA CRÍTICA DE NUMERACIÓN
+La numeración debe ser secuencial. Ejemplo:
+Si tienes 5 módulos funcionales (MOD-001 a MOD-005)
+MOD-006 será CÓDIGO DE CIERRE
+MOD-007 será NOTAS
+SIEMPRE: CÓDIGO DE CIERRE es el penúltimo, NOTAS es el último.
+
+3. REGLAS DE MODULACIÓN
+Numeración Secuencial
+MOD-001, MOD-002, MOD-003 ← CORRECTO
+MOD-001, MOD-005, MOD-003 ← INCORRECTO (salto de números)
+
+Etiquetas Obligatorias
+Reglas:
+[INICIO] con corchetes es OBLIGATORIO
+FIN debe tener el MISMO número que INICIO
+Siempre usar formato de 3 dígitos: 001, 002, 003
+Ejemplo para .GS:
+// MOD-007: FUNCIÓN [INICIO]
+function test() {}
+// MOD-007: FIN
+
+Ejemplo para .HTML:
+<!-- MOD-007: FUNCIÓN [INICIO] -->
+<script>
+function test() {}
+</script>
+<!-- MOD-007: FIN -->
+
+Tabulación Correcta
+Los comentarios MOD deben estar al MISMO nivel de tabulación que el código que contienen:
+Para .GS:
+function ejemplo() {
+  // MOD-001: SECCIÓN INTERNA [INICIO]
+  if (condición) {
+    // código tabulado
+  }
+  // MOD-001: FIN
 }
 
-```
+Para .HTML:
+<div class="container">
+  <!-- MOD-003: CONTENIDO INTERNO [INICIO] -->
+  <div class="content">
+    <p>Texto</p>
+  </div>
+  <!-- MOD-003: FIN -->
+</div>
 
-Cámbialas por estas (La conexión correcta):
-JavaScript
+NO usar MOD-XXX dentro del código
+INCORRECTO:
+// MOD-001: VALIDAR [INICIO]
+function validar() {
+  // Este es el MOD-001 que valida... ← NO HACER
+}
+// MOD-001: FIN
 
-```
-// CÓDIGO CORREGIDO:
-if(s){
-  const x = s[0];
-  html+=`
-
-
-          ${x.prefijo}${x.clase.Curso}${x.sufijo}
-        
-
-`;
-} else {
-  html+=`
+CORRECTO:
+// MOD-001: VALIDAR [INICIO]
+function validar() {
+  // Valida que los datos existan
+}
+// MOD-001: FIN
 
 
-          +
-        
+4. CUANDO MODIFICAS CÓDIGO EXISTENTE
+🎯 REGLA DE ORO
+Si el código YA tiene módulos, SOLO entrega el módulo modificado.
+Ejemplo de modificación correcta
+Usuario dice: "Mejora la validación para que acepte arrays vacíos"
+INCORRECTO - NO hagas esto:
+[Entregar todo el archivo de 500 líneas completo]
 
-`;
+CORRECTO - Haz esto:
+// MOD-003: VALIDAR DATOS [INICIO]
+function validarDatos(datos) {
+  if (!datos) throw new Error("Sin datos");
+  // Permitir arrays vacíos
+  if (Array.isArray(datos)) return true;
+  if (datos.length === 0) throw new Error("Datos sin elementos");
+  return true;
+}
+// MOD-003: FIN
+
+El usuario usará CodeWorkShop para reemplazar SOLO ese módulo.
+
+5. EJEMPLO COMPLETO - Archivo .GS
+// MOD-001: ENCABEZADO [INICIO]
+/*
+*****************************************
+PROYECTO: Control de Inventario
+ARCHIVO: inventario.gs
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+*/
+// MOD-001: FIN
+
+// MOD-002: CONFIGURACIÓN [INICIO]
+const CONFIG = {
+  hoja: "Inventario",
+  colProducto: 0,
+  colStock: 1
+};
+// MOD-002: FIN
+
+// MOD-003: OBTENER HOJA [INICIO]
+function obtenerHoja() {
+  return SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName(CONFIG.hoja);
+}
+// MOD-003: FIN
+
+// MOD-004: BUSCAR PRODUCTO [INICIO]
+function buscarProducto(codigo) {
+  const hoja = obtenerHoja();
+  const datos = hoja.getDataRange().getValues();
+  
+  for (let i = 1; i < datos.length; i++) {
+    if (datos[i][CONFIG.colProducto] === codigo) {
+      return {
+        fila: i + 1,
+        stock: datos[i][CONFIG.colStock]
+      };
+    }
+  }
+  return null;
+}
+// MOD-004: FIN
+
+// MOD-005: ACTUALIZAR STOCK [INICIO]
+function actualizarStock(codigo, cantidad) {
+  const prod = buscarProducto(codigo);
+  if (!prod) throw new Error("Producto no encontrado");
+  
+  const hoja = obtenerHoja();
+  const nuevoStock = prod.stock + cantidad;
+  hoja.getRange(prod.fila, CONFIG.colStock + 1).setValue(nuevoStock);
+  
+  return nuevoStock;
+}
+// MOD-005: FIN
+
+// MOD-006: CÓDIGO DE CIERRE [INICIO]
+// Log de inicialización
+Logger.log('Sistema de inventario cargado');
+Logger.log('Versión: 01.00');
+
+// Validación inicial
+if (!CONFIG.hoja) {
+  throw new Error('Configuración incompleta');
+}
+// MOD-006: FIN
+
+// MOD-007: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Sistema básico de inventario con búsqueda y actualización de stock.
+
+DEPENDENCIAS:
+- MOD-003: Requiere hoja "Inventario" en el Spreadsheet
+- MOD-004: Usa configuración de MOD-002
+- MOD-005: Llama a MOD-003 y MOD-004
+
+ADVERTENCIAS:
+- MOD-004: Devuelve null si no encuentra el producto
+- MOD-005: Lanza error si producto no existe
+- MOD-006: Valida configuración al cargar el script
+
+PRÓXIMAS MEJORAS:
+- Agregar validación de cantidad negativa
+- Implementar registro de movimientos
+- Agregar caché para búsquedas frecuentes
+*/
+// MOD-007: FIN
+
+
+6. EJEMPLO COMPLETO - Archivo .HTML
+<!-- MOD-001: ENCABEZADO [INICIO] -->
+<!--
+*****************************************
+PROYECTO: Mi Aplicación Web
+ARCHIVO: index.html
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+-->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: APERTURA HTML [INICIO] -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Aplicación</title>
+  <?!= include('style'); ?>
+</head>
+<body>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: CONTENIDO PRINCIPAL [INICIO] -->
+<div class="container">
+  <h1>Bienvenido</h1>
+  <div id="app"></div>
+</div>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
+<script>
+<!-- Función de inicialización -->
+function inicializar() {
+  <!-- Establece el contenido inicial -->
+  document.getElementById('app').innerHTML = 'Aplicación cargada';
 }
 
-```
+<!-- Ejecutar cuando la página cargue -->
+window.onload = inicializar;
+</script>
+<!-- MOD-004: FIN -->
 
-2. El segundo error: No "jala" los datos
-En tu log se ve que `currentUser` se inicializa correctamente, pero el horario no se pinta. Esto es porque en la V01.18.3, la función `colorCurso` puede estar fallando si intenta buscar un color de un curso que aún no se ha cargado.
-Asegúrate de que tu objeto `window.HorarioClaseModule` al final del script incluya estos nombres exactos:
-JavaScript
+<!-- MOD-005: CÓDIGO DE CIERRE [INICIO] -->
+  <?!= include('scripts'); ?>
+</body>
+</html>
+<!-- MOD-005: FIN -->
 
-```
-window.HorarioClaseModule = {
-  init: init,
-  agregar: abrirFormularioAgregar, // Mapeo de seguridad
-  editar: editarClase,           // Mapeo de seguridad
-  abrirFormularioAgregar: abrirFormularioAgregar,
-  editarClase: editarClase,
-  guardarClase: guardarClase,
-  eliminarClase: eliminarClase,
-  cancelar: cancelarFormClase
+<!-- MOD-006: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Página principal de la aplicación web.
+
+DEPENDENCIAS:
+- MOD-002: Requiere archivos style.html y scripts.html
+- MOD-004: Código JavaScript de inicialización
+
+ADVERTENCIAS:
+- El contenido dinámico se carga en el div#app
+- Requiere que los includes estén disponibles
+
+PRÓXIMAS MEJORAS:
+- Agregar loading spinner
+- Implementar manejo de errores
+- Agregar modo oscuro
+-->
+<!-- MOD-006: FIN -->
+
+
+7. CASOS ESPECIALES
+Archivos con código mínimo
+Si un archivo es muy simple, aún así DEBE tener los módulos obligatorios:
+Para .GS:
+// MOD-001: ENCABEZADO [INICIO]
+/*
+*****************************************
+PROYECTO: Utilidades
+ARCHIVO: helpers.gs
+VERSIÓN: 01.00
+FECHA: 10/01/2026 14:35 (UTC-5)
+*****************************************
+*/
+// MOD-001: FIN
+
+// MOD-002: FUNCIÓN PRINCIPAL [INICIO]
+function formatearFecha(fecha) {
+  return Utilities.formatDate(fecha, 'UTC', 'dd/MM/yyyy');
+}
+// MOD-002: FIN
+
+// MOD-003: CÓDIGO DE CIERRE [INICIO]
+// No hay código de cierre
+// MOD-003: FIN
+
+// MOD-004: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Función auxiliar para formatear fechas.
+
+DEPENDENCIAS:
+- Ninguna
+
+ADVERTENCIAS:
+- Usa zona horaria UTC
+*/
+// MOD-004: FIN
+
+Scripts con mucho código de inicialización
+Organiza el código de cierre con comentarios internos:
+Para .GS:
+// MOD-010: CÓDIGO DE CIERRE [INICIO]
+// === Configuración de eventos ===
+google.script.run
+  .withSuccessHandler(onSuccess)
+  .withFailureHandler(onError)
+  .cargarDatos();
+
+// === Variables globales de estado ===
+let estadoActual = 'inicial';
+let datosTemporales = [];
+
+// === Log de arranque ===
+Logger.log('Aplicación iniciada correctamente');
+// MOD-010: FIN
+
+Para .HTML:
+<!-- MOD-010: CÓDIGO DE CIERRE [INICIO] -->
+<script>
+<!-- === Configuración de eventos === -->
+window.onload = function() {
+  inicializar();
 };
 
-```
+<!-- === Listeners de botones === -->
+document.getElementById('btnGuardar').onclick = guardar;
+document.getElementById('btnCancelar').onclick = cancelar;
 
-Resumen del Fix:
-El problema no es de lógica, es de nombres. El HTML llama a "A", pero la función ahora se llama "Modulo.A". 
-...
+<!-- === Variables globales de estado === -->
+let estadoActual = 'inicial';
+let datosTemporales = [];
+
+<!-- === Log de arranque === -->
+console.log('Aplicación iniciada correctamente');
+</script>
+<!-- MOD-010: FIN -->
+
+
+8. RESUMEN
+SIEMPRE hacer:
+Header con fecha y hora consultada en Internet (DD/MM/AAAA HH:MM UTC-5)
+MOD-001: ENCABEZADO como primer módulo (obligatorio)
+MOD-002: APERTURA si el archivo es HTML (condicional)
+Módulos numerados secuencialmente para código funcional
+[INICIO] y FIN con el mismo número en cada módulo
+MOD-XXX: CÓDIGO DE CIERRE como penúltimo módulo (obligatorio)
+MOD-YYY: NOTAS como último módulo (obligatorio)
+Solo entregar el módulo modificado cuando el código ya existe
+Usar // y /* */ en archivos .GS
+Usar <!-- --> para TODO en archivos .HTML (sin excepciones)
+NUNCA hacer:
+No dejar código fuera de módulos
+No saltar números en la secuencia de módulos
+No Usar MOD-XXX dentro de comentarios del código
+No Olvidar [INICIO] o FIN
+No Entregar todo el archivo si sólo cambió una función
+No Usar fecha/hora de tu reloj interno (consultar en Internet)
+No omitir los módulos ENCABEZADO, CÓDIGO DE CIERRE o NOTAS
+No mezclar tipos de comentarios (// en .HTML o <!-- --> en .GS)
+No usar // o / / dentro de archivos .HTML (incluso en <script> y <style>)
+RECORDAR EL MANTRA:
+"No debe haber parte del código sin modular. Si no está dentro de un módulo MOD-XXX, está en riesgo de perderse."
+
+✅ Listo para CodeWorkShop
+TABLA DE REFERENCIA RÁPIDA
+Tipo de Archivo
+Delimitadores MOD-XXX
+Todos los Comentarios
+.GS
+// MOD-XXX:
+// y /* */
+.HTML
+<!-- MOD-XXX: -->
+<!-- -->
+
+⚠️ REGLA ABSOLUTA PARA .HTML:
+En archivos .HTML se usa <!-- --> para ABSOLUTAMENTE TODO, incluyendo:
+Delimitadores de módulos
+Comentarios dentro de <script>
+Comentarios dentro de <style>
+Cualquier comentario en cualquier parte del archivo
+NO hay excepciones. Esta es una decisión técnica basada en pruebas extensivas con IAs.
+
+📌 CAMBIOS EN ESTA VERSIÓN (v2.2):
+CRÍTICO: Sistema de comentarios diferenciado y ESTRICTO por tipo de archivo
+Regla absoluta: .GS usa // y /* */, .HTML usa SOLO <!-- →
+Sin excepciones: En .HTML se usa <!-- --> incluso dentro de <script> y <style>
+Explicación técnica del POR QUÉ (problemas de IAs con sintaxis mixta)
+Todos los ejemplos actualizados con la nueva convención estricta
+Tabla de referencia rápida corregida
+Eliminada toda ambigüedad sobre qué comentarios usar
+Énfasis en que es una decisión técnica, no estética
+Documentación clara de que un archivo = un tipo de comentario
