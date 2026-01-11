@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.28 LIBRE
-FECHA: 10/01/2026 19:00 (UTC-5)
+VERSIÓN: 01.29 CLAUDE
+FECHA: 11/01/2026 16:33 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -522,13 +522,13 @@ FECHA: 10/01/2026 19:00 (UTC-5)
 <div id="modalActividad" class="hs-modal">
   <div class="hs-modal-content">
     <h3 id="actividadFormTitle">Agregar Actividad</h3>
-    
+
     <form id="formActividad" onsubmit="return window.handleSubmitActividad(event)">
       <input type="hidden" id="actividadRowNumber">
       <input type="hidden" id="actividadModoEdicion" value="false">
       <input type="hidden" id="actividadFecha">
       <input type="hidden" id="actividadSem">
-      
+
       <div class="hs-form-group">
         <label>Tipo de Actividad:</label>
         <select id="actividadTipo" required>
@@ -542,33 +542,52 @@ FECHA: 10/01/2026 19:00 (UTC-5)
           <option value="Otro">Otro</option>
         </select>
       </div>
-      
+
       <div class="hs-form-group">
         <label>Nombre:</label>
         <input type="text" id="actividadNombre" required placeholder="Ej: Estudio FIS">
       </div>
-      
+
       <div class="hs-form-group">
         <label>Hora Inicio:</label>
         <input type="time" id="actividadHoraIni" required>
       </div>
-      
+
       <div class="hs-form-group">
         <label>Hora Fin:</label>
         <input type="time" id="actividadHoraFin" required>
       </div>
-      
+
       <div class="hs-form-group">
         <label>Color:</label>
         <input type="color" id="actividadColor" value="#17a2b8">
       </div>
-      
+
       <div class="hs-modal-actions">
         <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarModalActividad()">Cancelar</button>
         <button type="button" class="hs-btn hs-btn-danger" id="btnEliminarActividad" style="display:none" onclick="window.confirmarEliminarActividad()">Eliminar</button>
         <button type="submit" class="hs-btn hs-btn-primary" id="btnSubmitActividad">Guardar</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
+<div id="modalConfirmacion" class="hs-modal">
+  <div class="hs-modal-content" style="max-width: 420px;">
+    <h3 id="confirmacionTitulo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+      <span style="font-size: 32px;">❓</span>
+      <span>Confirmación</span>
+    </h3>
+
+    <p id="confirmacionMensaje" style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 24px;">
+      ¿Estás seguro?
+    </p>
+
+    <div class="hs-modal-actions">
+      <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarModalConfirmacion()">Cancelar</button>
+      <button type="button" class="hs-btn hs-btn-primary" id="btnConfirmarAccion">Confirmar</button>
+    </div>
   </div>
 </div>
 
@@ -614,7 +633,7 @@ if (window.HorarioSemanalModule) {
   return;
 }
 
-console.log('📅 HorarioSemanalModule V01.25 CLAUDE iniciando...');
+console.log('📅 HorarioSemanalModule V01.29 CLAUDE iniciando...');
 <!-- MOD-005: FIN -->
 
 <!-- MOD-006: VERIFICACIÓN Y CONSTANTES [INICIO] -->
@@ -914,11 +933,18 @@ function construirMatriz() {
   actividadesData.forEach(act => {
     const fechaAct = act.FechaHS;
     if (!fechaAct) return;
-    
-    const key = formatearFechaISO(new Date(fechaAct));
-    
+
+    <!-- V01.29 CLAUDE: Parsear DD/MM/AAAA correctamente -->
+    const fechaParsed = parsearFechaDDMMAAAA(fechaAct);
+    if (isNaN(fechaParsed.getTime())) {
+      console.warn('📅 Fecha inválida:', fechaAct);
+      return;
+    }
+
+    const key = formatearFechaISO(fechaParsed);
+
     if (!horarioMatrix[key]) return;
-    
+
     const horas = calcularHoras(act.HoraInicio, act.HoraFin);
     horas.forEach(h => {
       horarioMatrix[key][h.hora] = horarioMatrix[key][h.hora] || [];
@@ -1100,6 +1126,49 @@ function formatearFechaCorta(fecha) {
   const dia = String(fecha.getDate()).padStart(2, '0');
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
   return `${dia}/${mes}`;
+}
+
+<!-- V01.29 CLAUDE: Formatear Date a DD/MM/AAAA -->
+function formatearFechaDDMMAAAA(fecha) {
+  if (!fecha || !(fecha instanceof Date)) {
+    return '';
+  }
+
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const anio = fecha.getFullYear();
+
+  return `${dia}/${mes}/${anio}`;
+}
+
+<!-- V01.29 CLAUDE: Parsear DD/MM/AAAA a Date object -->
+function parsearFechaDDMMAAAA(fechaStr) {
+  if (!fechaStr) {
+    return new Date('invalid');
+  }
+
+  if (fechaStr instanceof Date) {
+    return fechaStr;
+  }
+
+  const str = String(fechaStr).trim();
+
+  <!-- Formato DD/MM/AAAA -->
+  const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const dia = parseInt(match[1], 10);
+    const mes = parseInt(match[2], 10) - 1;
+    const anio = parseInt(match[3], 10);
+    return new Date(anio, mes, dia);
+  }
+
+  <!-- Formato YYYY-MM-DD (ISO) -->
+  if (str.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
+    return new Date(str);
+  }
+
+  <!-- Intentar parseo directo -->
+  return new Date(str);
 }
 <!-- MOD-019: FIN -->
 
@@ -1332,12 +1401,16 @@ function handleSubmitActividad(event) {
   btnSubmit.disabled = true;
   btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
   
+  <!-- V01.29 CLAUDE: Convertir fecha ISO a DD/MM/AAAA -->
+  const fechaObj = new Date(fecha);
+  const fechaDDMMAAAA = formatearFechaDDMMAAAA(fechaObj);
+
   const params = {
     codeAlum: currentUser.codeAlum,
     actividad: nombre,
     horaInicio: horaIni,
     horaFin: horaFin,
-    fechaHS: fecha,
+    fechaHS: fechaDDMMAAAA,
     tipoAct: tipo,
     color: color,
     sem: sem
@@ -1390,15 +1463,19 @@ function handleActividadError(error, esEdicion) {
 
 function confirmarEliminarActividad() {
   const rowNumber = document.getElementById('actividadRowNumber').value;
-  
+
   if (!rowNumber) {
     mostrarNotificacion('info', 'No se puede eliminar esta actividad');
     return;
   }
-  
-  if (confirm('¿Eliminar esta actividad?\n\nEsta acción no se puede deshacer.')) {
-    eliminarActividad(parseInt(rowNumber));
-  }
+
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
+  mostrarConfirmacion(
+    '¿Eliminar esta actividad?\n\nEsta acción no se puede deshacer.',
+    function() {
+      eliminarActividad(parseInt(rowNumber));
+    }
+  );
 }
 
 function eliminarActividad(rowNumber) {
@@ -1423,24 +1500,74 @@ function handleActividadEliminada(response) {
 }
 <!-- MOD-022: FIN -->
 
+<!-- MOD-022B: FUNCIONES MODAL CONFIRMACIÓN [INICIO] -->
+/**
+ * Muestra un modal de confirmación estilizado
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {function} onConfirm - Callback cuando se confirma
+ */
+function mostrarConfirmacion(mensaje, onConfirm) {
+  const modal = document.getElementById('modalConfirmacion');
+  const mensajeEl = document.getElementById('confirmacionMensaje');
+  const btnConfirmar = document.getElementById('btnConfirmarAccion');
+  
+  if (!modal || !mensajeEl || !btnConfirmar) {
+    console.error('❌ No se encontró el modal de confirmación');
+    return;
+  }
+
+  <!-- Configurar mensaje (convertir \n a <br>) -->
+  mensajeEl.innerHTML = mensaje.replace(/\n/g, '<br>');
+  
+  <!-- Configurar botón de confirmación -->
+  btnConfirmar.onclick = function() {
+    cerrarModalConfirmacion();
+    if (typeof onConfirm === 'function') {
+      onConfirm();
+    }
+  };
+  
+  <!-- Mostrar modal -->
+  modal.style.display = 'flex';
+}
+
+/**
+ * Cierra el modal de confirmación
+ */
+function cerrarModalConfirmacion() {
+  const modal = document.getElementById('modalConfirmacion');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+<!-- MOD-022B: FIN -->
+
 <!-- MOD-023: FUNCIONES COPIAR Y LIMPIAR [INICIO] -->
 function copiarSemanaAnterior() {
   if (semanaActual <= 1) {
     mostrarNotificacion('info', 'No hay semana anterior para copiar');
     return;
   }
-  
-  if (!confirm(`¿Copiar actividades de Semana ${semanaActual - 1} a Semana ${semanaActual}?`)) {
-    return;
-  }
-  
+
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
+  mostrarConfirmacion(
+    `¿Copiar todas las actividades de Semana ${semanaActual - 1} a Semana ${semanaActual}?\n\nLas actividades existentes en la semana actual no se modificarán.`,
+    function() {
+      ejecutarCopiaSemana();
+    }
+  );
+}
+
+function ejecutarCopiaSemana() {
   const fechasOrigen = calcularFechasSemana(semanaActual - 1);
   const fechasDestino = calcularFechasSemana(semanaActual);
   
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
-        mostrarNotificacion('success', `${r.data} actividades copiadas`);
+        <!-- V01.29 CLAUDE: Validar que r.data sea número -->
+        const cantidad = typeof r.data === 'number' ? r.data : parseInt(r.data) || 0;
+        mostrarNotificacion('success', `✓ ${cantidad} actividades copiadas`);
         cargarHorarioSem();
       } else {
         mostrarNotificacion('error', 'Error al copiar: ' + (r ? r.error : 'Desconocido'));
@@ -1459,10 +1586,16 @@ function copiarSemanaAnterior() {
 }
 
 function limpiarSemana() {
-  if (!confirm(`¿Eliminar TODAS las actividades de Semana ${semanaActual}?\n\nLas clases fijas NO se eliminarán.\nEsta acción no se puede deshacer.`)) {
-    return;
-  }
-  
+  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
+  mostrarConfirmacion(
+    `¿Eliminar TODAS las actividades de Semana ${semanaActual}?\n\nLas clases fijas NO se eliminarán.\n\nEsta acción no se puede deshacer.`,
+    function() {
+      ejecutarLimpiezaSemana();
+    }
+  );
+}
+
+function ejecutarLimpiezaSemana() {
   const fechas = calcularFechasSemana(semanaActual);
   
   google.script.run
@@ -1471,7 +1604,7 @@ function limpiarSemana() {
         mostrarNotificacion('success', `${r.data} actividades eliminadas`);
         cargarHorarioSem();
       } else {
-        mostrarNotificacion('error', 'Error al limpiar: ' + (r ? r.error : 'Desconocido'));
+        mostrarNotificacion('error', 'Error: ' + (r ? r.error : 'Desconocido'));
       }
     })
     .withFailureHandler(e => {
@@ -1487,6 +1620,8 @@ function limpiarSemana() {
 <!-- MOD-023: FIN -->
 
 <!-- MOD-024: CÓDIGO DE CIERRE [INICIO] -->
+window.init = init;
+window.cargarHorarioSem = cargarHorarioSem;
 window.cambiarSemana = cambiarSemana;
 window.navegarSemana = navegarSemana;
 window.agregarNuevaSemana = agregarNuevaSemana;
@@ -1500,6 +1635,7 @@ window.handleSubmitActividad = handleSubmitActividad;
 window.confirmarEliminarActividad = confirmarEliminarActividad;
 window.copiarSemanaAnterior = copiarSemanaAnterior;
 window.limpiarSemana = limpiarSemana;
+window.cerrarModalConfirmacion = cerrarModalConfirmacion;
 
 setTimeout(function() {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
@@ -1509,7 +1645,7 @@ setTimeout(function() {
     console.log('📅 currentUser no disponible, iniciando retry...');
     init();
   }
-}, 150);
+}, 500);
 
 window.HorarioSemanalModule = {
   init: init,
@@ -1520,7 +1656,7 @@ window.HorarioSemanalModule = {
   limpiarSemana: limpiarSemana
 };
 
-console.log('%c📅 HorarioSemanalModule V01.25 CLAUDE cargado',
+console.log('%c📅 HorarioSemanalModule V01.29 CLAUDE cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
 
 })();
@@ -1529,57 +1665,56 @@ console.log('%c📅 HorarioSemanalModule V01.25 CLAUDE cargado',
 
 <!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
-CAMBIOS V01.28 LIBRE:
-✅ Integración con hoja Semanas
-✅ MOD-008A: Nueva función cargarSemanas()
-✅ MOD-010: renderListaSemanas() usa semanasData de BD
-✅ MOD-020: agregarNuevaSemana() crea registro en hoja Semanas
-✅ Persistencia completa de semanas entre sesiones
-✅ Sin restricción de semanas futuras
+===========================================
+MÓDULO: HORARIO SEMANAL
+===========================================
 
 DESCRIPCIÓN:
-Sistema de Horario Semanal con panel lateral de semanas, navegación,
-configuración de Semana 1, copia de actividades y limpieza.
-Las semanas se almacenan en hoja Semanas con formato DD/MM/AAAA.
+Este módulo gestiona el horario semanal del estudiante, permitiendo:
+- Visualización de clases fijas y actividades semanales
+- Navegación por semanas del ciclo académico
+- Creación, edición y eliminación de actividades
+- Copia de actividades de semanas anteriores
+- Configuración de semana de inicio
 
-CARACTERÍSTICAS:
-- Panel lateral con lista de semanas desde BD
-- Botón "➕ Agregar Semana" crea registro en BD
-- Navegación ◀ Ant / Sig ▶ entre semanas
-- Botón "🔧 Configurar" para establecer Semana 1
-- Botón "📋 Copiar Sem. ant." para duplicar actividades
-- Botón "🗑️ Limpiar" para borrar actividades de la semana
-- Grid 7 días × 16 horas (7 AM - 10 PM)
-- Carga automática de clases fijas desde HorarioClases
-- CRUD de actividades semanales en HorarioSem
+ARQUITECTURA:
+- Patrón modular con IIFE para encapsulación
+- Exposición controlada de funciones mediante window
+- Lazy loading de datos para optimizar rendimiento
+- Separación de responsabilidades entre frontend y backend
 
-DEPENDENCIAS BACKEND:
-- studentObtenerConfigSemana()
-- studentObtenerSemanas() ← NUEVO V01.28
-- studentCrearSemana() ← NUEVO V01.28
-- studentObtenerCursos()
-- studentObtenerHorarioClases()
-- studentObtenerHorarioSem()
-- studentGuardarConfigSemana()
-- studentAgregarHorarioSem()
-- studentActualizarHorarioSem()
-- studentEliminarHorarioSem()
-- studentCopiarSemana()
-- studentLimpiarSemana()
+DEPENDENCIAS:
+- currentUser (objeto global del usuario)
+- google.script.run (Google Apps Script Client API)
+- Funciones backend: studentObtenerHorarioClase, studentObtenerHorarioSem,
+  agregarHorarioSem, actualizarHorarioSem, eliminarHorarioSem,
+  copiarSemana, limpiarSemana
+
+CAMBIOS V01.28 CLAUDE:
+✅ FIX CRÍTICO: Parseo correcto de fechas DD/MM/AAAA desde backend
+✅ Función parsearFechaDDMMAAAA() para interpretar fechas correctamente
+✅ Modal de confirmación estilizado (reemplaza confirm() nativo)
+✅ Validación de r.data en copiarSemana (fix "[object Object]")
+✅ Conversión de fechas a DD/MM/AAAA al enviar al backend
+✅ Backend normaliza fechas a DD/MM/AAAA (no YYYY-MM-DD)
+✅ Backend calcula Sem correcta al copiar (suma diferencia de semanas)
+✅ Backend normaliza horas a HH:MM (sin segundos)
+✅ Visualización de actividades ahora funciona correctamente
+✅ Copiar semana anterior funciona con fechas y semanas correctas
+✅ Interfaz más elegante con modal personalizado
 
 ESTRUCTURA DE DATOS:
-Semanas {
-  FechaReg, CodeAlum, FechaInicio, FechaFin, Semana
-}
+- clasesData: Array de objetos con clases fijas
+- actividadesData: Array de objetos con actividades semanales
+- horarioMatrix: Objeto indexado por fecha ISO y hora
+- configSemana: Objeto con configuración de inicio de semana
 
-HorarioSem {
-  FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, 
-  FechaHS (DD/MM/AAAA), TipoAct, Color, Sem
-}
-
-ADVERTENCIAS:
-- MOD-008A: Debe llamarse después de cargarConfigSemana()
-- MOD-010: Si semanasData vacío, genera lista temporal
-- MOD-020: agregarNuevaSemana() recalcula fechas automáticamente
+PRÓXIMAS MEJORAS:
+- Implementar drag & drop para mover actividades
+- Agregar vista de impresión semanal
+- Exportación a PDF/imagen
+- Filtro por tipo de actividad
+- Estadísticas de horas por semana
+- Notificaciones de actividades próximas
 -->
 <!-- MOD-025: FIN -->
