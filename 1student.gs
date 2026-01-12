@@ -1,4 +1,4 @@
-/* MOD-001: ENCABEZADO [INICIO] */
+// MOD-001: ENCABEZADO [INICIO]
 /*
 ******************************************
 PROYECTO: PBE Control
@@ -7,13 +7,13 @@ VERSIÓN: 01.19 CLAUDE
 FECHA: 10/01/2026 18:00 (UTC-5)
 ******************************************
 */
-/* MOD-001: FIN */
+// MOD-001: FIN
 
-/* MOD-002: INICIALIZACIÓN [INICIO] */
+// MOD-002: INICIALIZACIÓN [INICIO]
 var Student = (function() {
-/* MOD-002: FIN */
+// MOD-002: FIN
   
-/* MOD-003: CURSOS [INICIO] */
+// MOD-003: CURSOS [INICIO]
 function obtenerCursos(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -81,9 +81,9 @@ function eliminarCurso(params) {
     return { success: false, error: 'Error al eliminar curso' };
   }
 }
-/* MOD-003: FIN */
+// MOD-003: FIN
 
-/* MOD-004: REPASOS [INICIO] */
+// MOD-004: REPASOS [INICIO]
 function obtenerRepasos(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -159,9 +159,9 @@ function eliminarRepaso(params) {
     return { success: false, error: 'Error al eliminar repaso' };
   }
 }
-/* MOD-004: FIN */
+// MOD-004: FIN
 
-/* MOD-005: EVALUACIONES [INICIO] */
+// MOD-005: EVALUACIONES [INICIO]
 function obtenerEvaluaciones(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -235,9 +235,9 @@ function eliminarEvaluacion(params) {
     return { success: false, error: 'Error al eliminar evaluación' };
   }
 }
-/* MOD-005: FIN */
+// MOD-005: FIN
 
-/* MOD-006: TAREAS [INICIO] */
+// MOD-006: TAREAS [INICIO]
 function obtenerTareas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -313,9 +313,9 @@ function eliminarTarea(params) {
     return { success: false, error: 'Error al eliminar tarea' };
   }
 }
-/* MOD-006: FIN */
+// MOD-006: FIN
 
-/* MOD-007: LECTURAS [INICIO] */
+// MOD-007: LECTURAS [INICIO]
 function obtenerLecturas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -397,9 +397,9 @@ function eliminarLectura(params) {
     return { success: false, error: 'Error al eliminar lectura' };
   }
 }
-/* MOD-007: FIN */
+// MOD-007: FIN
 
-/* MOD-008: HORARIO CLASES [INICIO] */
+// MOD-008: HORARIO CLASES [INICIO]
 function obtenerHorarioClases(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -472,9 +472,9 @@ function eliminarHorarioClase(params) {
     return { success: false, error: 'Error al eliminar clase del horario' };
   }
 }
-/* MOD-008: FIN */
+// MOD-008: FIN
 
-/* MOD-009: HORARIO SEMANAL [INICIO] */
+// MOD-009: HORARIO SEMANAL [INICIO]
 function obtenerHorarioSem(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -557,9 +557,9 @@ function eliminarHorarioSem(params) {
     return { success: false, error: 'Error al eliminar actividad del horario semanal' };
   }
 }
-/* MOD-009: FIN */
+// MOD-009: FIN
 
-/* MOD-010: CONFIG SEMANAS [INICIO] */
+// MOD-010: CONFIG SEMANAS [INICIO]
 function obtenerConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -770,9 +770,9 @@ function limpiarSemana(params) {
     return { success: false, error: 'Error al limpiar semana' };
   }
 }
-/* MOD-010: FIN */
+// MOD-010: FIN
 
-/* MOD-011: GESTIÓN SEMANAS [INICIO] */
+// MOD-011: GESTIÓN SEMANAS [INICIO]
 function obtenerSemanas(codeAlum) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -902,9 +902,9 @@ function eliminarSemana(params) {
     return { success: false, error: 'Error al eliminar semana' };
   }
 }
-/* MOD-011: FIN */
+// MOD-011: FIN
 
-/* MOD-012: NOTAS [INICIO] */
+// MOD-012: NOTAS [INICIO]
 function obtenerNotasPorCurso(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1000,9 +1000,9 @@ function obtenerResumenNotas(params) {
     return { success: false, error: 'Error al obtener resumen de notas' };
   }
 }
-/* MOD-012: FIN */
+// MOD-012: FIN
 
-/* MOD-013: DEBERES [INICIO] */
+// MOD-013: DEBERES [INICIO]
 function obtenerTodosDeberes(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1082,9 +1082,9 @@ function obtenerDeberesPorTipo(params) {
     return { success: false, error: 'Error al obtener deberes por tipo' };
   }
 }
-/* MOD-013: FIN */
+// MOD-013: FIN
 
-/* MOD-014: HELPERS [INICIO] */
+// MOD-014: HELPERS [INICIO]
 function formatearFechaISO(fecha) {
   var year = fecha.getFullYear();
   var month = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -1097,9 +1097,9 @@ function convertirISOaDDMMAAAA(fechaISO) {
   var partes = fechaISO.split('-');
   return partes[2] + '/' + partes[1] + '/' + partes[0];
 }
-/* MOD-014: FIN */
+// MOD-014: FIN
 
-/* MOD-015: EXPORTACIÓN [INICIO] */
+// MOD-015: EXPORTACIÓN [INICIO]
 return {
   obtenerCursos: obtenerCursos,
   agregarCurso: agregarCurso,
@@ -1141,11 +1141,11 @@ return {
   obtenerTodosDeberes: obtenerTodosDeberes,
   obtenerDeberesPorTipo: obtenerDeberesPorTipo
 };
-/* MOD-015: FIN */
+// MOD-015: FIN
 
 })();
 
-/* MOD-016: NOTAS [INICIO] */
+// MOD-016: NOTAS [INICIO]
 /*
 CAMBIOS V01.19 CLAUDE:
 ✅ Gestión de hoja Semanas (3 funciones nuevas)
@@ -1182,4 +1182,4 @@ HOJA HORARIO SEMANAL:
 FechaReg | CodeAlum | Actividad | HoraInicio | HoraFin | FechaHS | TipoAct | Color | Sem
 Formato FechaHS: DD/MM/AAAA (guardado) → ISO (lectura)
 */
-/* MOD-016: FIN */
+// MOD-016: FIN
