@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.30 CLAUDE
-FECHA: 11/01/2026 16:33 (UTC-5)
+VERSIÓN: 01.31
+FECHA: 12/01/2026 16:01 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -59,6 +59,26 @@ FECHA: 11/01/2026 16:33 (UTC-5)
 .hs-semana-item.active {
   background: #667eea;
   color: white;
+}
+
+.hs-btn-primera-clase {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+  border: 2px solid transparent;
+  text-align: center;
+}
+
+.hs-btn-primera-clase:hover {
+  background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
 }
 
 .hs-btn-agregar-semana {
@@ -464,6 +484,9 @@ FECHA: 11/01/2026 16:33 (UTC-5)
 <div class="hs-container">
   <div class="hs-sidebar">
     <h3>📅 Semanas</h3>
+    <button class="hs-btn-primera-clase" onclick="window.abrirConfigSemana()">
+      1ra clase
+    </button>
     <div id="hsSemanasList"></div>
     <button class="hs-btn-agregar-semana" onclick="window.agregarNuevaSemana()">
       ➕ Agregar Semana
@@ -479,9 +502,6 @@ FECHA: 11/01/2026 16:33 (UTC-5)
       </div>
       
       <div class="hs-actions">
-        <button class="hs-btn-action" onclick="window.abrirConfigSemana()">
-          🔧 Configurar
-        </button>
         <button class="hs-btn-action" onclick="window.copiarSemanaAnterior()">
           📋 Copiar Sem. ant.
         </button>
@@ -572,7 +592,7 @@ FECHA: 11/01/2026 16:33 (UTC-5)
   </div>
 </div>
 
-<!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
+<!-- V01.31 CLAUDE: Modal de confirmación estilizado -->
 <div id="modalConfirmacion" class="hs-modal">
   <div class="hs-modal-content" style="max-width: 420px;">
     <h3 id="confirmacionTitulo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
