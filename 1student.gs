@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.21
-FECHA: 12/01/2026 15:28:undefined (UTC-5)
+VERSIÓN: 01.22
+FECHA: 12/01/2026 16:36 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -446,6 +446,40 @@ function agregarHorarioClase(params) {
 
 function actualizarHorarioClase(params) {
   try {
+    // ✅ FIX V01.22: Si viene rowNumber, lo usamos directamente
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('HorarioClases');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: HorarioClases' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      // Leer registro actual de la fila específica
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var clase = {};
+      for (var i = 0; i < headers.length; i++) {
+        clase[headers[i]] = data[rowIndex][i];
+      }
+      clase._rowNumber = params.rowNumber;
+      
+      // Actualizar campos
+      clase.Curso = params.curso || clase.Curso;
+      clase.HoraInicio = params.horaIni || params.horaInicio || clase.HoraInicio;
+      clase.HoraFin = params.horaFin || clase.HoraFin;
+      clase.Detalle = params.detalle || clase.Detalle;
+      
+      return DB.actualizar('HorarioClases', clase);
+    }
+    
+    // Fallback: Si NO viene rowNumber (compatibilidad)
     var result = DB.buscar('HorarioClases', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Clase no encontrada' };
