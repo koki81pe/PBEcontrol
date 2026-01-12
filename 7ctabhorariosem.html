@@ -1,11 +1,11 @@
 <!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-/******************************************
+*****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.29 CLAUDE
+VERSIÓN: 01.30 CLAUDE
 FECHA: 11/01/2026 16:33 (UTC-5)
-******************************************/
+*****************************************
 -->
 <!-- MOD-001: FIN -->
 
@@ -799,7 +799,7 @@ function actualizarInfoSemana() {
   const fechaIni = formatearFechaCorta(fechas.lunes);
   const fechaFin = formatearFechaCorta(fechas.domingo);
   
-  info.textContent = `Semana ${semanaActual} (${fechaIni} - ${fechaFin})`;
+  info.textContent = `S${semanaActual}: ${fechaIni} - ${fechaFin}`;
 }
 <!-- MOD-011: FIN -->
 
@@ -1116,6 +1116,11 @@ function formatearHora12(h) {
 }
 
 function formatearFechaISO(fecha) {
+  if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
+    console.error('📅 formatearFechaISO: fecha inválida', fecha);
+    return '';
+  }
+  
   const year = fecha.getFullYear();
   const month = String(fecha.getMonth() + 1).padStart(2, '0');
   const day = String(fecha.getDate()).padStart(2, '0');
@@ -1123,25 +1128,16 @@ function formatearFechaISO(fecha) {
 }
 
 function formatearFechaCorta(fecha) {
+  if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
+    console.error('📅 formatearFechaCorta: fecha inválida', fecha);
+    return '';
+  }
+  
   const dia = String(fecha.getDate()).padStart(2, '0');
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
   return `${dia}/${mes}`;
 }
 
-<!-- V01.29 CLAUDE: Formatear Date a DD/MM/AAAA -->
-function formatearFechaDDMMAAAA(fecha) {
-  if (!fecha || !(fecha instanceof Date)) {
-    return '';
-  }
-
-  const dia = String(fecha.getDate()).padStart(2, '0');
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-  const anio = fecha.getFullYear();
-
-  return `${dia}/${mes}/${anio}`;
-}
-
-<!-- V01.29 CLAUDE: Parsear DD/MM/AAAA a Date object -->
 function parsearFechaDDMMAAAA(fechaStr) {
   if (!fechaStr) {
     return new Date('invalid');
@@ -1153,7 +1149,6 @@ function parsearFechaDDMMAAAA(fechaStr) {
 
   const str = String(fechaStr).trim();
 
-  <!-- Formato DD/MM/AAAA -->
   const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (match) {
     const dia = parseInt(match[1], 10);
@@ -1162,12 +1157,10 @@ function parsearFechaDDMMAAAA(fechaStr) {
     return new Date(anio, mes, dia);
   }
 
-  <!-- Formato YYYY-MM-DD (ISO) -->
   if (str.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
     return new Date(str);
   }
 
-  <!-- Intentar parseo directo -->
   return new Date(str);
 }
 <!-- MOD-019: FIN -->
@@ -1268,14 +1261,21 @@ function handleConfigSemana(event) {
   const lunes = new Date(fecha);
   lunes.setDate(lunes.getDate() - diasHastaLunes);
   
-  const fechaInicio = formatearFechaISO(lunes);
+  const domingo = new Date(lunes);
+  domingo.setDate(domingo.getDate() + 6);
   
-  console.log('📅 Guardando config:', fechaInicio);
+  const fechaInicioISO = formatearFechaISO(lunes);
+  const fechaFinISO = formatearFechaISO(domingo);
+  
+  console.log('📅 Guardando config y creando Semana 1:', {
+    fechaInicio: fechaInicioISO,
+    fechaFin: fechaFinISO
+  });
   
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
-        mostrarNotificacion('success', 'Configuración guardada');
+        mostrarNotificacion('success', 'Configuración guardada y Semana 1 creada');
         cerrarConfigSemana();
         location.reload();
       } else {
@@ -1288,7 +1288,8 @@ function handleConfigSemana(event) {
     })
     .studentGuardarConfigSemana({
       codeAlum: currentUser.codeAlum,
-      fechaInicio: fechaInicio
+      fechaInicio: fechaInicioISO,
+      fechaFin: fechaFinISO
     });
   
   return false;
@@ -1381,7 +1382,7 @@ function handleSubmitActividad(event) {
   const nombre = document.getElementById('actividadNombre').value.trim();
   const horaIni = document.getElementById('actividadHoraIni').value.trim();
   const horaFin = document.getElementById('actividadHoraFin').value.trim();
-  const fecha = document.getElementById('actividadFecha').value;
+  const fechaISO = document.getElementById('actividadFecha').value;
   const sem = document.getElementById('actividadSem').value;
   const color = document.getElementById('actividadColor').value;
   const esEdicion = document.getElementById('actividadModoEdicion').value === 'true';
@@ -1401,16 +1402,12 @@ function handleSubmitActividad(event) {
   btnSubmit.disabled = true;
   btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
   
-  <!-- V01.29 CLAUDE: Convertir fecha ISO a DD/MM/AAAA -->
-  const fechaObj = new Date(fecha);
-  const fechaDDMMAAAA = formatearFechaDDMMAAAA(fechaObj);
-
   const params = {
     codeAlum: currentUser.codeAlum,
     actividad: nombre,
     horaInicio: horaIni,
     horaFin: horaFin,
-    fechaHS: fechaDDMMAAAA,
+    fechaHS: fechaISO,
     tipoAct: tipo,
     color: color,
     sem: sem
@@ -1469,7 +1466,6 @@ function confirmarEliminarActividad() {
     return;
   }
 
-  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     '¿Eliminar esta actividad?\n\nEsta acción no se puede deshacer.',
     function() {
