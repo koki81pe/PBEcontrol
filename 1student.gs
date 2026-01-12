@@ -1,11 +1,11 @@
 // MOD-001: ENCABEZADO [INICIO]
 /*
-******************************************
+*****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.19 CLAUDE
-FECHA: 10/01/2026 18:00 (UTC-5)
-******************************************
+VERSIÓN: 01.21
+FECHA: 12/01/2026 15:28:undefined (UTC-5)
+*****************************************
 */
 // MOD-001: FIN
 
@@ -535,7 +535,13 @@ function actualizarHorarioSem(params) {
     actividad.HoraFin = params.horaFin || actividad.HoraFin;
     
     if (params.fechaHS) {
-      actividad.FechaHS = convertirISOaDDMMAAAA(params.fechaHS);
+      if (params.fechaHS.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        actividad.FechaHS = convertirISOaDDMMAAAA(params.fechaHS);
+      } else if (params.fechaHS.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        actividad.FechaHS = params.fechaHS;
+      } else {
+        Logger.log('⚠️ Formato de fecha no reconocido: ' + params.fechaHS);
+      }
     }
     
     actividad.TipoAct = params.tipoAct || actividad.TipoAct;
@@ -849,8 +855,8 @@ function crearSemana(params) {
       }
     }
     
-    var fechaInicioFormateada = convertirISOaDDMMAAAA(params.fechaInicio);
-    var fechaFinFormateada = convertirISOaDDMMAAAA(params.fechaFin);
+    var fechaInicioDate = parsearFechaISO(params.fechaInicio);
+    var fechaFinDate = parsearFechaISO(params.fechaFin);
     
     var nuevaFila = [];
     for (var j = 0; j < headers.length; j++) {
@@ -859,9 +865,9 @@ function crearSemana(params) {
       } else if (headers[j] === 'CodeAlum') {
         nuevaFila.push(params.codeAlum);
       } else if (headers[j] === 'FechaInicio') {
-        nuevaFila.push(fechaInicioFormateada);
+        nuevaFila.push(fechaInicioDate);
       } else if (headers[j] === 'FechaFin') {
-        nuevaFila.push(fechaFinFormateada);
+        nuevaFila.push(fechaFinDate);
       } else if (headers[j] === 'Semana') {
         nuevaFila.push(params.semana);
       } else {
@@ -871,14 +877,9 @@ function crearSemana(params) {
     
     sheet.appendRow(nuevaFila);
     
-    var lastRow = sheet.getLastRow();
-    var fechaInicioCol = headers.indexOf('FechaInicio') + 1;
-    var fechaFinCol = headers.indexOf('FechaFin') + 1;
+    Logger.log('✅ Semana ' + params.semana + ' creada con Utils.fechaHoy()');
     
-    sheet.getRange(lastRow, fechaInicioCol).setNumberFormat('@');
-    sheet.getRange(lastRow, fechaFinCol).setNumberFormat('@');
-    
-    return { success: true, data: lastRow };
+    return { success: true, data: sheet.getLastRow() };
   } catch(error) {
     Logger.log('Error en Student.crearSemana(): ' + error.toString());
     return { success: false, error: 'Error al crear semana' };
@@ -1086,15 +1087,46 @@ function obtenerDeberesPorTipo(params) {
 
 // MOD-014: HELPERS [INICIO]
 function formatearFechaISO(fecha) {
+  if (!fecha || !(fecha instanceof Date)) {
+    Logger.log('⚠️ formatearFechaISO: fecha inválida');
+    return '';
+  }
+  
   var year = fecha.getFullYear();
   var month = String(fecha.getMonth() + 1).padStart(2, '0');
   var day = String(fecha.getDate()).padStart(2, '0');
   return year + '-' + month + '-' + day;
 }
 
-function convertirISOaDDMMAAAA(fechaISO) {
-  if (!fechaISO) return '';
+function parsearFechaISO(fechaISO) {
+  if (!fechaISO || typeof fechaISO !== 'string') {
+    Logger.log('⚠️ parsearFechaISO: entrada inválida');
+    return new Date();
+  }
+  
   var partes = fechaISO.split('-');
+  if (partes.length !== 3) {
+    Logger.log('⚠️ parsearFechaISO: formato incorrecto');
+    return new Date();
+  }
+  
+  var anio = parseInt(partes[0], 10);
+  var mes = parseInt(partes[1], 10) - 1;
+  var dia = parseInt(partes[2], 10);
+  
+  return new Date(anio, mes, dia);
+}
+
+function convertirISOaDDMMAAAA(fechaISO) {
+  if (!fechaISO || typeof fechaISO !== 'string') {
+    return '';
+  }
+  
+  var partes = fechaISO.split('-');
+  if (partes.length !== 3) {
+    return '';
+  }
+  
   return partes[2] + '/' + partes[1] + '/' + partes[0];
 }
 // MOD-014: FIN
