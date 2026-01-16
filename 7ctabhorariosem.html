@@ -1682,55 +1682,60 @@ console.log('%c📅 HorarioSemanalModule V01.29 CLAUDE cargado',
 <!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
 ===========================================
-MÓDULO: HORARIO SEMANAL
+HORARIO SEMANAL - DOCUMENTACIÓN TÉCNICA
 ===========================================
 
 DESCRIPCIÓN:
-Este módulo gestiona el horario semanal del estudiante, permitiendo:
-- Visualización de clases fijas y actividades semanales
+Grid visual semanal 7 días × 16 horas (7 AM - 10 PM) para actividades dinámicas.
+Gestión por semanas con navegación, copia y limpieza de actividades.
+
+CAMBIOS V01.32:
+✅ Prefijo 'hs' en funciones globales (sin conflicto con HorarioClase 'hc')
+✅ MOD-004: Todos los onclick con prefijo hs*
+✅ MOD-018: renderGrid() con hsClickCelda y hsEditarActividad
+✅ MOD-024: Exposición global con namespace hs*
+
+CAMBIOS V01.29:
+✅ FIX: Parseo correcto de fechas DD/MM/AAAA desde backend
+✅ Modal de confirmación estilizado (no usa confirm() nativo)
+✅ Conversión automática de fechas ISO ↔ DD/MM/AAAA
+
+CARACTERÍSTICAS:
 - Navegación por semanas del ciclo académico
-- Creación, edición y eliminación de actividades
-- Copia de actividades de semanas anteriores
-- Configuración de semana de inicio
+- Configuración de fecha inicio (botón "1ra clase")
+- Clases fijas (grises) + Actividades dinámicas (colores)
+- Click en celda vacía → Agregar actividad
+- Click en actividad → Editar/Eliminar
+- Copiar actividades de semana anterior
+- Limpiar todas las actividades de la semana actual
 
-ARQUITECTURA:
-- Patrón modular con IIFE para encapsulación
-- Exposición controlada de funciones mediante window
-- Lazy loading de datos para optimizar rendimiento
-- Separación de responsabilidades entre frontend y backend
-
-DEPENDENCIAS:
-- currentUser (objeto global del usuario)
-- google.script.run (Google Apps Script Client API)
-- Funciones backend: studentObtenerHorarioClase, studentObtenerHorarioSem,
-  agregarHorarioSem, actualizarHorarioSem, eliminarHorarioSem,
-  copiarSemana, limpiarSemana
-
-CAMBIOS V01.28 CLAUDE:
-✅ FIX CRÍTICO: Parseo correcto de fechas DD/MM/AAAA desde backend
-✅ Función parsearFechaDDMMAAAA() para interpretar fechas correctamente
-✅ Modal de confirmación estilizado (reemplaza confirm() nativo)
-✅ Validación de r.data en copiarSemana (fix "[object Object]")
-✅ Conversión de fechas a DD/MM/AAAA al enviar al backend
-✅ Backend normaliza fechas a DD/MM/AAAA (no YYYY-MM-DD)
-✅ Backend calcula Sem correcta al copiar (suma diferencia de semanas)
-✅ Backend normaliza horas a HH:MM (sin segundos)
-✅ Visualización de actividades ahora funciona correctamente
-✅ Copiar semana anterior funciona con fechas y semanas correctas
-✅ Interfaz más elegante con modal personalizado
+DEPENDENCIAS BACKEND:
+- studentObtenerConfigSemana()
+- studentGuardarConfigSemana()
+- studentObtenerSemanas()
+- studentCrearSemana()
+- studentObtenerCursos()
+- studentObtenerHorarioClases()
+- studentObtenerHorarioSem()
+- studentAgregarHorarioSem()
+- studentActualizarHorarioSem()
+- studentEliminarHorarioSem()
+- studentCopiarSemana()
+- studentLimpiarSemana()
 
 ESTRUCTURA DE DATOS:
-- clasesData: Array de objetos con clases fijas
-- actividadesData: Array de objetos con actividades semanales
-- horarioMatrix: Objeto indexado por fecha ISO y hora
-- configSemana: Objeto con configuración de inicio de semana
+HorarioSem: {FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, FechaHS, TipoAct, Color, Sem}
+Semanas: {FechaReg, CodeAlum, FechaInicio, FechaFin, Semana}
 
-PRÓXIMAS MEJORAS:
-- Implementar drag & drop para mover actividades
-- Agregar vista de impresión semanal
-- Exportación a PDF/imagen
-- Filtro por tipo de actividad
-- Estadísticas de horas por semana
-- Notificaciones de actividades próximas
+AISLAMIENTO:
+- Prefijo CSS: .hs-
+- Prefijo JS: window.hs*
+- IIFE con 'use strict'
+- Sin conflicto con HorarioClase (.hc-)
+
+ADVERTENCIAS:
+- FechaHS en formato DD/MM/AAAA (backend)
+- Conversión a ISO solo para cálculos internos
+- Semana actual se calcula desde FechaInicio configurada
 -->
 <!-- MOD-025: FIN -->
