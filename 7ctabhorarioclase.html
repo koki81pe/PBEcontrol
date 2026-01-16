@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.23 CODEWORKSHOP
-FECHA: 10/01/2026 08:30 (UTC-5)
+VERSIÓN: 01.24 CODEWORKSHOP
+FECHA: 16/01/2026 15:32 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -327,7 +327,7 @@ FECHA: 10/01/2026 08:30 (UTC-5)
   <div class="hc-form-content">
     <h3 id="formTitle">Agregar Clase</h3>
     
-    <form id="claseForm" onsubmit="return window.handleSubmitClase(event)">
+    <form id="claseForm" onsubmit="return window.hcHandleSubmitClase(event)">
       <input type="hidden" id="claseRowNumber">
       <input type="hidden" id="claseModoEdicion" value="false">
       <input type="hidden" id="claseDia">
@@ -351,8 +351,8 @@ FECHA: 10/01/2026 08:30 (UTC-5)
       </div>
       
       <div class="hc-form-actions">
-        <button type="button" class="hc-btn hc-btn-secondary" onclick="window.cancelarFormClase()">Cancelar</button>
-        <button type="button" class="hc-btn hc-btn-danger" id="btnEliminar" style="display:none" onclick="window.confirmarEliminarClase()">Eliminar</button>
+        <button type="button" class="hc-btn hc-btn-secondary" onclick="window.hcCancelarFormClase()">Cancelar</button>
+        <button type="button" class="hc-btn hc-btn-danger" id="btnEliminar" style="display:none" onclick="window.hcConfirmarEliminarClase()">Eliminar</button>
         <button type="submit" class="hc-btn hc-btn-primary" id="btnSubmit">Guardar</button>
       </div>
     </form>
@@ -365,7 +365,7 @@ FECHA: 10/01/2026 08:30 (UTC-5)
     <p>Hay múltiples clases en este horario. Selecciona una:</p>
     <div id="modalSeleccionOpciones"></div>
     <div class="hc-modal-seleccion-actions">
-      <button class="hc-btn hc-btn-secondary" onclick="window.cerrarModalSeleccion()">Cancelar</button>
+      <button class="hc-btn hc-btn-secondary" onclick="window.hcCerrarModalSeleccion()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -658,7 +658,7 @@ function renderGrid() {
           }).join('/');
           
           html += `<td><div class="hc-celda-clase ocupada conflicto" 
-            onclick="window.mostrarSeleccionClase('${d}','${k}')">
+            onclick="window.hcMostrarSeleccionClase('${d}','${k}')">
             ${nombres}
           </div></td>`;
         } else {
@@ -669,14 +669,14 @@ function renderGrid() {
           
           html += `<td><div class="hc-celda-clase ocupada" 
             style="background:${color}" 
-            onclick="window.editarClase('${d}','${k}')">
+            onclick="window.hcEditarClase('${d}','${k}')">
             ${texto}
           </div></td>`;
         }
       } else {
         celdasVacias++;
         html += `<td><div class="hc-celda-clase" 
-          onclick="window.clickCelda('${d}','${k}')">
+          onclick="window.hcClickCelda('${d}','${k}')">
         </div></td>`;
       }
     });
@@ -694,7 +694,7 @@ function ocultarLoading() {
   const l = document.getElementById('loadingHC');
   if (l) l.style.display = 'none';
 }
-<!-- MOD-012: FIN -->
+<!-- MOD-012: FIN --> -->
 
 <!-- MOD-013: FUNCIÓN MODAL SELECCIÓN [INICIO] -->
 function mostrarSeleccionClase(dia, hora) {
@@ -1034,14 +1034,14 @@ function formatearHora12Desde24(hora24Str) {
 <!-- MOD-020: FIN -->
 
 <!-- MOD-021: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO] -->
-window.clickCelda = clickCelda;
-window.abrirFormularioAgregar = abrirFormularioAgregar;
-window.editarClase = editarClase;
-window.mostrarSeleccionClase = mostrarSeleccionClase;
-window.cerrarModalSeleccion = cerrarModalSeleccion;
-window.handleSubmitClase = handleSubmitClase;
-window.confirmarEliminarClase = confirmarEliminarClase;
-window.cancelarFormClase = cancelarFormClase;
+window.hcClickCelda = clickCelda;
+window.hcAbrirFormularioAgregar = abrirFormularioAgregar;
+window.hcEditarClase = editarClase;
+window.hcMostrarSeleccionClase = mostrarSeleccionClase;
+window.hcCerrarModalSeleccion = cerrarModalSeleccion;
+window.hcHandleSubmitClase = handleSubmitClase;
+window.hcConfirmarEliminarClase = confirmarEliminarClase;
+window.hcCancelarFormClase = cancelarFormClase;
 
 setTimeout(function() {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
@@ -1069,7 +1069,7 @@ console.log('%c🕐 HorarioClaseModule V01.23 CODEWORKSHOP cargado',
 
 })();
 </script>
-<!-- MOD-021: FIN -->
+<!-- MOD-021: FIN --> -->
 
 
 <!-- MOD-022: CIERRE [INICIO] -->
