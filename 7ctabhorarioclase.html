@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.24 CODEWORKSHOP
-FECHA: 16/01/2026 15:32 (UTC-5)
+VERSIÓN: 01.25 CODEWORKSHOP
+FECHA: 16/01/2026 16:30 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -422,10 +422,10 @@ function init() {
   _initDone = true;
   console.log('🕐 Inicializado para:', currentUser.codeAlum);
   
+  // ✅ V01.25: Solo cargar cursos, que luego carga horario
   cargarCursos();
-  cargarHorarioClases();
 }
-<!-- MOD-007: FIN -->
+<!-- MOD-007: FIN --> -->
 
 <!-- MOD-008: FUNCIÓN CARGA DE CURSOS [INICIO] -->
 function cargarCursos() {
@@ -439,12 +439,19 @@ function cargarCursos() {
         cursosData = r.data || [];
         console.log('🕐 Cursos cargados:', cursosData.length);
         poblarDropdownCursos();
+        
+        // ✅ V01.25: Solo después de cargar cursos, cargar horario
+        cargarHorarioClases();
       } else {
         console.error('🕐 Error en cursos:', r);
+        // Aunque falle, intentar cargar horario
+        cargarHorarioClases();
       }
     })
     .withFailureHandler(e => {
       console.error('🕐 Error al cargar cursos:', e);
+      // Aunque falle, intentar cargar horario
+      cargarHorarioClases();
     })
     .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
 }
@@ -466,7 +473,7 @@ function poblarDropdownCursos() {
   
   console.log('🕐 Dropdown poblado con', cursosData.length, 'cursos');
 }
-<!-- MOD-008: FIN -->
+<!-- MOD-008: FIN --> -->
 
 <!-- MOD-009: FUNCIÓN CARGA DE HORARIO [INICIO] -->
 function cargarHorarioClases() {
@@ -484,6 +491,7 @@ function cargarHorarioClases() {
           console.log('🕐 Ejemplo de clase:', clasesData[0]);
         }
         
+        // ✅ V01.25: Ahora cursosData ya está cargado
         construirMatriz();
         renderGrid();
         ocultarLoading();
@@ -500,7 +508,7 @@ function cargarHorarioClases() {
     })
     .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-009: FIN -->
+<!-- MOD-009: FIN --> -->
 
 <!-- MOD-010: FUNCIÓN CONSTRUCCIÓN DE MATRIZ [INICIO] -->
 function construirMatriz() {
@@ -1080,76 +1088,49 @@ console.log('%c🕐 HorarioClaseModule V01.23 CODEWORKSHOP cargado',
 
 <!-- MOD-023: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN GENERAL:
-Sistema de Horario de Clases fijas semanales.
-Grid visual 7 días × 16 horas (7 AM - 10 PM).
+===========================================
+HORARIO DE CLASES - DOCUMENTACIÓN TÉCNICA
+===========================================
 
-CAMBIOS V01.23 CODEWORKSHOP:
-✅ Aplicación completa del estándar CodeWorkshop v2.1
-✅ Corrección de comentarios: uso de // en lugar de comentarios HTML
-✅ Enumeración secuencial correcta de módulos
-✅ Eliminación de comentarios redundantes
-✅ Cierre correcto de cada módulo
-✅ Uso apropiado de /* */ solo cuando es necesario
+DESCRIPCIÓN:
+Grid visual semanal 7 días × 16 horas (7 AM - 10 PM) para clases fijas.
+Gestión completa de horario con validación de conflictos.
 
+CAMBIOS V01.25:
+✅ FIX: Race condition en carga de datos (cursos antes que horario)
+✅ Colores de cursos ahora se cargan correctamente al inicio
+✅ MOD-007: init() solo llama cargarCursos()
+✅ MOD-008: cargarCursos() llama cargarHorarioClases() al terminar
+✅ Prefijo 'hc' en funciones globales (sin conflicto con HorarioSemanal 'hs')
 
 CARACTERÍSTICAS:
-- Grid 15 filas (7 AM - 10 PM) × 7 días
-- Click en celda → Formulario agregar/editar
-- Click en conflicto → Menú selección de clase
-- Visualización con color del curso
-- Validación de solapamientos antes de guardar
-- Regla medias horas: "/" indica inicio/fin con minutos
-- Celda conflicto muestra ambos cursos "QUIM/BIOL"
-- Modal de selección con botones claros
-- Trunca nombres largos con "..." si no caben
+- Click en celda vacía → Agregar clase
+- Click en clase → Editar/Eliminar
+- Validación de solapamientos con confirmación
+- Colores personalizados por curso
+- Prefijos "/" para medias horas (ej: "/HIST" inicio 11:30)
+- Modal de selección para múltiples clases en mismo horario
 
-DESCRIPCIÓN TÉCNICA:
-Sistema de Horario de Clases con grid visual 7x16, 
-formularios modales, manejo de conflictos y 
-validación de solapamientos.
-
-DEPENDENCIAS:
-- MOD-007: Requiere window.currentUser.codeAlum
-- MOD-008: Requiere studentObtenerCursos() backend
-- MOD-009: Requiere studentObtenerHorarioClases() backend
-- MOD-017: Requiere studentAgregarHorarioClase() y 
-           studentActualizarHorarioClase() backend
-- MOD-018: Requiere studentEliminarHorarioClase() backend
-- Opcional: window.showAlert() para notificaciones
+DEPENDENCIAS BACKEND:
+- studentObtenerCursos()
+- studentObtenerHorarioClases()
+- studentAgregarHorarioClase()
+- studentActualizarHorarioClase()
+- studentEliminarHorarioClase()
 
 ESTRUCTURA DE DATOS:
-HorarioClases {
-  FechaReg, CodeAlum, Curso, HoraIni, HoraFin, Detalle
-}
-
-Cursos {
-  Curso, Completo, Color
-}
-
-ADVERTENCIAS CRÍTICAS:
-- MOD-006: DIAS es constante, no usar .push()
-- MOD-010: extraerDia() requiere Detalle con nombre de día
-- MOD-011: calcularHoras() no valida fuera rango 7-22
-- MOD-012: renderGrid() sobrescribe innerHTML completo
-- MOD-014: verificarSolapamiento() no valida día inválido
-- MOD-017: handleSubmitClase() permite solapamientos 
-           con confirmación del usuario
+HorarioClases: {FechaReg, CodeAlum, Curso, HoraInicio, HoraFin, Detalle}
+Cursos: {Curso, Completo, Color}
 
 AISLAMIENTO:
 - Prefijo CSS: .hc-
-- IDs únicos: hcGridContainer, loadingHC, 
-              formClase, modalSeleccion
-- Sin conflicto con HorarioSemanal (prefijo .hs-)
-- IIFE con 'use strict' para encapsulamiento
+- Prefijo JS: window.hc*
+- IIFE con 'use strict'
+- Sin conflicto con HorarioSemanal (.hs-)
 
-PRÓXIMAS MEJORAS SUGERIDAS:
-- Drag & drop para mover clases
-- Vista de impresión optimizada
-- Exportación a PDF/imagen
-- Responsive mejorado para móviles pequeños
-- Atajos de teclado (Esc para cerrar modales)
-- Modo oscuro
-- Sincronización en tiempo real
+ADVERTENCIAS:
+- DIAS es constante (no modificar)
+- extraerDia() requiere día en campo Detalle
+- Rango horario fijo: 7-22 hrs
 -->
-<!-- MOD-023: FIN -->
+<!-- MOD-023: FIN --> -->
