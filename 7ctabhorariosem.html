@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.31
-FECHA: 12/01/2026 16:01 (UTC-5)
+VERSIÓN: 01.32
+FECHA: 16/01/2026 15:53 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -484,11 +484,11 @@ FECHA: 12/01/2026 16:01 (UTC-5)
 <div class="hs-container">
   <div class="hs-sidebar">
     <h3>📅 Semanas</h3>
-    <button class="hs-btn-primera-clase" onclick="window.abrirConfigSemana()">
+    <button class="hs-btn-primera-clase" onclick="window.hsAbrirConfigSemana()">
       1ra clase
     </button>
     <div id="hsSemanasList"></div>
-    <button class="hs-btn-agregar-semana" onclick="window.agregarNuevaSemana()">
+    <button class="hs-btn-agregar-semana" onclick="window.hsAgregarNuevaSemana()">
       ➕ Agregar Semana
     </button>
   </div>
@@ -496,16 +496,16 @@ FECHA: 12/01/2026 16:01 (UTC-5)
   <div class="hs-main">
     <div class="hs-toolbar">
       <div class="hs-nav-semana">
-        <button class="hs-nav-btn" onclick="window.navegarSemana(-1)">◀ Ant</button>
+        <button class="hs-nav-btn" onclick="window.hsNavegarSemana(-1)">◀ Ant</button>
         <div class="hs-semana-info" id="hsSemanaInfo">Semana 1</div>
-        <button class="hs-nav-btn" onclick="window.navegarSemana(1)">Sig ▶</button>
+        <button class="hs-nav-btn" onclick="window.hsNavegarSemana(1)">Sig ▶</button>
       </div>
       
       <div class="hs-actions">
-        <button class="hs-btn-action" onclick="window.copiarSemanaAnterior()">
+        <button class="hs-btn-action" onclick="window.hsCopiarSemanaAnterior()">
           📋 Copiar Sem. ant.
         </button>
-        <button class="hs-btn-action" onclick="window.limpiarSemana()">
+        <button class="hs-btn-action" onclick="window.hsLimpiarSemana()">
           🗑️ Limpiar
         </button>
       </div>
@@ -525,14 +525,14 @@ FECHA: 12/01/2026 16:01 (UTC-5)
   <div class="hs-modal-content">
     <h3>Configurar Semana 1</h3>
     
-    <form id="formConfigSemana" onsubmit="return window.handleConfigSemana(event)">
+    <form id="formConfigSemana" onsubmit="return window.hsHandleConfigSemana(event)">
       <div class="hs-form-group">
         <label>Primer día de clases (cualquier día de la semana):</label>
         <input type="date" id="configFechaInicio" required>
       </div>
       
       <div class="hs-modal-actions">
-        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarConfigSemana()">Cancelar</button>
+        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarConfigSemana()">Cancelar</button>
         <button type="submit" class="hs-btn hs-btn-primary">Guardar</button>
       </div>
     </form>
@@ -543,7 +543,7 @@ FECHA: 12/01/2026 16:01 (UTC-5)
   <div class="hs-modal-content">
     <h3 id="actividadFormTitle">Agregar Actividad</h3>
 
-    <form id="formActividad" onsubmit="return window.handleSubmitActividad(event)">
+    <form id="formActividad" onsubmit="return window.hsHandleSubmitActividad(event)">
       <input type="hidden" id="actividadRowNumber">
       <input type="hidden" id="actividadModoEdicion" value="false">
       <input type="hidden" id="actividadFecha">
@@ -584,8 +584,8 @@ FECHA: 12/01/2026 16:01 (UTC-5)
       </div>
 
       <div class="hs-modal-actions">
-        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarModalActividad()">Cancelar</button>
-        <button type="button" class="hs-btn hs-btn-danger" id="btnEliminarActividad" style="display:none" onclick="window.confirmarEliminarActividad()">Eliminar</button>
+        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalActividad()">Cancelar</button>
+        <button type="button" class="hs-btn hs-btn-danger" id="btnEliminarActividad" style="display:none" onclick="window.hsConfirmarEliminarActividad()">Eliminar</button>
         <button type="submit" class="hs-btn hs-btn-primary" id="btnSubmitActividad">Guardar</button>
       </div>
     </form>
@@ -605,7 +605,7 @@ FECHA: 12/01/2026 16:01 (UTC-5)
     </p>
 
     <div class="hs-modal-actions">
-      <button type="button" class="hs-btn hs-btn-secondary" onclick="window.cerrarModalConfirmacion()">Cancelar</button>
+      <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalConfirmacion()">Cancelar</button>
       <button type="button" class="hs-btn hs-btn-primary" id="btnConfirmarAccion">Confirmar</button>
     </div>
   </div>
@@ -614,7 +614,7 @@ FECHA: 12/01/2026 16:01 (UTC-5)
 <script>
 (function () {
 'use strict';
-<!-- MOD-004: FIN -->
+<!-- MOD-004: FIN --> -->
 
 
 <!-- MOD-005A: NOTIFICACIONES [INICIO] -->
@@ -1101,13 +1101,13 @@ function renderGrid() {
           
           html += `<td><div class="hs-celda ocupada" 
             style="background:${act.Color}" 
-            onclick="window.editarActividad('${key}','${k}')">
+            onclick="window.hsEditarActividad('${key}','${k}')">
             ${texto}
           </div></td>`;
         }
       } else {
         html += `<td><div class="hs-celda" 
-          onclick="window.clickCelda('${key}','${k}')">
+          onclick="window.hsClickCelda('${key}','${k}')">
         </div></td>`;
       }
     });
@@ -1125,7 +1125,7 @@ function ocultarLoading() {
   const l = document.getElementById('loadingHS');
   if (l) l.style.display = 'none';
 }
-<!-- MOD-018: FIN -->
+<!-- MOD-018: FIN --> -->
 
 <!-- MOD-019: FUNCIONES FORMATEO [INICIO] -->
 function formatearHora12(h) {
@@ -1636,22 +1636,22 @@ function ejecutarLimpiezaSemana() {
 <!-- MOD-023: FIN -->
 
 <!-- MOD-024: CÓDIGO DE CIERRE [INICIO] -->
-window.init = init;
-window.cargarHorarioSem = cargarHorarioSem;
-window.cambiarSemana = cambiarSemana;
-window.navegarSemana = navegarSemana;
-window.agregarNuevaSemana = agregarNuevaSemana;
-window.abrirConfigSemana = abrirConfigSemana;
-window.cerrarConfigSemana = cerrarConfigSemana;
-window.handleConfigSemana = handleConfigSemana;
-window.clickCelda = clickCelda;
-window.editarActividad = editarActividad;
-window.cerrarModalActividad = cerrarModalActividad;
-window.handleSubmitActividad = handleSubmitActividad;
-window.confirmarEliminarActividad = confirmarEliminarActividad;
-window.copiarSemanaAnterior = copiarSemanaAnterior;
-window.limpiarSemana = limpiarSemana;
-window.cerrarModalConfirmacion = cerrarModalConfirmacion;
+window.hsInit = init;
+window.hsCargarHorarioSem = cargarHorarioSem;
+window.hsCambiarSemana = cambiarSemana;
+window.hsNavegarSemana = navegarSemana;
+window.hsAgregarNuevaSemana = agregarNuevaSemana;
+window.hsAbrirConfigSemana = abrirConfigSemana;
+window.hsCerrarConfigSemana = cerrarConfigSemana;
+window.hsHandleConfigSemana = handleConfigSemana;
+window.hsClickCelda = clickCelda;
+window.hsEditarActividad = editarActividad;
+window.hsCerrarModalActividad = cerrarModalActividad;
+window.hsHandleSubmitActividad = handleSubmitActividad;
+window.hsConfirmarEliminarActividad = confirmarEliminarActividad;
+window.hsCopiarSemanaAnterior = copiarSemanaAnterior;
+window.hsLimpiarSemana = limpiarSemana;
+window.hsCerrarModalConfirmacion = cerrarModalConfirmacion;
 
 setTimeout(function() {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
@@ -1677,7 +1677,7 @@ console.log('%c📅 HorarioSemanalModule V01.29 CLAUDE cargado',
 
 })();
 </script>
-<!-- MOD-024: FIN -->
+<!-- MOD-024: FIN --> -->
 
 <!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
 <!--
