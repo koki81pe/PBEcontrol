@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabcursos.html
-VERSIÓN: 01.24
-FECHA: 16/01/2026 17:15 (UTC-5)
+VERSIÓN: 01.25
+FECHA: 17/01/2026 06:18 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -87,70 +87,48 @@ function handleCursosLoaded(response) {
   cursosData = response.data || [];
   console.log('📚 Cursos cargados:', cursosData.length);
 
-  renderCursosTable();
+  if (cursosData.length > 0) {
+    renderTable();
+  } else {
+    renderEmptyState();
+  }
 }
 
 function handleCursosError(error) {
   console.error('📚 Error al cargar cursos:', error);
-  renderError('Error de conexión: ' + error.message);
+  renderError('Error de conexión con el servidor');
 }
 
 /* ==========================================
    RENDER - TABLA DE CURSOS
    ========================================== */
-function renderCursosTable() {
+function renderTable() {
   const container = document.getElementById('cursosTableContainer');
-  if (!container) {
-    console.error('📚 Container cursosTableContainer no encontrado');
-    return;
-  }
+  if (!container) return;
 
-  if (cursosData.length === 0) {
-    renderEmptyState();
-    return;
-  }
+  let html = '<table class="cursos-table">';
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th style="width:60px;">Color</th>';
+  html += '<th>Curso</th>';
+  html += '<th>Nombre Completo</th>';
+  html += '<th style="width:100px;">Acciones</th>';
+  html += '</tr>';
+  html += '</thead>';
+  html += '<tbody>';
 
-  let html = `
-    <div class="cursos-header">
-      <h3 style="margin:0; color:#495057;">📚 Mis Cursos (${cursosData.length})</h3>
-      <button class="btn-agregar-curso" onclick="window.abrirModalNuevoCurso()">
-        ➕ Agregar Curso
-      </button>
-    </div>
-    
-    <table class="cursos-table">
-      <thead>
-        <tr>
-          <th>Color</th>
-          <th>Código</th>
-          <th>Nombre Completo</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  cursosData.forEach(curso => {
-    const color = curso.Color || '#667eea';
-    const rowNumber = curso._rowNumber;
-    
-    html += `
-      <tr>
-        <td>
-          <div class="curso-color-box" style="background:${color};"></div>
-        </td>
-        <td><strong>${curso.Curso}</strong></td>
-        <td>${curso.Completo}</td>
-        <td class="acciones-cell">
-          <button class="btn-icon" onclick="window.editarCurso(${rowNumber})" title="Editar">
-            ✏️
-          </button>
-          <button class="btn-icon" onclick="window.eliminarCurso(${rowNumber})" title="Eliminar">
-            🗑️
-          </button>
-        </td>
-      </tr>
-    `;
+  cursosData.forEach(function(curso) {
+    html += '<tr>';
+    html += '<td>';
+    html += '<div class="curso-color-box" style="background-color:' + curso.Color + ';"></div>';
+    html += '</td>';
+    html += '<td><strong>' + curso.Curso + '</strong></td>';
+    html += '<td>' + curso.Completo + '</td>';
+    html += '<td>';
+    html += '<button onclick="window.editarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;" title="Editar">✏️</button>';
+    html += '<button onclick="window.eliminarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;margin-left:8px;" title="Eliminar">🗑️</button>';
+    html += '</td>';
+    html += '</tr>';
   });
 
   html += '</tbody></table>';
@@ -216,7 +194,7 @@ function abrirModalNuevoCurso() {
   
   document.getElementById('modalCurso').classList.add('active');
   
-  setTimeout(() => {
+  setTimeout(function() {
     document.getElementById('cursoCodigo').focus();
   }, 100);
 }
@@ -227,7 +205,9 @@ function abrirModalNuevoCurso() {
 function editarCurso(rowNumber) {
   console.log('✏️ Editar curso:', rowNumber);
   
-  const curso = cursosData.find(c => c._rowNumber === rowNumber);
+  const curso = cursosData.find(function(c) {
+    return c._rowNumber === rowNumber;
+  });
   
   if (!curso) {
     alert('Error: Curso no encontrado');
@@ -269,7 +249,7 @@ function handleSubmitCurso(event) {
   
   if (!codigo || !nombre) {
     alert('Por favor completa todos los campos');
-    return;
+    return false;
   }
   
   const btnSubmit = document.getElementById('btnSubmitCurso');
@@ -289,15 +269,25 @@ function handleSubmitCurso(event) {
     }
     
     google.script.run
-      .withSuccessHandler(r => handleCursoGuardado(r, true))
-      .withFailureHandler(e => handleCursoError(e, true))
+      .withSuccessHandler(function(r) {
+        handleCursoGuardado(r, true);
+      })
+      .withFailureHandler(function(e) {
+        handleCursoError(e, true);
+      })
       .studentActualizarCurso(params);
   } else {
     google.script.run
-      .withSuccessHandler(r => handleCursoGuardado(r, false))
-      .withFailureHandler(e => handleCursoError(e, false))
+      .withSuccessHandler(function(r) {
+        handleCursoGuardado(r, false);
+      })
+      .withFailureHandler(function(e) {
+        handleCursoError(e, false);
+      })
       .studentAgregarCurso(params);
   }
+  
+  return false;
 }
 
 function handleCursoGuardado(response, esEdicion) {
@@ -347,20 +337,22 @@ function handleCursoError(error, esEdicion) {
 function eliminarCurso(rowNumber) {
   console.log('🗑️ Eliminar curso:', rowNumber);
   
-  const curso = cursosData.find(c => c._rowNumber === rowNumber);
+  const curso = cursosData.find(function(c) {
+    return c._rowNumber === rowNumber;
+  });
   
   if (!curso) {
     alert('Error: Curso no encontrado');
     return;
   }
   
-  if (!confirm(`¿Eliminar el curso "${curso.Curso}"?\n\nEsta acción no se puede deshacer.`)) {
+  if (!confirm('¿Eliminar el curso "' + curso.Curso + '"?\n\nEsta acción no se puede deshacer.')) {
     return;
   }
   
   google.script.run
     .withSuccessHandler(handleCursoEliminado)
-    .withFailureHandler(e => {
+    .withFailureHandler(function(e) {
       console.error('📚 Error al eliminar:', e);
       
       if (window.showAlert) {
@@ -400,6 +392,7 @@ window.abrirModalNuevoCurso = abrirModalNuevoCurso;
 window.editarCurso = editarCurso;
 window.eliminarCurso = eliminarCurso;
 window.cerrarModalCurso = cerrarModalCurso;
+window.handleSubmitCurso = handleSubmitCurso;
 
 window.CursosModule = {
   init: init,
@@ -442,7 +435,7 @@ console.log('%c📚 CursosModule V01.24 cargado',
   <div class="modal-content">
     <h3 id="modalCursoTitle">Agregar Curso</h3>
     
-    <form id="formCurso" onsubmit="return window.handleSubmitCurso ? handleSubmitCurso(event) : false;">
+    <form id="formCurso" onsubmit="return handleSubmitCurso(event)">
       <input type="hidden" id="cursoRowNumber">
       <input type="hidden" id="cursoModoEdicion" value="false">
       
@@ -468,7 +461,7 @@ console.log('%c📚 CursosModule V01.24 cargado',
           Cancelar
         </button>
         <button type="button" class="btn-danger" id="btnEliminarCurso" 
-          style="display:none;" onclick="window.eliminarCurso(document.getElementById('cursoRowNumber').value)">
+          style="display:none;" onclick="window.eliminarCurso(parseInt(document.getElementById('cursoRowNumber').value))">
           Eliminar
         </button>
         <button type="submit" class="btn-primary" id="btnSubmitCurso">
@@ -749,17 +742,22 @@ CURSOS - DOCUMENTACIÓN TÉCNICA
 DESCRIPCIÓN:
 Subtab para gestión de cursos del estudiante con CRUD completo.
 
+CAMBIOS V01.25:
+- Fix: Exposición de handleSubmitCurso a window
+- Fix: Simplificado onsubmit del formulario (elimina delay de 27s)
+- Fix: Mejorado onclick del botón Eliminar en modal
+
 CAMBIOS V01.24:
-✅ Implementación completa de funciones CRUD
-✅ Modal integrado para Agregar/Editar
-✅ Botón "Agregar Curso" visible en header
-✅ Confirmación para eliminar con nombre del curso
-✅ Modularización estilo CodeWorkshop
-✅ Estados: loading, empty, error
+- Implementación completa de funciones CRUD
+- Modal integrado para Agregar/Editar
+- Botón "Agregar Curso" visible en header
+- Confirmación para eliminar con nombre del curso
+- Modularización estilo CodeWorkshop
+- Estados: loading, empty, error
 
 CARACTERÍSTICAS:
 - Tabla con colores personalizados por curso
-- Botones ✏️ Editar y 🗑️ Eliminar por curso
+- Botones Editar y Eliminar por curso
 - Modal responsive con validación
 - Auto-inicialización con retry logic
 
