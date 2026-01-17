@@ -3,7 +3,7 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabcursos.html
-VERSIÓN: 01.25
+VERSIÓN: 01.26
 FECHA: 17/01/2026 06:18 (UTC-5)
 ******************************************/
 -->
@@ -423,6 +423,17 @@ console.log('%c📚 CursosModule V01.24 cargado',
 <!-- MOD-002: FIN -->
 
 <!-- MOD-003: HTML CONTAINER [INICIO] -->
+<!-- Header con título y botón agregar -->
+<div class="cursos-header">
+  <h2>📚 Mis Cursos</h2>
+  <div class="header-actions">
+    <button class="btn-agregar" onclick="window.abrirModalNuevoCurso()">
+      + Agregar Curso
+    </button>
+  </div>
+</div>
+
+<!-- Tabla de cursos -->
 <div id="cursosTableContainer">
   <div class="loading-state">
     <div class="loading-icon">⏳</div>
@@ -480,25 +491,40 @@ console.log('%c📚 CursosModule V01.24 cargado',
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.btn-agregar-curso {
-  padding: 10px 20px;
-  background: #28a745;
+.cursos-header h2 {
+  color: #333;
+  font-size: 20px;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Botón Agregar */
+.btn-agregar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
 }
 
-.btn-agregar-curso:hover {
-  background: #218838;
+.btn-agregar:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Tabla */
@@ -712,7 +738,7 @@ console.log('%c📚 CursosModule V01.24 cargado',
     align-items: stretch;
   }
   
-  .btn-agregar-curso {
+  .btn-agregar {
     width: 100%;
   }
   
@@ -742,18 +768,8 @@ CURSOS - DOCUMENTACIÓN TÉCNICA
 DESCRIPCIÓN:
 Subtab para gestión de cursos del estudiante con CRUD completo.
 
-CAMBIOS V01.25:
-- Fix: Exposición de handleSubmitCurso a window
-- Fix: Simplificado onsubmit del formulario (elimina delay de 27s)
-- Fix: Mejorado onclick del botón Eliminar en modal
-
-CAMBIOS V01.24:
-- Implementación completa de funciones CRUD
-- Modal integrado para Agregar/Editar
-- Botón "Agregar Curso" visible en header
-- Confirmación para eliminar con nombre del curso
-- Modularización estilo CodeWorkshop
-- Estados: loading, empty, error
+CAMBIOS V01.26:
+- Se agregó botón para agregar curso
 
 CARACTERÍSTICAS:
 - Tabla con colores personalizados por curso
