@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.22
-FECHA: 12/01/2026 16:36 (UTC-5)
+VERSIÓN: 01.23
+FECHA: 17/01/2026 06:50 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -56,6 +56,57 @@ function agregarCurso(params) {
 
 function actualizarCurso(params) {
   try {
+    // ✅ FIX V01.26: Si viene rowNumber, actualizar directamente
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Cursos');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: Cursos' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      // Leer registro actual de la fila específica
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var curso = {};
+      for (var i = 0; i < headers.length; i++) {
+        curso[headers[i]] = data[rowIndex][i];
+      }
+      curso._rowNumber = params.rowNumber;
+      
+      // Validar que no exista otro curso con el mismo nombre (solo si se cambió)
+      if (params.curso && params.curso !== curso.Curso) {
+        var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
+        if (existentes.success) {
+          for (var j = 0; j < existentes.data.length; j++) {
+            // Ignorar el curso que estamos editando
+            if (existentes.data[j]._rowNumber !== params.rowNumber && 
+                existentes.data[j].Curso === params.curso) {
+              return {
+                success: false,
+                error: 'El curso ' + params.curso + ' ya existe. Usa otro nombre corto'
+              };
+            }
+          }
+        }
+      }
+      
+      // Actualizar campos
+      curso.Curso = params.curso || curso.Curso;
+      curso.Completo = params.completo || curso.Completo;
+      curso.Color = params.color || curso.Color;
+      
+      return DB.actualizar('Cursos', curso);
+    }
+    
+    // ❌ FALLBACK: Código viejo (compatibilidad)
+    // NOTA: Este código tiene el bug de actualizar siempre el primer curso
     var result = DB.buscar('Cursos', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Curso no encontrado' };
@@ -1213,25 +1264,23 @@ return {
 
 // MOD-016: NOTAS [INICIO]
 /*
-CAMBIOS V01.19 CLAUDE:
-✅ Gestión de hoja Semanas (3 funciones nuevas)
-✅ Fix formato fechas HorarioSem: ISO → DD/MM/AAAA al guardar
-✅ Fix formato fechas HorarioSem: DD/MM/AAAA → ISO al leer
-✅ Helpers: convertirISOaDDMMAAAA(), formatearFechaISO()
-✅ Modularización CodeWorkshop estándar
+CAMBIOS V01.23:
+- Fix: actualizarCurso() usa rowNumber para actualizar fila correcta
+- Fix: Validación de unicidad mejorada al cambiar nombre corto
+- Fix: Evita actualizar el primer curso en lugar del curso seleccionado
 
 MÓDULOS:
 MOD-001: Encabezado
 MOD-002: Inicialización
-MOD-003: Cursos (4 funciones)
+MOD-003: Cursos (4 funciones) - FIX V01.26 actualizarCurso
 MOD-004: Repasos (4 funciones)
 MOD-005: Evaluaciones (4 funciones)
 MOD-006: Tareas (4 funciones)
 MOD-007: Lecturas (4 funciones)
 MOD-008: HorarioClases (4 funciones)
-MOD-009: HorarioSem (4 funciones) - FIX formato fechas
+MOD-009: HorarioSem (4 funciones)
 MOD-010: Config Semanas (4 funciones)
-MOD-011: Gestión Semanas (3 funciones) - NUEVO V01.19
+MOD-011: Gestión Semanas (3 funciones)
 MOD-012: Notas (2 funciones)
 MOD-013: Deberes (2 funciones)
 MOD-014: Helpers (2 funciones)
