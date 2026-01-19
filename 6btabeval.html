@@ -1,461 +1,401 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 6btabeval.html - V01.19 GPT
-Sistema de Gestión Académica
-06/01/2026 - 14:00 (Perú UTC-5)
-
-DESCRIPCIÓN:
-Sub-tab de Evaluaciones con CRUD completo.
-Muestra lista de evaluaciones del estudiante con opciones
-para agregar, editar y eliminar.
-
-OBJETIVO DEL PATCH (V01.18):
-- Evitar colisión de variables globales entre subtabs (ej: cursosData)
-- Blindar handlers ante response null (evitar "Cannot read ... success")
-- Mantener HTML/CSS intactos; cambios solo en JS
-
-OBJETIVO DEL PATCH (V01.19):
-- [LAZY-LOAD] Asegurar inicialización aunque el subtab sea cargado dinámicamente
-  (si el evento window.load ya ocurrió).
-
-REGLAS TÉCNICAS:
-- [SCOPE] Todo el JS se encapsula en un módulo IIFE para no contaminar window
-- [EXPORT] Solo se exponen a window las funciones usadas en onclick/onchange/onsubmit
-- [NULL-GUARD] Nunca asumir que response existe o tiene .success
-- [INIT-GUARD] Evitar doble inicialización cuando se cumplan múltiples triggers
-
-FUNCIONALIDAD:
-- Cargar evaluaciones del estudiante (al iniciar)
-- Agregar nueva evaluación (curso, nombre, fecha, nota, peso, semana)
-- Editar evaluación existente
-- Eliminar evaluación (con confirmación)
-- Filtrar por curso (dropdown)
-- Validación de unicidad Curso+NomEval
-
-BACKEND:
-- studentObtenerEvaluaciones({ codeAlum })
-- studentObtenerCursos({ codeAlum }) - para dropdown
-- studentAgregarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem })
-- studentActualizarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem, rowNumber })
-- studentEliminarEvaluacion({ rowNumber })
-
-CONECTA CON:
-- Parent: 4btabdeberes.html (contenedor)
-- Backend: wrappers student* en 1code.gs
-- Módulo: Student en 1student.gs
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 6btabeval.html
+VERSIÓN: 01.20
+FECHA: 18/01/2026 15:39 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-  /* ==========================================
-     CONTENEDOR PRINCIPAL
-     ========================================== */
+/* CONTENEDOR PRINCIPAL */
+.eval-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.eval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.eval-header h2 {
+  color: #333;
+  font-size: 20px;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* FILTROS */
+.filtro-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-container label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.filtro-container select {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  min-width: 150px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.filtro-container select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* BOTONES */
+.btn-agregar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.btn-agregar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  transform: scale(1.2);
+}
+
+.btn-icon.delete {
+  color: #dc3545;
+}
+
+/* FORMULARIO */
+.form-eval {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.form-eval.active {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group label .required {
+  color: #dc3545;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* TABLA DE EVALUACIONES */
+.eval-table-container {
+  overflow-x: auto;
+}
+
+.eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.eval-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.eval-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.eval-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+.eval-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.eval-table td {
+  padding: 12px;
+  color: #333;
+}
+
+/* CURSO TAG */
+.curso-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #e9ecef;
+  color: #495057;
+}
+
+/* COLORES DINÁMICOS EN NOTA */
+.nota-cell {
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.nota-alta {
+  color: #28a745;
+}
+
+.nota-media {
+  color: #ffc107;
+}
+
+.nota-baja {
+  color: #dc3545;
+}
+
+.nota-pendiente {
+  color: #999;
+  font-style: italic;
+}
+
+/* PESO Y SEMANA */
+.peso-cell {
+  text-align: center;
+  color: #666;
+}
+
+.sem-cell {
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+}
+
+/* ESTADO VACÍO */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 15px;
+}
+
+/* LOADING */
+.loading-container {
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
+}
+
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
   .eval-container {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 16px;
   }
 
   .eval-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .eval-header h2 {
-    color: #333;
-    font-size: 20px;
-    margin: 0;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .header-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    width: 100%;
   }
 
-  /* ==========================================
-     FILTROS
-     ========================================== */
+  .btn-agregar,
   .filtro-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    width: 100%;
   }
 
-  .filtro-container label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #666;
+  .filtro-container {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .filtro-container select {
-    padding: 8px 12px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 13px;
-    min-width: 150px;
-    cursor: pointer;
-    transition: border-color 0.3s;
-  }
-
-  .filtro-container select:focus {
-    outline: none;
-    border-color: #667eea;
-  }
-
-  /* ==========================================
-     BOTONES
-     ========================================== */
-  .btn-agregar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  }
-
-  .btn-agregar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .btn-primary {
-    background: #667eea;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: #5568d3;
-  }
-
-  .btn-secondary {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-secondary:hover {
-    background: #5a6268;
-  }
-
-  .btn-icon {
-    background: transparent;
-    border: none;
-    color: #667eea;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 8px;
-    transition: all 0.2s;
-  }
-
-  .btn-icon:hover {
-    transform: scale(1.2);
-  }
-
-  .btn-icon.delete {
-    color: #dc3545;
-  }
-
-  /* ==========================================
-     FORMULARIO
-     ========================================== */
-  .form-eval {
-    background: #f9f9f9;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
-    display: none;
-  }
-
-  .form-eval.active {
-    display: block;
-    animation: slideDown 0.3s ease-out;
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    width: 100%;
   }
 
   .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .form-group {
-    margin-bottom: 0;
-  }
-
-  .form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 6px;
-  }
-
-  .form-group label .required {
-    color: #dc3545;
-  }
-
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  .form-group small {
-    display: block;
-    margin-top: 4px;
-    font-size: 12px;
-    color: #666;
+    grid-template-columns: 1fr;
   }
 
   .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
+    flex-direction: column;
   }
 
-  /* ==========================================
-     TABLA DE EVALUACIONES
-     ========================================== */
-  .eval-table-container {
-    overflow-x: auto;
+  .form-actions .btn {
+    width: 100%;
   }
 
   .eval-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .eval-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-  }
-
-  .eval-table th {
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
     font-size: 13px;
   }
 
-  .eval-table tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: background 0.2s;
-  }
-
-  .eval-table tbody tr:hover {
-    background: #f8f9fa;
-  }
-
+  .eval-table th,
   .eval-table td {
-    padding: 12px;
-    color: #333;
+    padding: 8px;
   }
 
-  /* ==========================================
-     CURSO TAG
-     ========================================== */
-  .curso-tag {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    background: #e9ecef;
-    color: #495057;
+  .eval-table .col-sem {
+    display: none;
   }
-
-  /* ==========================================
-     COLORES DINÁMICOS EN NOTA
-     ========================================== */
-  .nota-cell {
-    text-align: center;
-    font-weight: 600;
-    font-size: 15px;
-  }
-
-  .nota-alta {
-    color: #28a745;
-  }
-
-  .nota-media {
-    color: #ffc107;
-  }
-
-  .nota-baja {
-    color: #dc3545;
-  }
-
-  .nota-pendiente {
-    color: #999;
-    font-style: italic;
-  }
-
-  /* ==========================================
-     PESO Y SEMANA
-     ========================================== */
-  .peso-cell {
-    text-align: center;
-    color: #666;
-  }
-
-  .sem-cell {
-    text-align: center;
-    color: #666;
-    font-size: 13px;
-  }
-
-  /* ==========================================
-     ESTADO VACÍO
-     ========================================== */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #999;
-  }
-
-  .empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  .empty-state-text {
-    font-size: 15px;
-  }
-
-  /* ==========================================
-     LOADING
-     ========================================== */
-  .loading-container {
-    text-align: center;
-    padding: 40px;
-    color: #667eea;
-  }
-
-  .spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(102, 126, 234, 0.2);
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ==========================================
-     RESPONSIVE
-     ========================================== */
-  @media (max-width: 768px) {
-    .eval-container {
-      padding: 16px;
-    }
-
-    .eval-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .header-actions {
-      width: 100%;
-    }
-
-    .btn-agregar,
-    .filtro-container {
-      width: 100%;
-    }
-
-    .filtro-container {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .filtro-container select {
-      width: 100%;
-    }
-
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-
-    .form-actions .btn {
-      width: 100%;
-    }
-
-    .eval-table {
-      font-size: 13px;
-    }
-
-    .eval-table th,
-    .eval-table td {
-      padding: 8px;
-    }
-
-    /* Ocultar columnas menos importantes en móvil */
-    .eval-table .col-sem {
-      display: none;
-    }
-  }
+}
 </style>
+<!-- MOD-002: FIN -->
 
-<!-- ========================================== -->
-<!-- CONTENEDOR DE EVALUACIONES -->
-<!-- ========================================== -->
+<!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="eval-container">
 
-  <!-- Header con título, filtro y botón agregar -->
   <div class="eval-header">
     <h2>📝 Mis Evaluaciones</h2>
     <div class="header-actions">
@@ -471,7 +411,6 @@ CONECTA CON:
     </div>
   </div>
 
-  <!-- Formulario para agregar/editar evaluación -->
   <div id="formEval" class="form-eval">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Evaluación</h3>
 
@@ -479,7 +418,6 @@ CONECTA CON:
       <input type="hidden" id="evalRowNumber" value="">
       <input type="hidden" id="evalModoEdicion" value="false">
 
-      <!-- Fila 1: Curso, Nombre, Fecha -->
       <div class="form-row">
         <div class="form-group">
           <label>Curso <span class="required">*</span></label>
@@ -510,7 +448,6 @@ CONECTA CON:
         </div>
       </div>
 
-      <!-- Fila 2: Nota, Peso, Semana -->
       <div class="form-row">
         <div class="form-group">
           <label>Nota (Opcional)</label>
@@ -562,7 +499,6 @@ CONECTA CON:
     </form>
   </div>
 
-  <!-- Tabla de evaluaciones -->
   <div id="evalTableContainer" class="eval-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
@@ -571,43 +507,24 @@ CONECTA CON:
   </div>
 
 </div>
+<!-- MOD-003: FIN -->
 
-<!-- ========================================== -->
-<!-- JAVASCRIPT -->
-<!-- ========================================== -->
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
-/**
- * ==========================================
- * [PBE][SCOPE] Sub-tab Evaluaciones (V01.19)
- * - Encapsulado para evitar colisión de variables globales entre subtabs.
- * - Exporta solo handlers usados por atributos HTML (onclick/onchange/onsubmit).
- * - Incluye guards para response null.
- * - Init safe para lazy-load (si window.load ya ocurrió).
- * ==========================================
- */
 (function PBE_EVAL_MODULE() {
   'use strict';
 
-  /**
-   * ==========================================
-   * VARIABLES LOCALES (ENCAPSULADAS)
-   * ==========================================
-   */
+  // VARIABLES LOCALES (ENCAPSULADAS)
   let evaluacionesData = [];
   let cursosData = [];
   let evaluacionesFiltradas = [];
 
-  /**
-   * ==========================================
-   * INICIALIZACIÓN (SAFE PARA LAZY-LOAD)
-   * ==========================================
-   */
+  // INICIALIZACIÓN (SAFE PARA LAZY-LOAD)
   let _initDone = false;
 
   function init() {
     if (_initDone) return;
 
-    // Verificar que currentUser esté disponible
     if (typeof currentUser === 'undefined' || !currentUser.codeAlum) {
       showAlert('error', 'Error: No se pudo identificar al usuario');
       return;
@@ -618,19 +535,13 @@ CONECTA CON:
     cargarEvaluaciones();
   }
 
-  // Caso 1: carga inicial normal
   window.addEventListener('load', init);
 
-  // Caso 2: carga dinámica (lazy-load) donde load ya ocurrió
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     init();
   }
 
-  /**
-   * ==========================================
-   * CARGAR CURSOS (para dropdown)
-   * ==========================================
-   */
+  // CARGAR CURSOS (para dropdown)
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -639,7 +550,6 @@ CONECTA CON:
   }
 
   function handleCursosLoaded(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
       showAlert('error', 'Error al cargar cursos: ' + msg);
@@ -654,18 +564,15 @@ CONECTA CON:
     const selectCurso = document.getElementById('evalCurso');
     const selectFiltro = document.getElementById('filtroCurso');
 
-    // Limpiar opciones excepto la primera
     selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
 
     cursosData.forEach(function(curso) {
-      // Dropdown de formulario
       const option1 = document.createElement('option');
       option1.value = curso.Curso;
       option1.textContent = curso.Curso + ' - ' + curso.Completo;
       selectCurso.appendChild(option1);
 
-      // Dropdown de filtro
       const option2 = document.createElement('option');
       option2.value = curso.Curso;
       option2.textContent = curso.Curso + ' - ' + curso.Completo;
@@ -673,11 +580,7 @@ CONECTA CON:
     });
   }
 
-  /**
-   * ==========================================
-   * CARGAR EVALUACIONES
-   * ==========================================
-   */
+  // CARGAR EVALUACIONES
   function cargarEvaluaciones() {
     google.script.run
       .withSuccessHandler(handleEvaluacionesLoaded)
@@ -686,7 +589,6 @@ CONECTA CON:
   }
 
   function handleEvaluacionesLoaded(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar las evaluaciones.';
       showAlert('error', 'Error al cargar evaluaciones: ' + msg);
@@ -697,7 +599,6 @@ CONECTA CON:
     evaluacionesData = response.data || [];
     evaluacionesFiltradas = evaluacionesData;
 
-    // Actualizar badge en contenedor padre (si existe)
     if (typeof updateDeberesBadge === 'function') {
       updateDeberesBadge('eval', evaluacionesData.length);
     }
@@ -711,11 +612,7 @@ CONECTA CON:
     renderEmptyState();
   }
 
-  /**
-   * ==========================================
-   * APLICAR FILTRO
-   * ==========================================
-   */
+  // APLICAR FILTRO
   function aplicarFiltro() {
     const cursoSeleccionado = document.getElementById('filtroCurso').value;
 
@@ -730,11 +627,7 @@ CONECTA CON:
     renderEvalTable();
   }
 
-  /**
-   * ==========================================
-   * RENDERIZAR TABLA
-   * ==========================================
-   */
+  // RENDERIZAR TABLA
   function renderEvalTable() {
     const container = document.getElementById('evalTableContainer');
 
@@ -743,58 +636,28 @@ CONECTA CON:
       return;
     }
 
-    let html = `
-      <table class="eval-table">
-        <thead>
-          <tr>
-            <th>Curso</th>
-            <th>Evaluación</th>
-            <th>Fecha</th>
-            <th>Nota</th>
-            <th>Peso</th>
-            <th class="col-sem">Semana</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    let html = '<table class="eval-table"><thead><tr><th>Curso</th><th>Evaluación</th><th>Fecha</th><th>Nota</th><th>Peso</th><th class="col-sem">Semana</th><th>Acciones</th></tr></thead><tbody>';
 
     evaluacionesFiltradas.forEach(function(ev) {
       const claseNota = obtenerClaseNota(ev.Nota);
 
-      html += `
-        <tr>
-          <td><span class="curso-tag">${ev.Curso}</span></td>
-          <td><strong>${ev.NomEval}</strong></td>
-          <td>${ev.FechaEval}</td>
-          <td class="nota-cell ${claseNota}">
-            ${ev.Nota ? ev.Nota : '<span class="nota-pendiente">Pendiente</span>'}
-          </td>
-          <td class="peso-cell">${ev.Peso ? ev.Peso + '%' : '-'}</td>
-          <td class="sem-cell col-sem">${ev.Sem || '-'}</td>
-          <td>
-            <button
-              class="btn-icon"
-              onclick="editarEval(${ev._rowNumber})"
-              title="Editar">
-              ✏️
-            </button>
-            <button
-              class="btn-icon delete"
-              onclick="confirmarEliminarEval(${ev._rowNumber}, '${ev.NomEval}')"
-              title="Eliminar">
-              🗑️
-            </button>
-          </td>
-        </tr>
-      `;
+      html += '<tr>';
+      html += '<td><span class="curso-tag">' + ev.Curso + '</span></td>';
+      html += '<td><strong>' + ev.NomEval + '</strong></td>';
+      html += '<td>' + ev.FechaEval + '</td>';
+      html += '<td class="nota-cell ' + claseNota + '">';
+      html += ev.Nota ? ev.Nota : '<span class="nota-pendiente">Pendiente</span>';
+      html += '</td>';
+      html += '<td class="peso-cell">' + (ev.Peso ? ev.Peso + '%' : '-') + '</td>';
+      html += '<td class="sem-cell col-sem">' + (ev.Sem || '-') + '</td>';
+      html += '<td>';
+      html += '<button class="btn-icon" onclick="editarEval(' + ev._rowNumber + ')" title="Editar">✏️</button>';
+      html += '<button class="btn-icon delete" onclick="confirmarEliminarEval(' + ev._rowNumber + ', \'' + ev.NomEval + '\')" title="Eliminar">🗑️</button>';
+      html += '</td>';
+      html += '</tr>';
     });
 
-    html += `
-        </tbody>
-      </table>
-    `;
-
+    html += '</tbody></table>';
     container.innerHTML = html;
   }
 
@@ -803,32 +666,13 @@ CONECTA CON:
     const filtroActivo = document.getElementById('filtroCurso').value !== '';
 
     if (filtroActivo) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">🔍</div>
-          <div class="empty-state-text">
-            No hay evaluaciones para el curso seleccionado.
-          </div>
-        </div>
-      `;
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No hay evaluaciones para el curso seleccionado.</div></div>';
     } else {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">📝</div>
-          <div class="empty-state-text">
-            No tienes evaluaciones registradas aún.<br>
-            Haz clic en "+ Agregar Evaluación" para comenzar.
-          </div>
-        </div>
-      `;
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No tienes evaluaciones registradas aún.<br>Haz clic en "+ Agregar Evaluación" para comenzar.</div></div>';
     }
   }
 
-  /**
-   * ==========================================
-   * TOGGLE FORMULARIO
-   * ==========================================
-   */
+  // TOGGLE FORMULARIO
   function toggleFormAgregar() {
     const form = document.getElementById('formEval');
     const isActive = form.classList.contains('active');
@@ -843,11 +687,7 @@ CONECTA CON:
     }
   }
 
-  /**
-   * ==========================================
-   * SUBMIT FORMULARIO
-   * ==========================================
-   */
+  // SUBMIT FORMULARIO
   function handleSubmitEval(event) {
     event.preventDefault();
 
@@ -860,25 +700,21 @@ CONECTA CON:
     const rowNumber = document.getElementById('evalRowNumber').value;
     const esEdicion = document.getElementById('evalModoEdicion').value === 'true';
 
-    // Validar campos obligatorios
     if (!curso || !nomEval || !fechaEval) {
       showAlert('error', 'Completa todos los campos obligatorios');
       return;
     }
 
-    // Validar formato de fecha DD/MM/AAAA
     if (!validarFecha(fechaEval)) {
       showAlert('error', 'Formato de fecha inválido. Use DD/MM/AAAA');
       return;
     }
 
-    // Validar nota (0-20)
     if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
       showAlert('error', 'La nota debe estar entre 0 y 20');
       return;
     }
 
-    // Validar peso (0-100)
     if (peso && (parseFloat(peso) < 0 || parseFloat(peso) > 100)) {
       showAlert('error', 'El peso debe estar entre 0 y 100%');
       return;
@@ -918,7 +754,6 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Evaluación';
 
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo agregar la evaluación.';
       showAlert('error', msg);
@@ -935,7 +770,6 @@ CONECTA CON:
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Evaluación';
 
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo actualizar la evaluación.';
       showAlert('error', msg);
@@ -956,11 +790,7 @@ CONECTA CON:
     btnSubmit.textContent = 'Guardar Evaluación';
   }
 
-  /**
-   * ==========================================
-   * EDITAR EVALUACIÓN
-   * ==========================================
-   */
+  // EDITAR EVALUACIÓN
   function editarEval(rowNumber) {
     const ev = evaluacionesData.find(e => e._rowNumber === rowNumber);
     if (!ev) return;
@@ -979,11 +809,7 @@ CONECTA CON:
     document.getElementById('evalNomEval').focus();
   }
 
-  /**
-   * ==========================================
-   * ELIMINAR EVALUACIÓN
-   * ==========================================
-   */
+  // ELIMINAR EVALUACIÓN
   function confirmarEliminarEval(rowNumber, nomEval) {
     if (confirm('¿Eliminar la evaluación "' + nomEval + '"?\n\nEsta acción no se puede deshacer.')) {
       eliminarEval(rowNumber);
@@ -998,7 +824,6 @@ CONECTA CON:
   }
 
   function handleEvalDeleted(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo eliminar la evaluación.';
       showAlert('error', msg);
@@ -1009,11 +834,7 @@ CONECTA CON:
     cargarEvaluaciones();
   }
 
-  /**
-   * ==========================================
-   * RESET Y CANCELAR FORMULARIO
-   * ==========================================
-   */
+  // RESET Y CANCELAR FORMULARIO
   function resetFormEval() {
     document.getElementById('evalForm').reset();
     document.getElementById('evalRowNumber').value = '';
@@ -1025,48 +846,117 @@ CONECTA CON:
     resetFormEval();
   }
 
-  /**
-   * ==========================================
-   * FUNCIÓN AUXILIAR: CLASE DE NOTA
-   * ==========================================
-   */
+  // FUNCIÓN AUXILIAR: CLASE DE NOTA
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
     const notaNum = parseFloat(nota);
 
-    if (notaNum >= 14) return 'nota-alta';      // Verde
-    if (notaNum >= 11) return 'nota-media';     // Amarillo
-    return 'nota-baja';                         // Rojo
+    if (notaNum >= 14) return 'nota-alta';
+    if (notaNum >= 11) return 'nota-media';
+    return 'nota-baja';
   }
 
-  /**
-   * ==========================================
-   * UTILIDADES
-   * ==========================================
-   */
+  // UTILIDADES
   function handleError(error) {
     console.error('Error:', error);
     showAlert('error', 'Error de conexión');
   }
 
-  /**
-   * ==========================================
-   * LOG
-   * ==========================================
-   */
-  console.log('%c📝 Sub-tab Evaluaciones Cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c📝 Sub-tab Evaluaciones V01.20 cargado', 'font-size: 11px; color: #667eea;');
 
-  /**
-   * ==========================================
-   * EXPORTS A WINDOW (solo lo necesario)
-   * ==========================================
-   */
+  // EXPORTS A WINDOW (solo lo necesario)
   window.aplicarFiltro = aplicarFiltro;
   window.toggleFormAgregar = toggleFormAgregar;
   window.handleSubmitEval = handleSubmitEval;
   window.editarEval = editarEval;
   window.confirmarEliminarEval = confirmarEliminarEval;
   window.cancelarFormEval = cancelarFormEval;
+
+  window.EvalModule = {
+    init: init
+  };
 })();
 </script>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Sub-tab de Evaluaciones con CRUD completo
+Lista de evaluaciones con opciones para agregar, editar y eliminar
+
+FUNCIONALIDAD:
+Cargar evaluaciones del estudiante al iniciar
+Agregar nueva evaluación con validación
+Editar evaluación existente
+Eliminar evaluación con confirmación
+Filtrar por curso mediante dropdown
+Validación de campos obligatorios y rangos
+
+CAMPOS DEL FORMULARIO:
+Curso (select) - obligatorio
+Nombre de Evaluación - obligatorio
+Fecha (DD/MM/AAAA) - obligatorio
+Nota (0-20) - opcional
+Peso (0-100%) - opcional
+Semana (número) - opcional
+
+CARACTERÍSTICAS TÉCNICAS:
+IIFE encapsulado para evitar colisión de variables globales
+NULL-GUARD en todos los handlers de respuesta
+Init safe para lazy-load (si window.load ya ocurrió)
+Validación de formato de fecha DD/MM/AAAA
+Validación de rangos numéricos
+
+COLORES DINÁMICOS:
+Verde: Nota ≥ 14
+Amarillo: Nota 11-13
+Rojo: Nota < 11
+Gris: Pendiente (sin nota)
+
+CONEXIÓN BACKEND:
+studentObtenerEvaluaciones({ codeAlum }): Lista de evaluaciones
+studentObtenerCursos({ codeAlum }): Para poblar dropdowns
+studentAgregarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem }): Crear
+studentActualizarEvaluacion({ ...params, rowNumber }): Actualizar
+studentEliminarEvaluacion({ rowNumber }): Eliminar
+
+DEPENDENCIAS:
+currentUser.codeAlum: Identificador del estudiante
+showAlert(type, message): Función global de alertas
+validarFecha(fechaStr): Función global de validación de fechas
+updateDeberesBadge(tab, count): Función del contenedor padre (opcional)
+
+TABLA:
+Columnas: Curso, Evaluación, Fecha, Nota, Peso, Semana, Acciones
+Botones: Editar (✏️), Eliminar (🗑️)
+Responsive: Oculta columna Semana en móvil
+
+FORMULARIO:
+Desplegable con animación slideDown
+Modo Agregar: Campos vacíos
+Modo Editar: Campos prellenados
+Validación: HTML5 + JavaScript custom
+
+ESTADOS UI:
+Loading: Spinner mientras carga
+Vacío: Mensaje con instrucciones
+Filtrado Vacío: Mensaje específico
+Tabla: Grid con evaluaciones y acciones
+
+INTEGRACIÓN:
+Parent: 4btabdeberes.html (contenedor con lazy-load)
+Backend: Wrappers student* en code.gs
+Módulo: Student.gs (lógica de negocio)
+
+CAMBIOS V01.19 → V01.20:
+Remodulación Estándar CodeWorkShop v4.0
+CSS en MOD-002
+HTML en MOD-003
+JavaScript (IIFE) en MOD-004
+Comentarios aligerados
+Notas consolidadas en MOD-099
+Mantiene lógica funcional sin cambios
+-->
+<!-- MOD-099: FIN -->
