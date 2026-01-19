@@ -1,1052 +1,1027 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 3paneladmin.html - V01.17
-Sistema de Gestión Académica
-04/01/2026
-
-DESCRIPCIÓN:
-Panel de administración para gestión de alumnos.
-Permite crear, buscar y eliminar alumnos del sistema.
-
-FUNCIONALIDAD:
-- Crear alumno: Formulario con validaciones de unicidad
-- Buscar alumno: Búsqueda por código, nombre, apellido, DNI
-- Eliminar alumno: Confirmación modal antes de eliminar
-- Sistema de alertas integrado
-- Diseño responsive con gradiente azul-morado
-
-CONECTA CON:
-- Backend: adminCrearAlumno() en 1code.gs → Admin.crearAlumno()
-- Backend: adminBuscarAlumno() en 1code.gs → Admin.buscarAlumno()
-- Backend: adminEliminarAlumno() en 1code.gs → Admin.eliminarAlumno()
-
-SECCIONES:
-1. Navbar: Logo, nombre usuario, botón salir
-2. Crear Alumno: Formulario colapsable con 11 campos
-3. Buscar Alumno: Barra de búsqueda + tabla de resultados
-4. Modal: Confirmación de eliminación
-
-VALIDACIONES:
-- CodeAlum debe ser único (backend valida)
-- Clave debe ser única (backend valida)
-- Campos obligatorios: CodeAlum, Clave, Nombres, Apellidos
-- Eliminar requiere confirmación modal
-
-🔑 IMPORTANTE:
-- doGet() debe usar createTemplateFromFile()
-- Eliminar alumno borra de 9 hojas diferentes
-- Búsqueda es case-insensitive
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 3paneladmin.html
+VERSIÓN: 01.18
+FECHA: 18/01/2026 14:56 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: APERTURA HTML [INICIO] -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PBE Control - Panel Admin</title>
-  <style>
-    /* ==========================================
-       RESET Y BASE
-       ========================================== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f5f7fa;
-      min-height: 100vh;
-      padding-bottom: 40px;
-    }
-
-    /* ==========================================
-       HEADER / NAVBAR
-       ========================================== */
-    .navbar {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px 30px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar h1 {
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .navbar .user-info {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .navbar .user-name {
-      font-size: 15px;
-      opacity: 0.95;
-    }
-
-    .btn-logout {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-logout:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    /* ==========================================
-       CONTAINER PRINCIPAL
-       ========================================== */
-    .container {
-      max-width: 1400px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-
-    /* ==========================================
-       SECCIONES / CARDS
-       ========================================== */
-    .section-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      margin-bottom: 24px;
-      overflow: hidden;
-    }
-
-    .section-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 18px 24px;
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .section-body {
-      padding: 24px;
-    }
-
-    /* ==========================================
-       FORMULARIOS
-       ========================================== */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 0;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
-    }
-
-    .form-group label .required {
-      color: #dc3545;
-    }
-
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
-      border: 2px solid #e0e0e0;
-      border-radius: 6px;
-      transition: all 0.3s;
-      font-family: inherit;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-group input::placeholder {
-      color: #999;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    /* ==========================================
-       BOTONES
-       ========================================== */
-    .btn {
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-
-    .btn-danger {
-      background: #dc3545;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #c82333;
-    }
-
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* ==========================================
-       BÚSQUEDA
-       ========================================== */
-    .search-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .search-bar input {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 6px;
-    }
-
-    .search-bar input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .search-bar button {
-      padding: 12px 24px;
-      white-space: nowrap;
-    }
-
-    /* ==========================================
-       TABLA DE RESULTADOS
-       ========================================== */
-    .results-container {
-      margin-top: 20px;
-    }
-
-    .results-info {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    thead {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    thead th {
-      padding: 12px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid #e0e0e0;
-      transition: background 0.2s;
-    }
-
-    tbody tr:hover {
-      background: #f8f9fa;
-    }
-
-    tbody td {
-      padding: 12px;
-      color: #333;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-      opacity: 0.5;
-    }
-
-    .empty-state-text {
-      font-size: 15px;
-    }
-
-    /* ==========================================
-       BADGES
-       ========================================== */
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .badge-active {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .badge-inactive {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    /* ==========================================
-       ALERTAS
-       ========================================== */
-    .alert {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 16px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      animation: slideIn 0.3s ease-out;
-      max-width: 400px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border-left: 4px solid #28a745;
-    }
-
-    .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border-left: 4px solid #dc3545;
-    }
-
-    .alert-warning {
-      background: #fff3cd;
-      color: #856404;
-      border-left: 4px solid #ffc107;
-    }
-
-    /* ==========================================
-       MODAL DE CONFIRMACIÓN
-       ========================================== */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 500px;
-      width: 90%;
-      animation: modalIn 0.3s ease-out;
-    }
-
-    @keyframes modalIn {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .modal-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #dc3545;
-    }
-
-    .modal-body {
-      padding: 24px;
-    }
-
-    .modal-body p {
-      color: #333;
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-
-    .modal-footer {
-      padding: 16px 24px;
-      border-top: 1px solid #e0e0e0;
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
-
-    /* ==========================================
-       LOADING SPINNER
-       ========================================== */
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ==========================================
-       TOGGLE FORMULARIO
-       ========================================== */
-    .form-container {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-    }
-
-    .form-container.active {
-      max-height: 1000px;
-    }
-
-    .btn-toggle {
-      background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-toggle:hover {
-      background: #667eea;
-      color: white;
-    }
-
-    /* ==========================================
-       RESPONSIVE - MOBILE
-       ========================================== */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-      }
-
-      .navbar .user-info {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .container {
-        padding: 0 12px;
-        margin: 20px auto;
-      }
-
-      .section-body {
-        padding: 16px;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-actions {
-        flex-direction: column;
-      }
-
-      .form-actions .btn {
-        width: 100%;
-      }
-
-      .search-bar {
-        flex-direction: column;
-      }
-
-      .search-bar button {
-        width: 100%;
-      }
-
-      table {
-        font-size: 13px;
-      }
-
-      thead th,
-      tbody td {
-        padding: 8px;
-      }
-
-      .alert {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-      }
-    }
-  </style>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: ESTILOS [INICIO] -->
+<style>
+/* Reset y Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f7fa;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* Header / Navbar */
+.navbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.navbar .user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar .user-name {
+  font-size: 15px;
+  opacity: 0.95;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Container Principal */
+.container {
+  max-width: 1400px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+/* Secciones / Cards */
+.section-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.section-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 18px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-body {
+  padding: 24px;
+}
+
+/* Formularios */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group label .required {
+  color: #dc3545;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Botones */
+.btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Búsqueda */
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-bar button {
+  padding: 12px 24px;
+  white-space: nowrap;
+}
+
+/* Tabla de Resultados */
+.results-container {
+  margin-top: 20px;
+}
+
+.results-info {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+tbody tr:hover {
+  background: #f8f9fa;
+}
+
+tbody td {
+  padding: 12px;
+  color: #333;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 15px;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Alertas */
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  max-width: 400px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+/* Modal de Confirmación */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #dc3545;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-body p {
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Loading Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Toggle Formulario */
+.form-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.form-container.active {
+  max-height: 1000px;
+}
+
+.btn-toggle {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-toggle:hover {
+  background: #667eea;
+  color: white;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .navbar .user-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .container {
+    padding: 0 12px;
+    margin: 20px auto;
+  }
+
+  .section-body {
+    padding: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-bar button {
+    width: 100%;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  thead th,
+  tbody td {
+    padding: 8px;
+  }
+
+  .alert {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+</style>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: CIERRE HEAD Y APERTURA BODY [INICIO] -->
 </head>
 <body>
-  <!-- ========================================== -->
-  <!-- NAVBAR -->
-  <!-- ========================================== -->
-  <div class="navbar">
-    <h1>PBE Control - Panel Administrador</h1>
-    <div class="user-info">
-      <span class="user-name">👤 <span id="userName">Admin</span></span>
-      <button class="btn-logout" onclick="logout()">Salir</button>
-    </div>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-005: NAVBAR [INICIO] -->
+<div class="navbar">
+  <h1>PBE Control - Panel Administrador</h1>
+  <div class="user-info">
+    <span class="user-name">👤 <span id="userName">Admin</span></span>
+    <button class="btn-logout" onclick="logout()">Salir</button>
   </div>
+</div>
+<!-- MOD-005: FIN -->
 
-  <!-- ========================================== -->
-  <!-- CONTAINER PRINCIPAL -->
-  <!-- ========================================== -->
-  <div class="container">
-    
-    <!-- ========================================== -->
-    <!-- SECCIÓN: CREAR ALUMNO -->
-    <!-- ========================================== -->
-    <div class="section-card">
-      <div class="section-header">
-        <span>Crear Nuevo Alumno</span>
-        <button class="btn-toggle" onclick="toggleFormCrear()">+ Nuevo Alumno</button>
-      </div>
-      <div class="form-container" id="formCrearContainer">
-        <div class="section-body">
-          <form id="formCrearAlumno" onsubmit="handleCrearAlumno(event)">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Código Alumno <span class="required">*</span></label>
-                <input type="text" name="codeAlum" placeholder="Ej: PBE001" required>
-              </div>
-              
-              <div class="form-group">
-                <label>Clave de Acceso <span class="required">*</span></label>
-                <input type="text" name="clave" placeholder="Ej: alumno123" required>
-              </div>
-              
-              <div class="form-group">
-                <label>Nombres <span class="required">*</span></label>
-                <input type="text" name="nombres" placeholder="Ej: Juan Carlos" required>
-              </div>
-              
-              <div class="form-group">
-                <label>Apellidos <span class="required">*</span></label>
-                <input type="text" name="apellidos" placeholder="Ej: Pérez García" required>
-              </div>
-              
-              <div class="form-group">
-                <label>DNI</label>
-                <input type="text" name="dni" placeholder="Ej: 12345678">
-              </div>
-              
-              <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="Ej: alumno@email.com">
-              </div>
-              
-              <div class="form-group">
-                <label>Teléfono</label>
-                <input type="tel" name="fono" placeholder="Ej: 987654321">
-              </div>
-              
-              <div class="form-group">
-                <label>Fecha Nacimiento</label>
-                <input type="text" name="fechaNac" placeholder="DD/MM/AAAA">
-              </div>
-              
-              <div class="form-group">
-                <label>Tipo Institución</label>
-                <select name="tipoInsti">
-                  <option value="">Seleccionar...</option>
-                  <option value="Colegio">Colegio</option>
-                  <option value="Universidad">Universidad</option>
-                  <option value="Instituto">Instituto</option>
-                  <option value="Academia">Academia</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label>Nombre Institución</label>
-                <input type="text" name="nomInsti" placeholder="Ej: Universidad Nacional">
-              </div>
-              
-              <div class="form-group">
-                <label>Ciclo/Grado</label>
-                <input type="text" name="ciclo" placeholder="Ej: 5to de secundaria">
-              </div>
-            </div>
-            
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary" id="btnCrear">
-                Crear Alumno
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="resetFormCrear()">
-                Limpiar Formulario
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+<!-- MOD-006: CONTAINER PRINCIPAL [INICIO] -->
+<div class="container">
+<!-- MOD-006: FIN -->
 
-    <!-- ========================================== -->
-    <!-- SECCIÓN: BUSCAR ALUMNO -->
-    <!-- ========================================== -->
-    <div class="section-card">
-      <div class="section-header">
-        <span>Buscar Alumnos</span>
-      </div>
-      <div class="section-body">
-        <div class="search-bar">
-          <input 
-            type="text" 
-            id="searchInput" 
-            placeholder="Buscar por código, nombre, apellido o DNI..."
-            onkeypress="handleSearchKeypress(event)"
-          >
-          <button class="btn btn-primary" onclick="handleBuscarAlumno()">
-            🔍 Buscar
-          </button>
-          <button class="btn btn-secondary" onclick="handleMostrarTodos()">
-            Ver Todos
-          </button>
-        </div>
-
-        <!-- Resultados de búsqueda -->
-        <div class="results-container" id="resultsContainer">
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-text">
-              Usa el buscador para encontrar alumnos<br>
-              o haz clic en "Ver Todos" para listar todos los alumnos
-            </div>
+<!-- MOD-007: SECCIÓN CREAR ALUMNO [INICIO] -->
+<div class="section-card">
+  <div class="section-header">
+    <span>Crear Nuevo Alumno</span>
+    <button class="btn-toggle" onclick="toggleFormCrear()">+ Nuevo Alumno</button>
+  </div>
+  <div class="form-container" id="formCrearContainer">
+    <div class="section-body">
+      <form id="formCrearAlumno" onsubmit="handleCrearAlumno(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código Alumno <span class="required">*</span></label>
+            <input type="text" name="codeAlum" placeholder="Ej: PBE001" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Clave de Acceso <span class="required">*</span></label>
+            <input type="text" name="clave" placeholder="Ej: alumno123" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Nombres <span class="required">*</span></label>
+            <input type="text" name="nombres" placeholder="Ej: Juan Carlos" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Apellidos <span class="required">*</span></label>
+            <input type="text" name="apellidos" placeholder="Ej: Pérez García" required>
+          </div>
+          
+          <div class="form-group">
+            <label>DNI</label>
+            <input type="text" name="dni" placeholder="Ej: 12345678">
+          </div>
+          
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Ej: alumno@email.com">
+          </div>
+          
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" name="fono" placeholder="Ej: 987654321">
+          </div>
+          
+          <div class="form-group">
+            <label>Fecha Nacimiento</label>
+            <input type="text" name="fechaNac" placeholder="DD/MM/AAAA">
+          </div>
+          
+          <div class="form-group">
+            <label>Tipo Institución</label>
+            <select name="tipoInsti">
+              <option value="">Seleccionar...</option>
+              <option value="Colegio">Colegio</option>
+              <option value="Universidad">Universidad</option>
+              <option value="Instituto">Instituto</option>
+              <option value="Academia">Academia</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Nombre Institución</label>
+            <input type="text" name="nomInsti" placeholder="Ej: Universidad Nacional">
+          </div>
+          
+          <div class="form-group">
+            <label>Ciclo/Grado</label>
+            <input type="text" name="ciclo" placeholder="Ej: 5to de secundaria">
           </div>
         </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL DE CONFIRMACIÓN -->
-  <!-- ========================================== -->
-  <div class="modal-overlay" id="modalConfirm">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title">⚠️ Confirmar Eliminación</h3>
-      </div>
-      <div class="modal-body">
-        <p id="modalMessage">¿Estás seguro de eliminar este alumno?</p>
-        <p style="color: #dc3545; font-weight: 600;">
-          Esta acción NO se puede deshacer y eliminará todos los datos del alumno 
-          (cursos, tareas, evaluaciones, etc.).
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal()">
-          Cancelar
-        </button>
-        <button class="btn btn-danger" onclick="confirmDelete()" id="btnConfirmDelete">
-          Confirmar Eliminación
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT -->
-  <!-- ========================================== -->
-  <script>
-    // ==========================================
-    // VARIABLES GLOBALES
-    // ==========================================
-    var currentUser = {
-      nombre: 'Admin',
-      user: 'admin'
-    };
-
-    var alumnoToDelete = null;
-
-    // ==========================================
-    // INICIALIZACIÓN
-    // ==========================================
-    window.onload = function() {
-      // Aquí podrías cargar el nombre del admin desde sessionStorage
-      // por ahora lo dejamos genérico
-      document.getElementById('userName').textContent = currentUser.nombre;
-    };
-
-    // ==========================================
-    // TOGGLE FORMULARIO CREAR
-    // ==========================================
-    function toggleFormCrear() {
-      const container = document.getElementById('formCrearContainer');
-      container.classList.toggle('active');
-    }
-
-    // ==========================================
-    // CREAR ALUMNO
-    // ==========================================
-    function handleCrearAlumno(event) {
-      event.preventDefault();
-
-      const form = event.target;
-      const formData = new FormData(form);
-      const btnCrear = document.getElementById('btnCrear');
-
-      // Construir objeto params
-      const params = {
-        codeAlum: formData.get('codeAlum').trim(),
-        clave: formData.get('clave').trim(),
-        nombres: formData.get('nombres').trim(),
-        apellidos: formData.get('apellidos').trim(),
-        dni: formData.get('dni').trim(),
-        email: formData.get('email').trim(),
-        fono: formData.get('fono').trim(),
-        fechaNac: formData.get('fechaNac').trim(),
-        tipoInsti: formData.get('tipoInsti'),
-        nomInsti: formData.get('nomInsti').trim(),
-        ciclo: formData.get('ciclo').trim()
-      };
-
-      // Validaciones básicas
-      if (!params.codeAlum || !params.clave || !params.nombres || !params.apellidos) {
-        showAlert('error', 'Completa todos los campos obligatorios');
-        return;
-      }
-
-      // Deshabilitar botón y mostrar loading
-      btnCrear.disabled = true;
-      btnCrear.innerHTML = '<span class="spinner"></span>Creando...';
-
-      // Llamar a backend
-      google.script.run
-        .withSuccessHandler(handleCrearSuccess)
-        .withFailureHandler(handleCrearFailure)
-        .adminCrearAlumno(params);
-    }
-
-    function handleCrearSuccess(response) {
-      const btnCrear = document.getElementById('btnCrear');
-      btnCrear.disabled = false;
-      btnCrear.innerHTML = 'Crear Alumno';
-
-      if (response.success) {
-        showAlert('success', '✓ ' + response.message);
-        resetFormCrear();
         
-        // Si hay resultados visibles, recargar búsqueda
-        const resultsContainer = document.getElementById('resultsContainer');
-        if (resultsContainer.querySelector('table')) {
-          handleBuscarAlumno();
-        }
-      } else {
-        showAlert('error', response.error);
-      }
-    }
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="btnCrear">
+            Crear Alumno
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="resetFormCrear()">
+            Limpiar Formulario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- MOD-007: FIN -->
 
-    function handleCrearFailure(error) {
-      console.error('Error al crear alumno:', error);
-      showAlert('error', 'Error de conexión. Intenta nuevamente');
-      
-      const btnCrear = document.getElementById('btnCrear');
-      btnCrear.disabled = false;
-      btnCrear.innerHTML = 'Crear Alumno';
-    }
+<!-- MOD-008: SECCIÓN BUSCAR ALUMNO [INICIO] -->
+<div class="section-card">
+  <div class="section-header">
+    <span>Buscar Alumnos</span>
+  </div>
+  <div class="section-body">
+    <div class="search-bar">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Buscar por código, nombre, apellido o DNI..."
+        onkeypress="handleSearchKeypress(event)"
+      >
+      <button class="btn btn-primary" onclick="handleBuscarAlumno()">
+        🔍 Buscar
+      </button>
+      <button class="btn btn-secondary" onclick="handleMostrarTodos()">
+        Ver Todos
+      </button>
+    </div>
 
-    function resetFormCrear() {
-      document.getElementById('formCrearAlumno').reset();
-    }
+    <div class="results-container" id="resultsContainer">
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">
+          Usa el buscador para encontrar alumnos<br>
+          o haz clic en "Ver Todos" para listar todos los alumnos
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MOD-008: FIN -->
 
-    // ==========================================
-    // BUSCAR ALUMNO
-    // ==========================================
-    function handleBuscarAlumno() {
-      const searchInput = document.getElementById('searchInput');
-      const filtro = searchInput.value.trim();
+<!-- MOD-009: CIERRE CONTAINER [INICIO] -->
+</div>
+<!-- MOD-009: FIN -->
 
-      // Llamar a backend
-      google.script.run
-        .withSuccessHandler(handleBuscarSuccess)
-        .withFailureHandler(handleBuscarFailure)
-        .adminBuscarAlumno({ filtro: filtro });
-    }
+<!-- MOD-010: MODAL CONFIRMACIÓN [INICIO] -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">⚠️ Confirmar Eliminación</h3>
+    </div>
+    <div class="modal-body">
+      <p id="modalMessage">¿Estás seguro de eliminar este alumno?</p>
+      <p style="color: #dc3545; font-weight: 600;">
+        Esta acción NO se puede deshacer y eliminará todos los datos del alumno 
+        (cursos, tareas, evaluaciones, etc.).
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">
+        Cancelar
+      </button>
+      <button class="btn btn-danger" onclick="confirmDelete()" id="btnConfirmDelete">
+        Confirmar Eliminación
+      </button>
+    </div>
+  </div>
+</div>
+<!-- MOD-010: FIN -->
 
-    function handleMostrarTodos() {
-      document.getElementById('searchInput').value = '';
+<!-- MOD-011: JAVASCRIPT [INICIO] -->
+<script>
+// Variables Globales
+var currentUser = {
+  nombre: 'Admin',
+  user: 'admin'
+};
+
+var alumnoToDelete = null;
+
+// Inicialización
+window.onload = function() {
+  document.getElementById('userName').textContent = currentUser.nombre;
+};
+
+// Toggle Formulario Crear
+function toggleFormCrear() {
+  const container = document.getElementById('formCrearContainer');
+  container.classList.toggle('active');
+}
+
+// Crear Alumno
+function handleCrearAlumno(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = new FormData(form);
+  const btnCrear = document.getElementById('btnCrear');
+
+  const params = {
+    codeAlum: formData.get('codeAlum').trim(),
+    clave: formData.get('clave').trim(),
+    nombres: formData.get('nombres').trim(),
+    apellidos: formData.get('apellidos').trim(),
+    dni: formData.get('dni').trim(),
+    email: formData.get('email').trim(),
+    fono: formData.get('fono').trim(),
+    fechaNac: formData.get('fechaNac').trim(),
+    tipoInsti: formData.get('tipoInsti'),
+    nomInsti: formData.get('nomInsti').trim(),
+    ciclo: formData.get('ciclo').trim()
+  };
+
+  if (!params.codeAlum || !params.clave || !params.nombres || !params.apellidos) {
+    showAlert('error', 'Completa todos los campos obligatorios');
+    return;
+  }
+
+  btnCrear.disabled = true;
+  btnCrear.innerHTML = '<span class="spinner"></span>Creando...';
+
+  google.script.run
+    .withSuccessHandler(handleCrearSuccess)
+    .withFailureHandler(handleCrearFailure)
+    .adminCrearAlumno(params);
+}
+
+function handleCrearSuccess(response) {
+  const btnCrear = document.getElementById('btnCrear');
+  btnCrear.disabled = false;
+  btnCrear.innerHTML = 'Crear Alumno';
+
+  if (response.success) {
+    showAlert('success', '✓ ' + response.message);
+    resetFormCrear();
+    
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer.querySelector('table')) {
       handleBuscarAlumno();
     }
+  } else {
+    showAlert('error', response.error);
+  }
+}
 
-    function handleSearchKeypress(event) {
-      if (event.key === 'Enter') {
-        handleBuscarAlumno();
-      }
-    }
+function handleCrearFailure(error) {
+  console.error('Error al crear alumno:', error);
+  showAlert('error', 'Error de conexión. Intenta nuevamente');
+  
+  const btnCrear = document.getElementById('btnCrear');
+  btnCrear.disabled = false;
+  btnCrear.innerHTML = 'Crear Alumno';
+}
 
-    function handleBuscarSuccess(response) {
-      const resultsContainer = document.getElementById('resultsContainer');
+function resetFormCrear() {
+  document.getElementById('formCrearAlumno').reset();
+}
 
-      if (response.success) {
-        const alumnos = response.data;
+// Buscar Alumno
+function handleBuscarAlumno() {
+  const searchInput = document.getElementById('searchInput');
+  const filtro = searchInput.value.trim();
 
-        if (alumnos.length === 0) {
-          resultsContainer.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">😕</div>
-              <div class="empty-state-text">
-                No se encontraron alumnos con ese criterio
-              </div>
-            </div>
-          `;
-          return;
-        }
+  google.script.run
+    .withSuccessHandler(handleBuscarSuccess)
+    .withFailureHandler(handleBuscarFailure)
+    .adminBuscarAlumno({ filtro: filtro });
+}
 
-        // Construir tabla
-        let html = `
-          <div class="results-info">
-            Se encontraron ${alumnos.length} alumno(s)
+function handleMostrarTodos() {
+  document.getElementById('searchInput').value = '';
+  handleBuscarAlumno();
+}
+
+function handleSearchKeypress(event) {
+  if (event.key === 'Enter') {
+    handleBuscarAlumno();
+  }
+}
+
+function handleBuscarSuccess(response) {
+  const resultsContainer = document.getElementById('resultsContainer');
+
+  if (response.success) {
+    const alumnos = response.data;
+
+    if (alumnos.length === 0) {
+      resultsContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">😕</div>
+          <div class="empty-state-text">
+            No se encontraron alumnos con ese criterio
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Nombres</th>
-                <th>Apellidos</th>
-                <th>DNI</th>
-                <th>Email</th>
-                <th>Institución</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        alumnos.forEach(function(alumno) {
-          html += `
-            <tr>
-              <td><strong>${alumno.CodeAlum}</strong></td>
-              <td>${alumno.Nombres}</td>
-              <td>${alumno.Apellidos}</td>
-              <td>${alumno.DNI || '-'}</td>
-              <td>${alumno.Email || '-'}</td>
-              <td>${alumno.NomInsti || '-'}</td>
-              <td>
-                <button 
-                  class="btn btn-danger" 
-                  style="padding: 6px 12px; font-size: 12px;"
-                  onclick='handleEliminarClick(${JSON.stringify({
-                    codeAlum: alumno.CodeAlum,
-                    nombre: alumno.Nombres + ' ' + alumno.Apellidos
-                  })})'>
-                  🗑️ Eliminar
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-
-        html += `
-            </tbody>
-          </table>
-        `;
-
-        resultsContainer.innerHTML = html;
-
-      } else {
-        showAlert('error', response.error);
-      }
-    }
-
-    function handleBuscarFailure(error) {
-      console.error('Error al buscar:', error);
-      showAlert('error', 'Error de conexión al buscar');
-    }
-
-    // ==========================================
-    // ELIMINAR ALUMNO
-    // ==========================================
-    function handleEliminarClick(alumno) {
-      alumnoToDelete = alumno;
-      
-      const modalMessage = document.getElementById('modalMessage');
-      modalMessage.innerHTML = `
-        ¿Estás seguro de eliminar al alumno <strong>${alumno.nombre}</strong> (${alumno.codeAlum})?
+        </div>
       `;
-      
-      document.getElementById('modalConfirm').classList.add('active');
+      return;
     }
 
-    function closeModal() {
-      document.getElementById('modalConfirm').classList.remove('active');
-      alumnoToDelete = null;
-    }
+    let html = `
+      <div class="results-info">
+        Se encontraron ${alumnos.length} alumno(s)
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombres</th>
+            <th>Apellidos</th>
+            <th>DNI</th>
+            <th>Email</th>
+            <th>Institución</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
-    function confirmDelete() {
-      if (!alumnoToDelete) return;
+    alumnos.forEach(function(alumno) {
+      html += `
+        <tr>
+          <td><strong>${alumno.CodeAlum}</strong></td>
+          <td>${alumno.Nombres}</td>
+          <td>${alumno.Apellidos}</td>
+          <td>${alumno.DNI || '-'}</td>
+          <td>${alumno.Email || '-'}</td>
+          <td>${alumno.NomInsti || '-'}</td>
+          <td>
+            <button 
+              class="btn btn-danger" 
+              style="padding: 6px 12px; font-size: 12px;"
+              onclick='handleEliminarClick(${JSON.stringify({
+                codeAlum: alumno.CodeAlum,
+                nombre: alumno.Nombres + ' ' + alumno.Apellidos
+              })})'>
+              🗑️ Eliminar
+            </button>
+          </td>
+        </tr>
+      `;
+    });
 
-      const btnConfirm = document.getElementById('btnConfirmDelete');
-      btnConfirm.disabled = true;
-      btnConfirm.innerHTML = '<span class="spinner"></span>Eliminando...';
+    html += `
+        </tbody>
+      </table>
+    `;
 
-      google.script.run
-        .withSuccessHandler(handleEliminarSuccess)
-        .withFailureHandler(handleEliminarFailure)
-        .adminEliminarAlumno({ codeAlum: alumnoToDelete.codeAlum });
-    }
+    resultsContainer.innerHTML = html;
 
-    function handleEliminarSuccess(response) {
-      const btnConfirm = document.getElementById('btnConfirmDelete');
-      btnConfirm.disabled = false;
-      btnConfirm.innerHTML = 'Confirmar Eliminación';
+  } else {
+    showAlert('error', response.error);
+  }
+}
 
-      closeModal();
+function handleBuscarFailure(error) {
+  console.error('Error al buscar:', error);
+  showAlert('error', 'Error de conexión al buscar');
+}
 
-      if (response.success) {
-        showAlert('success', '✓ ' + response.message);
-        
-        // Recargar búsqueda
-        handleBuscarAlumno();
-      } else {
-        showAlert('error', response.error);
-      }
+// Eliminar Alumno
+function handleEliminarClick(alumno) {
+  alumnoToDelete = alumno;
+  
+  const modalMessage = document.getElementById('modalMessage');
+  modalMessage.innerHTML = `
+    ¿Estás seguro de eliminar al alumno <strong>${alumno.nombre}</strong> (${alumno.codeAlum})?
+  `;
+  
+  document.getElementById('modalConfirm').classList.add('active');
+}
 
-      alumnoToDelete = null;
-    }
+function closeModal() {
+  document.getElementById('modalConfirm').classList.remove('active');
+  alumnoToDelete = null;
+}
 
-    function handleEliminarFailure(error) {
-      console.error('Error al eliminar:', error);
-      showAlert('error', 'Error de conexión al eliminar');
+function confirmDelete() {
+  if (!alumnoToDelete) return;
 
-      const btnConfirm = document.getElementById('btnConfirmDelete');
-      btnConfirm.disabled = false;
-      btnConfirm.innerHTML = 'Confirmar Eliminación';
-    }
+  const btnConfirm = document.getElementById('btnConfirmDelete');
+  btnConfirm.disabled = true;
+  btnConfirm.innerHTML = '<span class="spinner"></span>Eliminando...';
 
-    // ==========================================
-    // SISTEMA DE ALERTAS
-    // ==========================================
-    function showAlert(type, message) {
-      // Eliminar alertas previas
-      const existingAlerts = document.querySelectorAll('.alert');
-      existingAlerts.forEach(alert => alert.remove());
+  google.script.run
+    .withSuccessHandler(handleEliminarSuccess)
+    .withFailureHandler(handleEliminarFailure)
+    .adminEliminarAlumno({ codeAlum: alumnoToDelete.codeAlum });
+}
 
-      // Crear nueva alerta
-      const alertBox = document.createElement('div');
-      alertBox.className = 'alert alert-' + type;
-      alertBox.textContent = message;
+function handleEliminarSuccess(response) {
+  const btnConfirm = document.getElementById('btnConfirmDelete');
+  btnConfirm.disabled = false;
+  btnConfirm.innerHTML = 'Confirmar Eliminación';
 
-      document.body.appendChild(alertBox);
+  closeModal();
 
-      // Auto-eliminar después de 4 segundos
-      setTimeout(function() {
-        alertBox.remove();
-      }, 4000);
-    }
+  if (response.success) {
+    showAlert('success', '✓ ' + response.message);
+    handleBuscarAlumno();
+  } else {
+    showAlert('error', response.error);
+  }
 
-    // ==========================================
-    // LOGOUT
-    // ==========================================
-    function logout() {
-      if (confirm('¿Deseas cerrar sesión?')) {
-        window.location.href = '/';
-      }
-    }
-  </script>
+  alumnoToDelete = null;
+}
+
+function handleEliminarFailure(error) {
+  console.error('Error al eliminar:', error);
+  showAlert('error', 'Error de conexión al eliminar');
+
+  const btnConfirm = document.getElementById('btnConfirmDelete');
+  btnConfirm.disabled = false;
+  btnConfirm.innerHTML = 'Confirmar Eliminación';
+}
+
+// Sistema de Alertas
+function showAlert(type, message) {
+  const existingAlerts = document.querySelectorAll('.alert');
+  existingAlerts.forEach(alert => alert.remove());
+
+  const alertBox = document.createElement('div');
+  alertBox.className = 'alert alert-' + type;
+  alertBox.textContent = message;
+
+  document.body.appendChild(alertBox);
+
+  setTimeout(function() {
+    alertBox.remove();
+  }, 4000);
+}
+
+// Logout
+function logout() {
+  if (confirm('¿Deseas cerrar sesión?')) {
+    window.location.href = '/';
+  }
+}
+</script>
+<!-- MOD-011: FIN -->
+
+<!-- MOD-012: CÓDIGO DE CIERRE [INICIO] -->
 </body>
 </html>
+<!-- MOD-012: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Panel de administración para gestión completa de alumnos
+Interfaz responsiva con gradiente azul-morado
+
+FUNCIONALIDADES:
+1. Crear Alumno: Formulario colapsable con 11 campos y validaciones
+2. Buscar Alumno: Búsqueda multi-criterio (código, nombre, apellido, DNI)
+3. Eliminar Alumno: Modal de confirmación antes de eliminar
+
+SECCIONES:
+- Navbar: Logo, nombre usuario, botón salir
+- Crear Alumno: Formulario con validaciones de unicidad
+- Buscar Alumno: Barra de búsqueda + tabla de resultados
+- Modal: Confirmación de eliminación con advertencia
+
+CONEXIÓN CON BACKEND:
+- adminCrearAlumno() → Admin.crearAlumno() en 1admin.gs
+- adminBuscarAlumno() → Admin.buscarAlumno() en 1admin.gs
+- adminEliminarAlumno() → Admin.eliminarAlumno() en 1admin.gs
+
+VALIDACIONES:
+- Campos obligatorios: CodeAlum, Clave, Nombres, Apellidos
+- CodeAlum debe ser único (validación en backend)
+- Clave debe ser única (validación en backend)
+- Eliminar requiere confirmación modal
+
+CARACTERÍSTICAS TÉCNICAS:
+- Búsqueda case-insensitive
+- Eliminar borra de 9 hojas diferentes en backend
+- Formulario colapsable con animación
+- Sistema de alertas con auto-dismiss
+- Responsive design para móviles
+- Spinner de carga en operaciones asíncronas
+
+DEPENDENCIAS:
+- google.script.run (Google Apps Script Client API)
+- Backend: 1admin.gs (módulo Admin)
+- Backend: 1code.gs (funciones de interfaz)
+
+IMPORTANTE:
+- doGet() debe usar createTemplateFromFile()
+- Todas las operaciones son asíncronas
+- Los errores se muestran mediante sistema de alertas
+
+CAMBIOS V01.17 → V01.18:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- CSS encapsulado en MOD-003
+- JavaScript encapsulado en MOD-011
+- Estructura HTML modularizada
+- Comentarios consolidados en MOD-099
+-->
+<!-- MOD-099: FIN -->
