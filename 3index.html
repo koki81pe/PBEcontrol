@@ -1,3 +1,15 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
+<!--
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 3index.html
+VERSIÓN: 01.24
+FECHA: 18/01/2026 12:05 (UTC-5)
+*****************************************
+-->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: APERTURA HTML [INICIO] -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,235 +17,279 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PBE Control - Login</title>
-  <style>
-    /******************************************
-      PBE CONTROL - 3index.html - V01.22 CLAUDE
-      Sistema de Gestión Académica
-      05/01/2026 - Versión Corregida
-      
-      CAMBIOS V01.22:
-      - Se guarda el objeto user completo en sessionStorage
-      - Antes solo guardaba la clave
-      - Ahora guarda: codeAlum, nombre, email, type
-    *******************************************/
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<!-- MOD-002: FIN -->
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      font-size: 14px;
-    }
+<!-- MOD-003: ESTILOS [INICIO] -->
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .login-container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
-      width: 100%;
-      max-width: 380px;
-      animation: slideUp 0.5s ease-out;
-    }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-size: 14px;
+}
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.login-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  width: 100%;
+  max-width: 380px;
+  animation: slideUp 0.5s ease-out;
+}
 
-    .login-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 30px 20px;
-      text-align: center;
-      color: white;
-    }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    .login-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 5px; }
+.login-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 30px 20px;
+  text-align: center;
+  color: white;
+}
 
-    .login-form { padding: 30px 25px; }
+.login-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 5px; }
 
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 6px;
-    }
+.login-form { padding: 30px 25px; }
 
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      font-size: 14px;
-      border: 2px solid #eee;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
 
-    .form-group input:focus {
-      outline: none;
-      border-color: #667eea;
-      background-color: #fcfcff;
-    }
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 2px solid #eee;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
 
-    .btn-login {
-      width: 100%;
-      padding: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: white;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  background-color: #fcfcff;
+}
 
-    .btn-login:hover { opacity: 0.9; }
-    .btn-login:disabled { background: #bbb; cursor: not-allowed; }
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
 
-    .alert {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      padding: 12px 20px;
-      border-radius: 4px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      z-index: 10000;
-      font-size: 13px;
-      animation: slideIn 0.3s ease-out;
-    }
+.btn-login:hover { opacity: 0.9; }
+.btn-login:disabled { background: #bbb; cursor: not-allowed; }
 
-    @keyframes slideIn {
-      from { transform: translateX(50px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
+.alert {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  padding: 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 10000;
+  font-size: 13px;
+  animation: slideIn 0.3s ease-out;
+}
 
-    .alert-success { background: #28a745; color: white; }
-    .alert-error { background: #dc3545; color: white; }
+@keyframes slideIn {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 
-    .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+.alert-success { background: #28a745; color: white; }
+.alert-error { background: #dc3545; color: white; }
 
-    .login-footer {
-      padding: 15px;
-      text-align: center;
-      font-size: 11px;
-      color: #aaa;
-      border-top: 1px solid #f9f9f9;
-    }
-  </style>
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.login-footer {
+  padding: 15px;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  border-top: 1px solid #f9f9f9;
+}
+</style>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: CIERRE HEAD Y APERTURA BODY [INICIO] -->
 </head>
 <body>
+<!-- MOD-004: FIN -->
 
-  <div class="login-container">
-    <div class="login-header">
-      <h1>PBE Control</h1>
-      <p>Gestión Académica Profesional</p>
-    </div>
-
-    <div class="login-form">
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label for="inputClave">Clave de Acceso</label>
-          <input type="password" id="inputClave" name="clave" placeholder="••••••••" autocomplete="off" required>
-        </div>
-        <button type="submit" class="btn-login" id="btnLogin">Ingresar al Sistema</button>
-      </form>
-    </div>
-
-    <div class="login-footer">
-      PBE Control v01.22 &copy; 2026 | Protocolo de Acceso Seguro
-    </div>
+<!-- MOD-005: CONTENEDOR LOGIN [INICIO] -->
+<div class="login-container">
+  <div class="login-header">
+    <h1>PBE Control</h1>
+    <p>Gestión Académica Profesional</p>
   </div>
 
-  <?!= include('8modals'); ?>
+  <div class="login-form">
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="inputClave">Clave de Acceso</label>
+        <input type="password" id="inputClave" name="clave" placeholder="••••••••" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn-login" id="btnLogin">Ingresar al Sistema</button>
+    </form>
+  </div>
 
-  <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      const clave = document.getElementById('inputClave').value.trim();
-      const btnLogin = document.getElementById('btnLogin');
+  <div class="login-footer">
+    PBE Control v01.24 &copy; 2026 | Protocolo de Acceso Seguro
+  </div>
+</div>
+<!-- MOD-005: FIN -->
 
-      if (!clave) {
-        showAlert('error', 'Ingrese su clave');
-        return;
-      }
+<!-- MOD-006: JAVASCRIPT [INICIO] -->
+<script>
+// Manejar envío del formulario de login
+function handleLogin(event) {
+  event.preventDefault();
+  const clave = document.getElementById('inputClave').value.trim();
+  const btnLogin = document.getElementById('btnLogin');
 
-      btnLogin.disabled = true;
-      btnLogin.innerHTML = '<span class="spinner"></span>Validando...';
+  if (!clave) {
+    showAlert('error', 'Ingrese su clave');
+    return;
+  }
 
-      // Limpiamos cualquier sesión previa antes de validar la nueva
-      sessionStorage.clear();
+  btnLogin.disabled = true;
+  btnLogin.innerHTML = '<span class="spinner"></span>Validando...';
 
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (response.success) {
-            handleLoginSuccess(response);
-          } else {
-            handleLoginSuccess(response); // Manejará el error internamente
-          }
-        })
-        .withFailureHandler(function(err) {
-           showAlert('error', 'Error técnico de conexión');
-           btnLogin.disabled = false;
-           btnLogin.innerHTML = 'Ingresar al Sistema';
-        })
-        .autenticar({ clave: clave });
-    }
+  sessionStorage.clear();
 
-    function handleLoginSuccess(response) {
+  google.script.run
+    .withSuccessHandler(function(response) {
       if (response.success) {
-        // ==========================================
-        // CORRECCIÓN V01.22:
-        // Guardar TODO el objeto user en sessionStorage
-        // NO solo la clave, sino todos los datos del usuario
-        // ==========================================
-        sessionStorage.setItem('pbe_user', JSON.stringify(response.user));
-        
-        showAlert('success', 'Bienvenido, ' + response.user.nombre);
-        
-        setTimeout(function() {
-          // scriptUrl inyectado desde el servidor
-          var finalUrl = '<?!= scriptUrl ?>' + '?page=' + response.user.type;
-          
-          // Salto fuera del sandbox
-          window.top.location.href = finalUrl;
-        }, 600);
+        handleLoginSuccess(response);
       } else {
-        showAlert('error', response.error);
-        const btnLogin = document.getElementById('btnLogin');
-        btnLogin.disabled = false;
-        btnLogin.innerHTML = 'Ingresar al Sistema';
-        document.getElementById('inputClave').focus();
+        handleLoginSuccess(response);
       }
-    }
+    })
+    .withFailureHandler(function(err) {
+       showAlert('error', 'Error técnico de conexión');
+       btnLogin.disabled = false;
+       btnLogin.innerHTML = 'Ingresar al Sistema';
+    })
+    .autenticar({ clave: clave });
+}
 
-    function showAlert(type, message) {
-      const old = document.querySelector('.alert');
-      if (old) old.remove();
+// Manejar respuesta exitosa del login
+function handleLoginSuccess(response) {
+  if (response.success) {
+    sessionStorage.setItem('pbe_user', JSON.stringify(response.user));
+    
+    showAlert('success', 'Bienvenido, ' + response.user.nombre);
+    
+    setTimeout(function() {
+      var finalUrl = '<?!= scriptUrl ?>' + '?page=' + response.user.type;
+      window.location.href = finalUrl;
+    }, 600);
+  } else {
+    showAlert('error', response.error);
+    const btnLogin = document.getElementById('btnLogin');
+    btnLogin.disabled = false;
+    btnLogin.innerHTML = 'Ingresar al Sistema';
+    document.getElementById('inputClave').focus();
+  }
+}
 
-      const alertBox = document.createElement('div');
-      alertBox.className = 'alert alert-' + type;
-      alertBox.textContent = message;
-      document.body.appendChild(alertBox);
-      setTimeout(() => alertBox.remove(), 3000);
-    }
+// Mostrar alertas de éxito/error
+function showAlert(type, message) {
+  const old = document.querySelector('.alert');
+  if (old) old.remove();
 
-    window.onload = () => {
-      document.getElementById('inputClave').focus();
-    };
-  </script>
+  const alertBox = document.createElement('div');
+  alertBox.className = 'alert alert-' + type;
+  alertBox.textContent = message;
+  document.body.appendChild(alertBox);
+  setTimeout(() => alertBox.remove(), 3000);
+}
+
+// Inicialización al cargar la página
+window.onload = () => {
+  document.getElementById('inputClave').focus();
+};
+</script>
+<!-- MOD-006: FIN -->
+
+<!-- MOD-007: CÓDIGO DE CIERRE [INICIO] -->
 </body>
 </html>
+<!-- MOD-007: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Página de login del sistema PBE Control
+Autenticación mediante clave única
+
+FUNCIONALIDAD:
+- Formulario de login con validación de clave
+- Llamada a backend google.script.run.autenticar()
+- Almacenamiento de sesión en sessionStorage
+- Redirección automática según tipo de usuario
+
+FLUJO DE AUTENTICACIÓN:
+1. Usuario ingresa clave
+2. Se limpia sessionStorage previo
+3. Se llama a autenticar() en backend
+4. Si éxito: guardar user completo en sessionStorage
+5. Redireccionar a página según user.type
+
+DATOS GUARDADOS EN SESSION:
+- pbe_user: Objeto completo con codeAlum, nombre, email, type
+
+INTERFAZ:
+- Diseño responsivo con gradiente morado
+- Animaciones de entrada suaves
+- Spinner durante validación
+- Alertas de éxito/error con auto-dismiss
+
+DEPENDENCIAS:
+- google.script.run (Google Apps Script Client API)
+- Backend: función autenticar(params)
+- Variable scriptUrl inyectada desde servidor
+
+FIX CRÍTICO V01.23 → V01.24:
+- Cambiado window.top.location.href por window.location.href
+- Respeta <base target="_top"> sin SecurityError
+- Eliminadas referencias a include('8modals') inexistente
+- Login confiable sin necesidad de reintentos
+
+CAMBIOS V01.23 → V01.24:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- CSS encapsulado en MOD-003
+- JavaScript encapsulado en MOD-006
+- Comentarios consolidados en MOD-099
+-->
+<!-- MOD-099: FIN -->
