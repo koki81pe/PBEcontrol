@@ -3,14 +3,14 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.32
-FECHA: 16/01/2026 15:53 (UTC-5)
+VERSIÓN: 01.33
+FECHA: 19/01/2026 01:08 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: TEXTO LIBRE [INICIO] -->
-<!--Sin conflicto con HorarioClase-->
+<!-- Sin conflicto con HorarioClase -->
 <!-- MOD-002: FIN -->
 
 <!-- MOD-003: ESTILOS CSS [INICIO] -->
@@ -614,10 +614,24 @@ FECHA: 16/01/2026 15:53 (UTC-5)
 <script>
 (function () {
 'use strict';
-<!-- MOD-004: FIN --> -->
+<!-- MOD-004: FIN  -->
 
+<!-- MOD-005: JAVASCRIPT [INICIO] -->
+<script>
 
-<!-- MOD-005A: NOTIFICACIONES [INICIO] -->
+// MOD-005-S01: ENCAPSULAMIENTO IIFE [INICIO]
+(function () {
+'use strict';
+
+if (window.HorarioSemanalModule) {
+  console.log('📅 HorarioSemanalModule ya existe, ignorando carga');
+  return;
+}
+
+console.log('📅 HorarioSemanalModule V01.33 CODEWORKSHOP iniciando...');
+// MOD-005-S01: FIN
+
+// MOD-005-S02: SISTEMA DE NOTIFICACIONES [INICIO]
 function mostrarNotificacion(tipo, mensaje) {
   const notif = document.createElement('div');
   notif.className = `hs-notificacion ${tipo}`;
@@ -643,20 +657,9 @@ function mostrarNotificacion(tipo, mensaje) {
     }
   }, 4000);
 }
-<!-- MOD-005A: FIN -->
+// MOD-005-S02: FIN
 
-
-
-<!-- MOD-005: JAVASCRIPT - INICIO [INICIO] -->
-if (window.HorarioSemanalModule) {
-  console.log('📅 HorarioSemanalModule ya existe, ignorando carga');
-  return;
-}
-
-console.log('📅 HorarioSemanalModule V01.29 CLAUDE iniciando...');
-<!-- MOD-005: FIN -->
-
-<!-- MOD-006: VERIFICACIÓN Y CONSTANTES [INICIO] -->
+// MOD-005-S03: VARIABLES Y CONSTANTES [INICIO]
 let clasesData = [];
 let actividadesData = [];
 let cursosData = [];
@@ -671,9 +674,9 @@ const DIAS_CORTOS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 let _initDone = false;
 let _retryCount = 0;
 const MAX_RETRIES = 5;
-<!-- MOD-006: FIN -->
+// MOD-005-S03: FIN
 
-<!-- MOD-007: FUNCIÓN INICIALIZACIÓN [INICIO] -->
+// MOD-005-S04: INICIALIZACIÓN [INICIO]
 function init() {
   console.log('📅 HorarioSemanalModule.init() llamado (intento ' + (_retryCount + 1) + ')');
   
@@ -701,9 +704,9 @@ function init() {
   cargarConfigSemana();
   cargarSemanas();
 }
-<!-- MOD-007: FIN -->
+// MOD-005-S04: FIN
 
-<!-- MOD-008: FUNCIÓN CARGA CONFIG SEMANA [INICIO] -->
+// MOD-005-S05: CARGA CONFIG SEMANA [INICIO]
 function cargarConfigSemana() {
   console.log('📅 Cargando configuración de semana...');
   
@@ -731,9 +734,9 @@ function cargarConfigSemana() {
     })
     .studentObtenerConfigSemana({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-008: FIN -->
+// MOD-005-S05: FIN
 
-<!-- MOD-008A: FUNCIÓN CARGA SEMANAS [INICIO] -->
+// MOD-005-S06: CARGA SEMANAS [INICIO]
 function cargarSemanas() {
   console.log('📅 Cargando semanas desde BD...');
   
@@ -754,9 +757,9 @@ function cargarSemanas() {
     })
     .studentObtenerSemanas({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-008A: FIN -->
+// MOD-005-S06: FIN
 
-<!-- MOD-009: FUNCIÓN CALCULAR SEMANA ACTUAL [INICIO] -->
+// MOD-005-S07: CALCULAR SEMANA ACTUAL [INICIO]
 function calcularSemanaActual() {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -776,9 +779,9 @@ function calcularSemanaActual() {
   renderListaSemanas();
   actualizarInfoSemana();
 }
-<!-- MOD-009: FIN -->
+// MOD-005-S07: FIN
 
-<!-- MOD-010: FUNCIÓN RENDER LISTA SEMANAS [INICIO] -->
+// MOD-005-S08: RENDER LISTA SEMANAS [INICIO]
 function renderListaSemanas() {
   const lista = document.getElementById('hsSemanasList');
   if (!lista) return;
@@ -790,7 +793,7 @@ function renderListaSemanas() {
       const numSem = parseInt(sem.Semana);
       const activeClass = numSem === semanaActual ? 'active' : '';
       html += `
-        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${numSem})">
+        <div class="hs-semana-item ${activeClass}" onclick="window.hsCambiarSemana(${numSem})">
           Semana ${numSem}
         </div>
       `;
@@ -799,7 +802,7 @@ function renderListaSemanas() {
     for (let i = 1; i <= semanaActual; i++) {
       const activeClass = i === semanaActual ? 'active' : '';
       html += `
-        <div class="hs-semana-item ${activeClass}" onclick="window.cambiarSemana(${i})">
+        <div class="hs-semana-item ${activeClass}" onclick="window.hsCambiarSemana(${i})">
           Semana ${i}
         </div>
       `;
@@ -808,9 +811,9 @@ function renderListaSemanas() {
   
   lista.innerHTML = html;
 }
-<!-- MOD-010: FIN -->
+// MOD-005-S08: FIN
 
-<!-- MOD-011: FUNCIÓN ACTUALIZAR INFO SEMANA [INICIO] -->
+// MOD-005-S09: ACTUALIZAR INFO SEMANA [INICIO]
 function actualizarInfoSemana() {
   const info = document.getElementById('hsSemanaInfo');
   if (!info) return;
@@ -821,9 +824,9 @@ function actualizarInfoSemana() {
   
   info.textContent = `S${semanaActual}: ${fechaIni} - ${fechaFin}`;
 }
-<!-- MOD-011: FIN -->
+// MOD-005-S09: FIN
 
-<!-- MOD-012: FUNCIÓN CALCULAR FECHAS SEMANA [INICIO] -->
+// MOD-005-S10: CALCULAR FECHAS SEMANA [INICIO]
 function calcularFechasSemana(numSemana) {
   const fechaInicio = new Date(configSemana.FechaInicio);
   fechaInicio.setHours(0, 0, 0, 0);
@@ -847,9 +850,9 @@ function calcularFechasSemana(numSemana) {
   
   return { lunes, domingo, dias };
 }
-<!-- MOD-012: FIN -->
+// MOD-005-S10: FIN
 
-<!-- MOD-013: FUNCIÓN CARGA DE CURSOS [INICIO] -->
+// MOD-005-S11: CARGA DE CURSOS [INICIO]
 function cargarCursos() {
   console.log('📅 Cargando cursos...');
   
@@ -865,9 +868,9 @@ function cargarCursos() {
     })
     .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-013: FIN -->
+// MOD-005-S11: FIN
 
-<!-- MOD-014: FUNCIÓN CARGA DE HORARIO CLASES [INICIO] -->
+// MOD-005-S12: CARGA HORARIO CLASES [INICIO]
 function cargarHorarioClases() {
   console.log('📅 Cargando horario clases...');
   
@@ -883,9 +886,9 @@ function cargarHorarioClases() {
     })
     .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-014: FIN -->
+// MOD-005-S12: FIN
 
-<!-- MOD-015: FUNCIÓN CARGA DE HORARIO SEMANAL [INICIO] -->
+// MOD-005-S13: CARGA HORARIO SEMANAL [INICIO]
 function cargarHorarioSem() {
   console.log('📅 Cargando horario semanal...');
   
@@ -915,9 +918,9 @@ function cargarHorarioSem() {
     })
     .studentObtenerHorarioSem({ codeAlum: currentUser.codeAlum });
 }
-<!-- MOD-015: FIN -->
+// MOD-005-S13: FIN
 
-<!-- MOD-016: FUNCIÓN CONSTRUCCIÓN DE MATRIZ [INICIO] -->
+// MOD-005-S14: CONSTRUCCIÓN DE MATRIZ [INICIO]
 function construirMatriz() {
   console.log('📅 Construyendo matriz...');
   
@@ -954,7 +957,6 @@ function construirMatriz() {
     const fechaAct = act.FechaHS;
     if (!fechaAct) return;
 
-    <!-- V01.29 CLAUDE: Parsear DD/MM/AAAA correctamente -->
     const fechaParsed = parsearFechaDDMMAAAA(fechaAct);
     if (isNaN(fechaParsed.getTime())) {
       console.warn('📅 Fecha inválida:', fechaAct);
@@ -978,9 +980,9 @@ function construirMatriz() {
   
   console.log('📅 Matriz construida:', horarioMatrix);
 }
-<!-- MOD-016: FIN -->
+// MOD-005-S14: FIN
 
-<!-- MOD-017: FUNCIONES HELPER DE PROCESAMIENTO [INICIO] -->
+// MOD-005-S15: HELPERS DE PROCESAMIENTO [INICIO]
 function extraerDia(t) {
   if (!t) return null;
   const s = String(t).toLowerCase().trim();
@@ -1045,9 +1047,9 @@ function colorCurso(curso) {
   const c = cursosData.find(x => x.Curso === curso);
   return c ? c.Color : '#667eea';
 }
-<!-- MOD-017: FIN -->
+// MOD-005-S15: FIN
 
-<!-- MOD-018: FUNCIÓN RENDERIZADO DE GRID [INICIO] -->
+// MOD-005-S16: RENDERIZADO DE GRID [INICIO]
 function renderGrid() {
   console.log('📅 Renderizando grid...');
   
@@ -1125,9 +1127,9 @@ function ocultarLoading() {
   const l = document.getElementById('loadingHS');
   if (l) l.style.display = 'none';
 }
-<!-- MOD-018: FIN --> -->
+// MOD-005-S16: FIN
 
-<!-- MOD-019: FUNCIONES FORMATEO [INICIO] -->
+// MOD-005-S17: FORMATEO [INICIO]
 function formatearHora12(h) {
   if (h === 12) return '12 PM';
   if (h > 12) return (h - 12) + ' PM';
@@ -1183,9 +1185,9 @@ function parsearFechaDDMMAAAA(fechaStr) {
 
   return new Date(str);
 }
-<!-- MOD-019: FIN -->
+// MOD-005-S17: FIN
 
-<!-- MOD-020: FUNCIONES NAVEGACIÓN [INICIO] -->
+// MOD-005-S18: NAVEGACIÓN [INICIO]
 function cambiarSemana(numSemana) {
   semanaActual = numSemana;
   actualizarInfoSemana();
@@ -1243,9 +1245,9 @@ function agregarNuevaSemana() {
     })
     .studentCrearSemana(params);
 }
-<!-- MOD-020: FIN -->
+// MOD-005-S18: FIN
 
-<!-- MOD-021: FUNCIONES CONFIG SEMANA [INICIO] -->
+// MOD-005-S19: CONFIG SEMANA [INICIO]
 function abrirConfigSemana() {
   const modal = document.getElementById('modalConfigSemana');
   if (!modal) return;
@@ -1314,9 +1316,9 @@ function handleConfigSemana(event) {
   
   return false;
 }
-<!-- MOD-021: FIN -->
+// MOD-005-S19: FIN
 
-<!-- MOD-022: FUNCIONES FORMULARIO ACTIVIDAD [INICIO] -->
+// MOD-005-S20: FORMULARIO ACTIVIDAD [INICIO]
 function clickCelda(fecha, hora) {
   console.log('📅 Click en celda:', { fecha, hora });
   abrirFormularioActividad(fecha, hora);
@@ -1384,7 +1386,7 @@ function resetFormActividad() {
   if (form) form.reset();
   
   document.getElementById('actividadRowNumber').value = '';
-  document.getElementById('actividadModoEdicion').value = 'false';
+  document.getElementById('actividadModoEdicion').value = '';
   document.getElementById('actividadFecha').value = '';
   document.getElementById('actividadSem').value = '';
 }
@@ -1514,14 +1516,9 @@ function handleActividadEliminada(response) {
     mostrarNotificacion('error', 'Error: ' + error);
   }
 }
-<!-- MOD-022: FIN -->
+// MOD-005-S20: FIN
 
-<!-- MOD-022B: FUNCIONES MODAL CONFIRMACIÓN [INICIO] -->
-/**
- * Muestra un modal de confirmación estilizado
- * @param {string} mensaje - Mensaje a mostrar
- * @param {function} onConfirm - Callback cuando se confirma
- */
+// MOD-005-S21: MODAL CONFIRMACIÓN [INICIO]
 function mostrarConfirmacion(mensaje, onConfirm) {
   const modal = document.getElementById('modalConfirmacion');
   const mensajeEl = document.getElementById('confirmacionMensaje');
@@ -1532,10 +1529,8 @@ function mostrarConfirmacion(mensaje, onConfirm) {
     return;
   }
 
-  <!-- Configurar mensaje (convertir \n a <br>) -->
   mensajeEl.innerHTML = mensaje.replace(/\n/g, '<br>');
   
-  <!-- Configurar botón de confirmación -->
   btnConfirmar.onclick = function() {
     cerrarModalConfirmacion();
     if (typeof onConfirm === 'function') {
@@ -1543,29 +1538,24 @@ function mostrarConfirmacion(mensaje, onConfirm) {
     }
   };
   
-  <!-- Mostrar modal -->
   modal.style.display = 'flex';
 }
 
-/**
- * Cierra el modal de confirmación
- */
 function cerrarModalConfirmacion() {
   const modal = document.getElementById('modalConfirmacion');
   if (modal) {
     modal.style.display = 'none';
   }
 }
-<!-- MOD-022B: FIN -->
+// MOD-005-S21: FIN
 
-<!-- MOD-023: FUNCIONES COPIAR Y LIMPIAR [INICIO] -->
+// MOD-005-S22: COPIAR Y LIMPIAR [INICIO]
 function copiarSemanaAnterior() {
   if (semanaActual <= 1) {
     mostrarNotificacion('info', 'No hay semana anterior para copiar');
     return;
   }
 
-  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     `¿Copiar todas las actividades de Semana ${semanaActual - 1} a Semana ${semanaActual}?\n\nLas actividades existentes en la semana actual no se modificarán.`,
     function() {
@@ -1581,7 +1571,6 @@ function ejecutarCopiaSemana() {
   google.script.run
     .withSuccessHandler(r => {
       if (r && r.success) {
-        <!-- V01.29 CLAUDE: Validar que r.data sea número -->
         const cantidad = typeof r.data === 'number' ? r.data : parseInt(r.data) || 0;
         mostrarNotificacion('success', `✓ ${cantidad} actividades copiadas`);
         cargarHorarioSem();
@@ -1602,7 +1591,6 @@ function ejecutarCopiaSemana() {
 }
 
 function limpiarSemana() {
-  <!-- V01.29 CLAUDE: Modal de confirmación estilizado -->
   mostrarConfirmacion(
     `¿Eliminar TODAS las actividades de Semana ${semanaActual}?\n\nLas clases fijas NO se eliminarán.\n\nEsta acción no se puede deshacer.`,
     function() {
@@ -1633,9 +1621,9 @@ function ejecutarLimpiezaSemana() {
       fechaFin: formatearFechaISO(fechas.domingo)
     });
 }
-<!-- MOD-023: FIN -->
+// MOD-005-S22: FIN
 
-<!-- MOD-024: CÓDIGO DE CIERRE [INICIO] -->
+// MOD-005-S23: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
 window.hsInit = init;
 window.hsCargarHorarioSem = cargarHorarioSem;
 window.hsCambiarSemana = cambiarSemana;
@@ -1672,42 +1660,28 @@ window.HorarioSemanalModule = {
   limpiarSemana: limpiarSemana
 };
 
-console.log('%c📅 HorarioSemanalModule V01.29 CLAUDE cargado',
+console.log('%c📅 HorarioSemanalModule V01.33 CODEWORKSHOP cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
+// MOD-005-S23: FIN
 
 })();
+
 </script>
-<!-- MOD-024: FIN --> -->
+<!-- MOD-005: FIN -->
 
-<!-- MOD-025: DOCUMENTACIÓN Y NOTAS [INICIO] -->
+<!-- MOD-006: NOTAS [INICIO] -->
 <!--
-===========================================
-HORARIO SEMANAL - DOCUMENTACIÓN TÉCNICA
-===========================================
-
 DESCRIPCIÓN:
-Grid visual semanal 7 días × 16 horas (7 AM - 10 PM) para actividades dinámicas.
-Gestión por semanas con navegación, copia y limpieza de actividades.
+Grid semanal 7×16 (7 AM-10 PM) para actividades dinámicas por semana.
+Gestión con navegación, copia y limpieza. Clases fijas + actividades coloreadas.
 
-CAMBIOS V01.32:
-✅ Prefijo 'hs' en funciones globales (sin conflicto con HorarioClase 'hc')
-✅ MOD-004: Todos los onclick con prefijo hs*
-✅ MOD-018: renderGrid() con hsClickCelda y hsEditarActividad
-✅ MOD-024: Exposición global con namespace hs*
-
-CAMBIOS V01.29:
-✅ FIX: Parseo correcto de fechas DD/MM/AAAA desde backend
-✅ Modal de confirmación estilizado (no usa confirm() nativo)
-✅ Conversión automática de fechas ISO ↔ DD/MM/AAAA
-
-CARACTERÍSTICAS:
-- Navegación por semanas del ciclo académico
-- Configuración de fecha inicio (botón "1ra clase")
-- Clases fijas (grises) + Actividades dinámicas (colores)
-- Click en celda vacía → Agregar actividad
-- Click en actividad → Editar/Eliminar
-- Copiar actividades de semana anterior
-- Limpiar todas las actividades de la semana actual
+FUNCIONALIDAD:
+- Configuración fecha inicio ciclo ("1ra clase")
+- Navegación por semanas calculadas automáticamente
+- Clases fijas (grises, desde HorarioClase)
+- Actividades dinámicas (coloreadas por tipo)
+- Copiar/Limpiar semanas
+- Modal confirmación estilizado
 
 DEPENDENCIAS BACKEND:
 - studentObtenerConfigSemana()
@@ -1723,19 +1697,25 @@ DEPENDENCIAS BACKEND:
 - studentCopiarSemana()
 - studentLimpiarSemana()
 
-ESTRUCTURA DE DATOS:
-HorarioSem: {FechaReg, CodeAlum, Actividad, HoraInicio, HoraFin, FechaHS, TipoAct, Color, Sem}
-Semanas: {FechaReg, CodeAlum, FechaInicio, FechaFin, Semana}
+ESTRUCTURA:
+MOD-001: Encabezado
+MOD-002: Texto libre
+MOD-003: Estilos CSS
+MOD-004: Estructura HTML
+MOD-005: JavaScript (23 submódulos S01-S23)
+MOD-006: Notas
+
+CAMBIOS V01.32 → V01.33:
+- Remodulación según estándar CodeWorkShop v4.0
+- MOD-005 con 23 submódulos JavaScript
+- Delimitadores correctos (//) dentro de <script>
+- Fix: Parseo DD/MM/AAAA desde backend
+- Modal confirmación estilizado (no confirm() nativo)
+- Prefijo 'hs' en funciones globales
 
 AISLAMIENTO:
-- Prefijo CSS: .hs-
+- Prefijo CSS: .hs-*
 - Prefijo JS: window.hs*
-- IIFE con 'use strict'
-- Sin conflicto con HorarioClase (.hc-)
-
-ADVERTENCIAS:
-- FechaHS en formato DD/MM/AAAA (backend)
-- Conversión a ISO solo para cálculos internos
-- Semana actual se calcula desde FechaInicio configurada
+- Sin conflicto con HorarioClase (.hc-*)
 -->
-<!-- MOD-025: FIN -->
+<!-- MOD-006: FIN -->
