@@ -1,682 +1,645 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 3panelstudent.html - V01.20 CLAUDE
-Sistema de Gestión Académica
-05/01/2026 - Versión Corregida
-
-CAMBIOS V01.20 CLAUDE:
-- CORRECCIÓN CRÍTICA: Script de inicialización movido ANTES de los includes
-- Esto asegura que currentUser exista ANTES de que los tabs se inyecten
-- El IIFE se ejecuta ANTES de que el HTML de los tabs llegue al navegador
-
-CAMBIOS V01.19 CLAUDE:
-- CORRECCIÓN CRÍTICA: currentUser se inicializa ANTES de cargar tabs
-- Eliminado window.onload para inicialización (ahora usa IIFE inmediato)
-- window.onload solo actualiza UI, no inicializa datos
-- Esto resuelve la race condition donde los tabs buscaban currentUser antes de que existiera
-
-CAMBIOS V01.18:
-- CORRECCIÓN CRÍTICA: Ahora lee datos reales del usuario desde sessionStorage
-- Eliminados datos hardcodeados (TEST01, Jorge Perez)
-- Si no hay datos en sessionStorage, muestra error y redirige al login
-- Agregado logout que limpia sessionStorage
-
-DESCRIPCIÓN:
-Panel principal del estudiante. Contenedor con 3 tabs
-principales que usan include() para cargar sub-módulos.
-
-ESTRUCTURA:
-1. Navbar: Logo, nombre estudiante, botón salir
-2. Tabs principales (3 botones):
-   - Cursos y Repasos
-   - Deberes
-   - Planning
-3. Contenedores dinámicos (usan include()):
-   - tab-cursosyrep → include('4atabcursosyrep')
-   - tab-deberes → include('4btabdeberes')
-   - tab-planning → include('4ctabplanning')
-
-VARIABLE GLOBAL:
-currentUser = {
-  codeAlum: 'TEST05',
-  nombre: 'Alumno Test Cinco',
-  email: 'test5@pbe.com'
-}
-
-🔑 CRÍTICO V01.20:
-Esta variable se inicializa ANTES de los includes,
-garantizando que esté disponible cuando los tabs
-se inyecten en el HTML.
-
-CONECTA CON:
-- Contenedores: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
-- Backend: Todos los wrappers student* en 1code.gs
-
-🔑 IMPORTANTE:
-- Los datos del usuario se leen desde sessionStorage
-- sessionStorage se llena en 3index.html al autenticar
-- currentUser es global para todos los tabs
-- currentUser se inicializa ANTES de los includes (V01.20)
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 3panelstudent.html
+VERSIÓN: 01.21
+FECHA: 18/01/2026 15:00 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: APERTURA HTML [INICIO] -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PBE Control - Panel Estudiante</title>
-  <style>
-    /* ==========================================
-       RESET Y BASE
-       ========================================== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: ESTILOS [INICIO] -->
+<style>
+/* Reset y Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-brand h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-name {
+  font-size: 15px;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Layout Principal con Tabs Verticales */
+.main-layout {
+  max-width: 1400px;
+  margin: 30px auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 20px;
+}
+
+/* Tabs Verticales (Izquierda) */
+.tabs-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.tabs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 100px;
+}
+
+.tab-btn {
+  padding: 20px 25px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  background: #f5f5f5;
+  border: none;
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-btn:hover {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-left-color: #4c5fd5;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Contenedor de Contenido (Derecha) */
+.content-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Alertas Globales */
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  max-width: 400px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+/* Loading Screen */
+.loading-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-screen.active {
+  display: flex;
+}
+
+.spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 16px;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .navbar-brand h1 {
+    font-size: 20px;
+  }
+
+  .navbar-user {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .main-layout {
+    flex-direction: column;
+    margin: 20px auto;
+    padding: 0 12px;
+  }
+
+  .tabs-sidebar {
+    width: 100%;
+    position: relative;
+  }
+
+  .tabs-nav {
+    position: relative;
+    top: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .tab-btn {
+    padding: 14px 20px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    min-width: max-content;
+    justify-content: center;
+  }
+
+  .tab-btn.active {
+    border-left: none;
+    border-bottom-color: #4c5fd5;
+  }
+
+  .content-container {
+    padding: 0;
+  }
+
+  .alert {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+</style>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: JAVASCRIPT GLOBAL - INICIALIZACIÓN [INICIO] -->
+<script>
+// Variable Global - Usuario Actual
+var currentUser = {
+  codeAlum: '',
+  nombre: '',
+  email: ''
+};
+
+// Inicialización Inmediata (IIFE)
+(function initializeUserImmediate() {
+  try {
+    const userData = sessionStorage.getItem('pbe_user');
+    
+    if (!userData) {
+      console.error('✗ No hay datos de sesión');
+      alert('No se pudo identificar al usuario. Redirigiendo al login...');
+      setTimeout(function() {
+        window.top.location.href = '<?!= scriptUrl ?>';
+      }, 2000);
+      return;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f5f7fa;
-      min-height: 100vh;
+    
+    const user = JSON.parse(userData);
+    
+    if (!user.codeAlum || !user.nombre) {
+      console.error('✗ Datos de usuario incompletos:', user);
+      alert('Datos de usuario incompletos. Redirigiendo al login...');
+      setTimeout(function() {
+        window.top.location.href = '<?!= scriptUrl ?>';
+      }, 2000);
+      return;
     }
+    
+    currentUser.codeAlum = user.codeAlum;
+    currentUser.nombre = user.nombre;
+    currentUser.email = user.email || '';
+    
+    console.log('✅ Usuario inicializado correctamente:', currentUser);
+    
+  } catch(error) {
+    console.error('✗ Error al inicializar usuario:', error);
+    alert('Error al cargar datos del usuario. Redirigiendo al login...');
+    setTimeout(function() {
+      window.top.location.href = '<?!= scriptUrl ?>';
+    }, 2000);
+  }
+})();
 
-    /* ==========================================
-       NAVBAR
-       ========================================== */
-    .navbar {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px 30px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
+console.log('%c🎓 PBE Control - Panel Estudiante V01.21', 
+            'font-size: 16px; font-weight: bold; color: #667eea;');
+console.log('%c✓ currentUser inicializado ANTES de cargar tabs', 
+            'font-size: 12px; color: #28a745;');
+</script>
+<!-- MOD-004: FIN -->
 
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .navbar-brand h1 {
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .navbar-user {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .user-name {
-      font-size: 15px;
-      opacity: 0.95;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-logout {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-logout:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    /* ==========================================
-       LAYOUT PRINCIPAL CON TABS VERTICALES
-       ========================================== */
-    .main-layout {
-      max-width: 1400px;
-      margin: 30px auto;
-      padding: 0 20px;
-      display: flex;
-      gap: 20px;
-    }
-
-    /* ==========================================
-       TABS VERTICALES (IZQUIERDA)
-       ========================================== */
-    .tabs-sidebar {
-      width: 260px;
-      flex-shrink: 0;
-    }
-
-    .tabs-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      position: sticky;
-      top: 100px;
-    }
-
-    .tab-btn {
-      padding: 20px 25px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #666;
-      background: #f5f5f5;
-      border: none;
-      border-left: 4px solid transparent;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-family: inherit;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .tab-btn:hover {
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    .tab-btn.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-left-color: #4c5fd5;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-
-    /* ==========================================
-       CONTENEDOR DE CONTENIDO (DERECHA)
-       ========================================== */
-    .content-container {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* ==========================================
-       ALERTAS GLOBALES
-       ========================================== */
-    .alert {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 16px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      animation: slideIn 0.3s ease-out;
-      max-width: 400px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border-left: 4px solid #28a745;
-    }
-
-    .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border-left: 4px solid #dc3545;
-    }
-
-    .alert-warning {
-      background: #fff3cd;
-      color: #856404;
-      border-left: 4px solid #ffc107;
-    }
-
-    .alert-info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border-left: 4px solid #17a2b8;
-    }
-
-    /* ==========================================
-       LOADING SCREEN
-       ========================================== */
-    .loading-screen {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .loading-screen.active {
-      display: flex;
-    }
-
-    .spinner-large {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(102, 126, 234, 0.2);
-      border-top-color: #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      font-size: 16px;
-      color: #667eea;
-      font-weight: 600;
-    }
-
-    /* ==========================================
-       RESPONSIVE - MOBILE
-       ========================================== */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 12px;
-        padding: 16px;
-        position: relative;
-      }
-
-      .navbar-brand h1 {
-        font-size: 20px;
-      }
-
-      .navbar-user {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      /* Layout mobile: tabs arriba del contenido */
-      .main-layout {
-        flex-direction: column;
-        margin: 20px auto;
-        padding: 0 12px;
-      }
-
-      .tabs-sidebar {
-        width: 100%;
-        position: relative;
-      }
-
-      .tabs-nav {
-        position: relative;
-        top: 0;
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 8px;
-        padding-bottom: 10px;
-      }
-
-      .tab-btn {
-        padding: 14px 20px;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-        min-width: max-content;
-        justify-content: center;
-      }
-
-      .tab-btn.active {
-        border-left: none;
-        border-bottom-color: #4c5fd5;
-      }
-
-      .content-container {
-        padding: 0;
-      }
-
-      .alert {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-      }
-    }
-  </style>
-
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT GLOBAL - SE EJECUTA PRIMERO -->
-  <!-- CRÍTICO V01.20: ANTES DE LOS INCLUDES -->
-  <!-- ========================================== -->
-  <script>
-    // ==========================================
-    // VARIABLE GLOBAL - USUARIO ACTUAL
-    // ==========================================
-    /**
-     * CORRECCIÓN CRÍTICA V01.20 CLAUDE:
-     * Esta variable se declara ANTES de los includes.
-     * Cuando el navegador ejecute los scripts de los tabs,
-     * currentUser YA existirá en el scope global.
-     */
-    var currentUser = {
-      codeAlum: '',
-      nombre: '',
-      email: ''
-    };
-
-    // ==========================================
-    // INICIALIZACIÓN INMEDIATA
-    // ==========================================
-    /**
-     * CORRECCIÓN CRÍTICA V01.20 CLAUDE:
-     * Este IIFE se ejecuta ANTES de que los includes
-     * se inyecten en el HTML. Garantiza que currentUser
-     * tenga datos cuando los tabs se carguen.
-     */
-    (function initializeUserImmediate() {
-      try {
-        // Leer datos del usuario desde sessionStorage
-        const userData = sessionStorage.getItem('pbe_user');
-        
-        if (!userData) {
-          // No hay datos de sesión - redirigir al login
-          console.error('✗ No hay datos de sesión');
-          alert('No se pudo identificar al usuario. Redirigiendo al login...');
-          setTimeout(function() {
-            window.top.location.href = '<?!= scriptUrl ?>';
-          }, 2000);
-          return;
-        }
-        
-        // Parsear datos del usuario
-        const user = JSON.parse(userData);
-        
-        // Validar que tenga los campos necesarios
-        if (!user.codeAlum || !user.nombre) {
-          console.error('✗ Datos de usuario incompletos:', user);
-          alert('Datos de usuario incompletos. Redirigiendo al login...');
-          setTimeout(function() {
-            window.top.location.href = '<?!= scriptUrl ?>';
-          }, 2000);
-          return;
-        }
-        
-        // ==========================================
-        // ASIGNAR DATOS REALES A currentUser
-        // ESTO OCURRE ANTES DE QUE LOS TABS SE CARGUEN
-        // ==========================================
-        currentUser.codeAlum = user.codeAlum;
-        currentUser.nombre = user.nombre;
-        currentUser.email = user.email || '';
-        
-        console.log('✅ Usuario inicializado correctamente:', currentUser);
-        
-      } catch(error) {
-        console.error('✗ Error al inicializar usuario:', error);
-        alert('Error al cargar datos del usuario. Redirigiendo al login...');
-        setTimeout(function() {
-          window.top.location.href = '<?!= scriptUrl ?>';
-        }, 2000);
-      }
-    })(); // ← IIFE: Se ejecuta INMEDIATAMENTE
-
-    console.log('%c🎓 PBE Control - Panel Estudiante V01.20', 
-                'font-size: 16px; font-weight: bold; color: #667eea;');
-    console.log('%c✓ currentUser inicializado ANTES de cargar tabs', 
-                'font-size: 12px; color: #28a745;');
-  </script>
-
+<!-- MOD-005: CIERRE HEAD Y APERTURA BODY [INICIO] -->
 </head>
 <body>
-  <!-- ========================================== -->
-  <!-- LOADING SCREEN -->
-  <!-- ========================================== -->
-  <div class="loading-screen" id="loadingScreen">
-    <div class="spinner-large"></div>
-    <div class="loading-text">Cargando datos...</div>
+<!-- MOD-005: FIN -->
+
+<!-- MOD-006: LOADING SCREEN [INICIO] -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner-large"></div>
+  <div class="loading-text">Cargando datos...</div>
+</div>
+<!-- MOD-006: FIN -->
+
+<!-- MOD-007: NAVBAR [INICIO] -->
+<div class="navbar">
+  <div class="navbar-brand">
+    <h1>PBE Control</h1>
+  </div>
+  <div class="navbar-user">
+    <span class="user-name">
+      👤 <span id="userName">Estudiante</span>
+    </span>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </div>
+</div>
+<!-- MOD-007: FIN -->
+
+<!-- MOD-008: LAYOUT PRINCIPAL [INICIO] -->
+<div class="main-layout">
+<!-- MOD-008: FIN -->
+
+<!-- MOD-009: TABS SIDEBAR [INICIO] -->
+<aside class="tabs-sidebar">
+  <div class="tabs-nav">
+    <button class="tab-btn active" id="btn-cursosyrep" onclick="switchTab('cursosyrep')">
+      📚 Cursos y Repasos
+    </button>
+    <button class="tab-btn" id="btn-deberes" onclick="switchTab('deberes')">
+      📝 Deberes
+    </button>
+    <button class="tab-btn" id="btn-planning" onclick="switchTab('planning')">
+      📅 Planning
+    </button>
+  </div>
+</aside>
+<!-- MOD-009: FIN -->
+
+<!-- MOD-010: CONTENEDOR TABS [INICIO] -->
+<main class="content-container">
+  
+  <div id="tab-cursosyrep" class="tab-content active">
+    <?!= include('4atabcursosyrep'); ?>
   </div>
 
-  <!-- ========================================== -->
-  <!-- NAVBAR -->
-  <!-- ========================================== -->
-  <div class="navbar">
-    <div class="navbar-brand">
-      <h1>PBE Control</h1>
-    </div>
-    <div class="navbar-user">
-      <span class="user-name">
-        👤 <span id="userName">Estudiante</span>
-      </span>
-      <button class="btn-logout" onclick="logout()">Salir</button>
-    </div>
+  <div id="tab-deberes" class="tab-content">
+    <?!= include('4btabdeberes'); ?>
   </div>
 
-  <!-- ========================================== -->
-  <!-- LAYOUT PRINCIPAL CON TABS VERTICALES -->
-  <!-- ========================================== -->
-  <div class="main-layout">
+  <div id="tab-planning" class="tab-content">
+    <?!= include('4ctabplanning'); ?>
+  </div>
+
+</main>
+<!-- MOD-010: FIN -->
+
+<!-- MOD-011: CIERRE LAYOUT [INICIO] -->
+</div>
+<!-- MOD-011: FIN -->
+
+<!-- MOD-012: JAVASCRIPT - FUNCIONES GLOBALES [INICIO] -->
+<script>
+// Actualizar UI cuando el DOM esté listo
+window.onload = function() {
+  if (currentUser.nombre) {
+    document.getElementById('userName').textContent = currentUser.nombre;
+  }
+  
+  console.log('%cVariable global currentUser:', 
+              'font-size: 12px; color: #666;', currentUser);
+  console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
+              'font-size: 12px; color: #666;');
+};
+
+// Navegación entre Tabs
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(function(tab) {
+    tab.classList.remove('active');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+
+  document.getElementById('tab-' + tabName).classList.add('active');
+  document.getElementById('btn-' + tabName).classList.add('active');
+
+  console.log('Tab cambiado a:', tabName);
+}
+
+// Sistema de Alertas Global
+function showAlert(type, message) {
+  const existingAlerts = document.querySelectorAll('.alert');
+  existingAlerts.forEach(function(alert) {
+    alert.remove();
+  });
+
+  const alertBox = document.createElement('div');
+  alertBox.className = 'alert alert-' + type;
+  alertBox.textContent = message;
+
+  document.body.appendChild(alertBox);
+
+  setTimeout(function() {
+    alertBox.remove();
+  }, 4000);
+}
+
+// Loading Screen
+function showLoading() {
+  document.getElementById('loadingScreen').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingScreen').classList.remove('active');
+}
+
+// Logout
+function logout() {
+  if (confirm('¿Deseas cerrar sesión?')) {
+    sessionStorage.clear();
+    window.top.location.href = '<?!= scriptUrl ?>';
+  }
+}
+
+// Utilidades Globales
+function formatFecha(fecha) {
+  if (!fecha) return '-';
+  
+  try {
+    const partes = fecha.split('/');
+    if (partes.length !== 3) return fecha;
     
-    <!-- Sidebar con Tabs Verticales -->
-    <aside class="tabs-sidebar">
-      <div class="tabs-nav">
-        <button class="tab-btn active" id="btn-cursosyrep" onclick="switchTab('cursosyrep')">
-          📚 Cursos y Repasos
-        </button>
-        <button class="tab-btn" id="btn-deberes" onclick="switchTab('deberes')">
-          📝 Deberes
-        </button>
-        <button class="tab-btn" id="btn-planning" onclick="switchTab('planning')">
-          📅 Planning
-        </button>
-      </div>
-    </aside>
-
-    <!-- Contenedor de Contenido -->
-    <main class="content-container">
-      
-      <!-- Tab: Cursos y Repasos -->
-      <div id="tab-cursosyrep" class="tab-content active">
-        <?!= include('4atabcursosyrep'); ?>
-      </div>
-
-      <!-- Tab: Deberes -->
-      <div id="tab-deberes" class="tab-content">
-        <?!= include('4btabdeberes'); ?>
-      </div>
-
-      <!-- Tab: Planning -->
-      <div id="tab-planning" class="tab-content">
-        <?!= include('4ctabplanning'); ?>
-      </div>
-
-    </main>
-
-  </div>
-
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT - FUNCIONES GLOBALES -->
-  <!-- ========================================== -->
-  <script>
-    // ==========================================
-    // ACTUALIZAR UI CUANDO EL DOM ESTÉ LISTO
-    // ==========================================
-    window.onload = function() {
-      // Actualizar nombre en navbar
-      if (currentUser.nombre) {
-        document.getElementById('userName').textContent = currentUser.nombre;
-      }
-      
-      console.log('%cVariable global currentUser:', 
-                  'font-size: 12px; color: #666;', currentUser);
-      console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
-                  'font-size: 12px; color: #666;');
-    };
-
-    // ==========================================
-    // NAVEGACIÓN ENTRE TABS
-    // ==========================================
-    function switchTab(tabName) {
-      // Ocultar todos los tabs
-      document.querySelectorAll('.tab-content').forEach(function(tab) {
-        tab.classList.remove('active');
-      });
-
-      // Desactivar todos los botones
-      document.querySelectorAll('.tab-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-      });
-
-      // Mostrar tab seleccionado
-      document.getElementById('tab-' + tabName).classList.add('active');
-
-      // Activar botón correspondiente
-      document.getElementById('btn-' + tabName).classList.add('active');
-
-      console.log('Tab cambiado a:', tabName);
-    }
-
-    // ==========================================
-    // SISTEMA DE ALERTAS GLOBAL
-    // ==========================================
-    function showAlert(type, message) {
-      // Eliminar alertas previas
-      const existingAlerts = document.querySelectorAll('.alert');
-      existingAlerts.forEach(function(alert) {
-        alert.remove();
-      });
-
-      // Crear nueva alerta
-      const alertBox = document.createElement('div');
-      alertBox.className = 'alert alert-' + type;
-      alertBox.textContent = message;
-
-      document.body.appendChild(alertBox);
-
-      // Auto-eliminar después de 4 segundos
-      setTimeout(function() {
-        alertBox.remove();
-      }, 4000);
-    }
-
-    // ==========================================
-    // LOADING SCREEN
-    // ==========================================
-    function showLoading() {
-      document.getElementById('loadingScreen').classList.add('active');
-    }
-
-    function hideLoading() {
-      document.getElementById('loadingScreen').classList.remove('active');
-    }
-
-    // ==========================================
-    // LOGOUT
-    // ==========================================
-    function logout() {
-      if (confirm('¿Deseas cerrar sesión?')) {
-        // Limpiar sessionStorage
-        sessionStorage.clear();
-        
-        // Redirigir al login
-        window.top.location.href = '<?!= scriptUrl ?>';
-      }
-    }
-
-    // ==========================================
-    // UTILIDADES GLOBALES
-    // ==========================================
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     
-    function formatFecha(fecha) {
-      if (!fecha) return '-';
-      
-      try {
-        const partes = fecha.split('/');
-        if (partes.length !== 3) return fecha;
-        
-        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                       'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        
-        const dia = parseInt(partes[0]);
-        const mes = parseInt(partes[1]) - 1;
-        const anio = partes[2];
-        
-        return dia + ' ' + meses[mes] + ' ' + anio;
-      } catch(error) {
-        return fecha;
-      }
-    }
+    const dia = parseInt(partes[0]);
+    const mes = parseInt(partes[1]) - 1;
+    const anio = partes[2];
+    
+    return dia + ' ' + meses[mes] + ' ' + anio;
+  } catch(error) {
+    return fecha;
+  }
+}
 
-    function diasRestantes(fecha) {
-      if (!fecha) return null;
-      
-      try {
-        const partes = fecha.split('/');
-        const fechaObj = new Date(partes[2], partes[1] - 1, partes[0]);
-        const hoy = new Date();
-        
-        const diff = fechaObj - hoy;
-        return Math.ceil(diff / (1000 * 60 * 60 * 24));
-      } catch(error) {
-        return null;
-      }
-    }
+function diasRestantes(fecha) {
+  if (!fecha) return null;
+  
+  try {
+    const partes = fecha.split('/');
+    const fechaObj = new Date(partes[2], partes[1] - 1, partes[0]);
+    const hoy = new Date();
+    
+    const diff = fechaObj - hoy;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  } catch(error) {
+    return null;
+  }
+}
 
-    function validarFecha(fecha) {
-      if (!fecha) return false;
-      
-      const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-      if (!regex.test(fecha)) return false;
-      
-      const partes = fecha.split('/');
-      const dia = parseInt(partes[0]);
-      const mes = parseInt(partes[1]);
-      const anio = parseInt(partes[2]);
-      
-      if (mes < 1 || mes > 12) return false;
-      if (dia < 1 || dia > 31) return false;
-      if (anio < 2000 || anio > 2100) return false;
-      
-      return true;
-    }
-  </script>
+function validarFecha(fecha) {
+  if (!fecha) return false;
+  
+  const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+  if (!regex.test(fecha)) return false;
+  
+  const partes = fecha.split('/');
+  const dia = parseInt(partes[0]);
+  const mes = parseInt(partes[1]);
+  const anio = parseInt(partes[2]);
+  
+  if (mes < 1 || mes > 12) return false;
+  if (dia < 1 || dia > 31) return false;
+  if (anio < 2000 || anio > 2100) return false;
+  
+  return true;
+}
+</script>
+<!-- MOD-012: FIN -->
+
+<!-- MOD-013: CÓDIGO DE CIERRE [INICIO] -->
 </body>
 </html>
+<!-- MOD-013: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Panel principal del estudiante con sistema de tabs verticales
+Contenedor maestro que carga sub-módulos mediante include()
+
+ESTRUCTURA:
+1. Navbar: Logo, nombre estudiante, botón salir
+2. Tabs verticales (3 botones): Cursos y Repasos, Deberes, Planning
+3. Contenedores dinámicos con includes de sub-módulos
+
+TABS INCLUIDOS:
+- tab-cursosyrep → include('4atabcursosyrep')
+- tab-deberes → include('4btabdeberes')
+- tab-planning → include('4ctabplanning')
+
+VARIABLE GLOBAL CRÍTICA:
+currentUser = { codeAlum, nombre, email }
+- Se inicializa ANTES de los includes (MOD-004)
+- Ejecuta IIFE inmediato para cargar datos de sessionStorage
+- Disponible para todos los sub-módulos incluidos
+
+FLUJO DE INICIALIZACIÓN:
+1. MOD-004 ejecuta IIFE que lee sessionStorage
+2. Valida existencia y completitud de datos de usuario
+3. Asigna datos a currentUser (scope global)
+4. Los includes se inyectan y pueden usar currentUser
+5. window.onload actualiza UI con nombre de usuario
+
+FUNCIONES GLOBALES DISPONIBLES:
+- switchTab(tabName): Navegación entre tabs
+- showAlert(type, message): Sistema de alertas
+- showLoading() / hideLoading(): Pantalla de carga
+- logout(): Cerrar sesión y limpiar sessionStorage
+- formatFecha(fecha): Formatear DD/MM/AAAA a texto
+- diasRestantes(fecha): Calcular días hasta fecha
+- validarFecha(fecha): Validar formato DD/MM/AAAA
+
+CONEXIÓN CON BACKEND:
+- Los sub-módulos llaman a funciones student* en 1code.gs
+- Todos usan currentUser.codeAlum para identificar al estudiante
+- Backend conecta con Student.* en módulos de lógica
+
+CARACTERÍSTICAS TÉCNICAS:
+- Tabs verticales en desktop, horizontales en mobile
+- Animaciones de transición entre tabs
+- Sistema de alertas con auto-dismiss
+- Loading screen global
+- Responsive design completo
+- Sticky navbar y tabs sidebar
+
+DEPENDENCIAS:
+- sessionStorage: Debe contener 'pbe_user' con datos del login
+- 3index.html: Establece sessionStorage al autenticar
+- Sub-módulos: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
+- Backend: 1code.gs con wrappers student*
+
+FIX CRÍTICO V01.20 → V01.21:
+- currentUser se inicializa mediante IIFE en MOD-004
+- IIFE se ejecuta ANTES de los includes
+- Garantiza que currentUser exista cuando los tabs se carguen
+- Elimina race condition donde tabs buscaban currentUser inexistente
+
+CAMBIOS V01.20 → V01.21:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- MOD-004 contiene inicialización crítica de currentUser
+- CSS encapsulado en MOD-003
+- JavaScript principal en MOD-012
+- Estructura HTML modularizada
+- Comentarios consolidados en MOD-099
+-->
+<!-- MOD-099: FIN -->
