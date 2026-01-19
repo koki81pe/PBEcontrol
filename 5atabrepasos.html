@@ -1,410 +1,385 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 5atabrepasos.html - V01.19 GPT EXTRA
-Sistema de Gestión Académica
-06/01/2026
-
-PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
-- [NULL-GUARD] estandarizado: if (!response || response.success !== true) en todos los handlers
-- [ESCAPE HTML] escHtml() para render seguro (tema/detalle/curso/fechas/estado)
-- [ESCAPE onclick] escOnclickSingleQuote() para evitar romper onclick por comillas simples
-- [SANITIZE ESTADO] sanitizeEstado() para asegurar OK/Falta y CSS consistente
-- [ROWNUMBER GUARD] validación de rowNumber antes de actualizar/eliminar
-- [PARENT BADGE] updateDeberesBadge('repasos', n) si existe (coherencia con panel)
-- [INIT] idempotente y lazy-load ready (doble disparador + _initDone)
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 5atabrepasos.html
+VERSIÓN: 01.20
+FECHA: 18/01/2026 13:05 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-  /* ==========================================
-     CONTENEDOR PRINCIPAL
-     ========================================== */
-  .repasos-container {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
+/* Contenedor Principal */
+.repasos-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.repasos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.repasos-header h2 {
+  color: #333;
+  font-size: 20px;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Filtros */
+.filtro-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-container label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.filtro-container select {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  min-width: 150px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.filtro-container select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* Botones */
+.btn-agregar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.btn-agregar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  transform: scale(1.2);
+}
+
+.btn-icon.delete {
+  color: #dc3545;
+}
+
+.btn-icon.evaluated {
+  color: #E91E63;
+}
+
+/* Formulario */
+.form-repaso {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.form-repaso.active {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group label .required {
+  color: #dc3545;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.form-group-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.form-group-checkbox label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #E91E63;
+  margin: 0;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Tabla de Repasos */
+.repasos-table-container {
+  overflow-x: auto;
+}
+
+.repasos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.repasos-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.repasos-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.repasos-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+.repasos-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.repasos-table tbody tr.evaluado {
+  background-color: #FFE6E6 !important;
+}
+
+.repasos-table tbody tr.evaluado:hover {
+  background-color: #FFD4D4 !important;
+}
+
+.repasos-table td {
+  padding: 12px;
+  color: #333;
+}
+
+/* Badges de Estado */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-ok {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-falta {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-evaluado {
+  background: #FFE6E6;
+  color: #E91E63;
+  margin-left: 6px;
+}
+
+/* Estado Vacío */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 15px;
+}
+
+/* Loading */
+.loading-container {
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
+}
+
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .repasos-container { padding: 16px; }
 
   .repasos-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .repasos-header h2 {
-    color: #333;
-    font-size: 20px;
-    margin: 0;
-  }
+  .header-actions { width: 100%; }
 
-  .header-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+  .btn-agregar,
+  .filtro-container { width: 100%; }
 
-  /* ==========================================
-     FILTROS
-     ========================================== */
   .filtro-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .filtro-container label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #666;
-  }
+  .filtro-container select { width: 100%; }
 
-  .filtro-container select {
-    padding: 8px 12px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 13px;
-    min-width: 150px;
-    cursor: pointer;
-    transition: border-color 0.3s;
-  }
+  .form-row { grid-template-columns: 1fr; }
 
-  .filtro-container select:focus {
-    outline: none;
-    border-color: #667eea;
-  }
+  .form-actions { flex-direction: column; }
 
-  /* ==========================================
-     BOTONES
-     ========================================== */
-  .btn-agregar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  }
+  .form-actions .btn { width: 100%; }
 
-  .btn-agregar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
+  .repasos-table { font-size: 13px; }
 
-  .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .btn-primary {
-    background: #667eea;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: #5568d3;
-  }
-
-  .btn-secondary {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-secondary:hover {
-    background: #5a6268;
-  }
-
-  .btn-icon {
-    background: transparent;
-    border: none;
-    color: #667eea;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 8px;
-    transition: all 0.2s;
-  }
-
-  .btn-icon:hover {
-    transform: scale(1.2);
-  }
-
-  .btn-icon.delete {
-    color: #dc3545;
-  }
-
-  .btn-icon.evaluated {
-    color: #E91E63;
-  }
-
-  /* ==========================================
-     FORMULARIO
-     ========================================== */
-  .form-repaso {
-    background: #f9f9f9;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
-    display: none;
-  }
-
-  .form-repaso.active {
-    display: block;
-    animation: slideDown 0.3s ease-out;
-  }
-
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .form-group {
-    margin-bottom: 0;
-  }
-
-  .form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 6px;
-  }
-
-  .form-group label .required {
-    color: #dc3545;
-  }
-
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  .form-group-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  .form-group-checkbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .form-group-checkbox label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #E91E63;
-    margin: 0;
-    cursor: pointer;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-  }
-
-  /* ==========================================
-     TABLA DE REPASOS
-     ========================================== */
-  .repasos-table-container {
-    overflow-x: auto;
-  }
-
-  .repasos-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .repasos-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-  }
-
-  .repasos-table th {
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  .repasos-table tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: background 0.2s;
-  }
-
-  .repasos-table tbody tr:hover {
-    background: #f8f9fa;
-  }
-
-  /* ⚠️ CRÍTICO: Fondo rosado para evaluados */
-  .repasos-table tbody tr.evaluado {
-    background-color: #FFE6E6 !important;
-  }
-
-  .repasos-table tbody tr.evaluado:hover {
-    background-color: #FFD4D4 !important;
-  }
-
-  .repasos-table td {
-    padding: 12px;
-    color: #333;
-  }
-
-  /* ==========================================
-     BADGES DE ESTADO
-     ========================================== */
-  .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  .badge-ok {
-    background: #d4edda;
-    color: #155724;
-  }
-
-  .badge-falta {
-    background: #f8d7da;
-    color: #721c24;
-  }
-
-  .badge-evaluado {
-    background: #FFE6E6;
-    color: #E91E63;
-    margin-left: 6px;
-  }
-
-  /* ==========================================
-     ESTADO VACÍO
-     ========================================== */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #999;
-  }
-
-  .empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  .empty-state-text {
-    font-size: 15px;
-  }
-
-  /* ==========================================
-     LOADING
-     ========================================== */
-  .loading-container {
-    text-align: center;
-    padding: 40px;
-    color: #667eea;
-  }
-
-  .spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(102, 126, 234, 0.2);
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ==========================================
-     RESPONSIVE
-     ========================================== */
-  @media (max-width: 768px) {
-    .repasos-container { padding: 16px; }
-
-    .repasos-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .header-actions { width: 100%; }
-
-    .btn-agregar,
-    .filtro-container { width: 100%; }
-
-    .filtro-container {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .filtro-container select { width: 100%; }
-
-    .form-row { grid-template-columns: 1fr; }
-
-    .form-actions { flex-direction: column; }
-
-    .form-actions .btn { width: 100%; }
-
-    .repasos-table { font-size: 13px; }
-
-    .repasos-table th,
-    .repasos-table td { padding: 8px; }
-  }
+  .repasos-table th,
+  .repasos-table td { padding: 8px; }
+}
 </style>
+<!-- MOD-002: FIN -->
 
-<!-- ========================================== -->
-<!-- CONTENEDOR DE REPASOS -->
-<!-- ========================================== -->
+<!-- MOD-003: CONTENEDOR REPASOS [INICIO] -->
 <div class="repasos-container">
 
-  <!-- Header con título, filtro y botón agregar -->
   <div class="repasos-header">
     <h2>🔄 Mis Repasos</h2>
     <div class="header-actions">
@@ -420,7 +395,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     </div>
   </div>
 
-  <!-- Formulario para agregar/editar repaso -->
   <div id="formRepaso" class="form-repaso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
 
@@ -512,7 +486,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     </form>
   </div>
 
-  <!-- Tabla de repasos -->
   <div id="repasosTableContainer" class="repasos-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
@@ -521,26 +494,18 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
   </div>
 
 </div>
+<!-- MOD-003: FIN -->
 
-<!-- ========================================== -->
-<!-- JAVASCRIPT -->
-<!-- ========================================== -->
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
 (function PBE_REPASOS_MODULE() {
   'use strict';
 
-  // Estado privado del módulo
   let repasosData = [];
   let cursosListaData = [];
   let repasosFiltrados = [];
-
-  // [INIT] Evita dobles inicializaciones si el subtab se inyecta más de una vez
   let _initDone = false;
 
-  /**
-   * ==========================================
-   * UTILIDADES DE HARDENING
-   * ========================================== */
   function escHtml(value) {
     const s = String(value == null ? '' : value);
     return s
@@ -551,10 +516,8 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       .replace(/'/g, '&#39;');
   }
 
-  // Para parámetros dentro de onclick="... 'AQUI' ..."
   function escOnclickSingleQuote(value) {
     const s = String(value == null ? '' : value);
-    // Escapa backslash y comilla simple (mínimo necesario para JS string literal dentro de atributo HTML)
     return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
@@ -562,7 +525,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     const s = String(value == null ? '' : value).trim().toUpperCase();
     if (s === 'OK') return 'OK';
     if (s === 'FALTA') return 'Falta';
-    // fallback conservador
     return 'Falta';
   }
 
@@ -571,10 +533,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     return Number.isFinite(n) && n > 0 ? n : null;
   }
 
-  /**
-   * ==========================================
-   * INICIALIZACIÓN (IDEMPOTENTE + LAZY LOAD READY)
-   * ========================================== */
   function init() {
     if (_initDone) return;
 
@@ -588,18 +546,12 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     cargarRepasos();
   }
 
-  // Caso 1: carga normal (al abrir la webapp)
   window.addEventListener('load', init);
 
-  // Caso 2: carga dinámica (cuando el HTML se inyecta después del load)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
 
-  /**
-   * ==========================================
-   * CARGAR CURSOS (para dropdown)
-   * ========================================== */
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -608,9 +560,7 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
   }
 
   function handleCursosLoaded(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
-      // No bloquea la UI: el subtab puede funcionar sin dropdown completo (pero avisamos)
       console.error('Error cargarCursos:', response);
       return;
     }
@@ -632,13 +582,11 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       const cursoVal = String((curso && curso.Curso) || '');
       const completoVal = String((curso && curso.Completo) || '');
 
-      // Dropdown de formulario
       const option1 = document.createElement('option');
       option1.value = cursoVal;
       option1.textContent = cursoVal + (completoVal ? ' - ' + completoVal : '');
       selectCurso.appendChild(option1);
 
-      // Dropdown de filtro
       const option2 = document.createElement('option');
       option2.value = cursoVal;
       option2.textContent = cursoVal + (completoVal ? ' - ' + completoVal : '');
@@ -646,10 +594,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     });
   }
 
-  /**
-   * ==========================================
-   * CARGAR REPASOS
-   * ========================================== */
   function cargarRepasos() {
     google.script.run
       .withSuccessHandler(handleRepasosLoaded)
@@ -658,7 +602,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
   }
 
   function handleRepasosLoaded(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar los repasos.';
       mostrarError('Error al cargar repasos: ' + msg);
@@ -669,7 +612,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     repasosData = response.data || [];
     repasosFiltrados = repasosData;
 
-    // [PARENT BADGE] Notificar al contenedor padre (si existe)
     if (typeof updateDeberesBadge === 'function') {
       updateDeberesBadge('repasos', repasosData.length);
     }
@@ -683,10 +625,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     renderEmptyState();
   }
 
-  /**
-   * ==========================================
-   * APLICAR FILTRO
-   * ========================================== */
   function aplicarFiltro() {
     const el = document.getElementById('filtroCurso');
     const cursoSeleccionado = el ? el.value : '';
@@ -702,10 +640,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     renderRepasosTable();
   }
 
-  /**
-   * ==========================================
-   * RENDERIZAR TABLA
-   * ========================================== */
   function renderRepasosTable() {
     const container = document.getElementById('repasosTableContainer');
     if (!container) return;
@@ -715,21 +649,7 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       return;
     }
 
-    let html = `
-      <table class="repasos-table">
-        <thead>
-          <tr>
-            <th>Curso</th>
-            <th>Tema</th>
-            <th>Fecha Clase</th>
-            <th>Fecha Repaso</th>
-            <th>Estado</th>
-            <th>Detalle</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    let html = '<table class="repasos-table"><thead><tr><th>Curso</th><th>Tema</th><th>Fecha Clase</th><th>Fecha Repaso</th><th>Estado</th><th>Detalle</th><th>Acciones</th></tr></thead><tbody>';
 
     repasosFiltrados.forEach(function(repaso) {
       const curso = escHtml((repaso && repaso.Curso) || '');
@@ -748,40 +668,12 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       const rowNumber = toSafeRowNumber(repaso && repaso._rowNumber);
       const rowNumberSafe = rowNumber != null ? rowNumber : -1;
 
-      // Para confirm() en onclick con comillas simples
       const temaOnclickSafe = escOnclickSingleQuote((repaso && repaso.Tema) || '');
 
-      html += `
-        <tr class="${claseEvaluado}">
-          <td><strong>${curso}</strong></td>
-          <td>${tema}${badgeEvaluado}</td>
-          <td>${fechaClase}</td>
-          <td>${fechaRep}</td>
-          <td><span class="badge ${estadoBadge}">${escHtml(estado)}</span></td>
-          <td>${detalle}</td>
-          <td>
-            <button
-              class="btn-icon"
-              onclick="RepasosModule.editarRepaso(${rowNumberSafe})"
-              title="Editar">
-              ✏️
-            </button>
-            <button
-              class="btn-icon delete"
-              onclick="RepasosModule.confirmarEliminarRepaso(${rowNumberSafe}, '${temaOnclickSafe}')"
-              title="Eliminar">
-              🗑️
-            </button>
-          </td>
-        </tr>
-      `;
+      html += '<tr class="' + claseEvaluado + '"><td><strong>' + curso + '</strong></td><td>' + tema + badgeEvaluado + '</td><td>' + fechaClase + '</td><td>' + fechaRep + '</td><td><span class="badge ' + estadoBadge + '">' + escHtml(estado) + '</span></td><td>' + detalle + '</td><td><button class="btn-icon" onclick="RepasosModule.editarRepaso(' + rowNumberSafe + ')" title="Editar">✏️</button><button class="btn-icon delete" onclick="RepasosModule.confirmarEliminarRepaso(' + rowNumberSafe + ', \'' + temaOnclickSafe + '\')" title="Eliminar">🗑️</button></td></tr>';
     });
 
-    html += `
-        </tbody>
-      </table>
-    `;
-
+    html += '</tbody></table>';
     container.innerHTML = html;
   }
 
@@ -793,31 +685,12 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     const filtroActivo = filtroEl ? (filtroEl.value !== '') : false;
 
     if (filtroActivo) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">🔍</div>
-          <div class="empty-state-text">
-            No hay repasos para el curso seleccionado.
-          </div>
-        </div>
-      `;
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No hay repasos para el curso seleccionado.</div></div>';
     } else {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">🔄</div>
-          <div class="empty-state-text">
-            No tienes repasos registrados aún.<br>
-            Haz clic en "+ Agregar Repaso" para comenzar.
-          </div>
-        </div>
-      `;
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><div class="empty-state-text">No tienes repasos registrados aún.<br>Haz clic en "+ Agregar Repaso" para comenzar.</div></div>';
     }
   }
 
-  /**
-   * ==========================================
-   * TOGGLE FORMULARIO
-   * ========================================== */
   function toggleFormAgregar() {
     const form = document.getElementById('formRepaso');
     if (!form) return;
@@ -836,10 +709,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     }
   }
 
-  /**
-   * ==========================================
-   * SUBMIT FORMULARIO
-   * ========================================== */
   function handleSubmitRepaso(event) {
     event.preventDefault();
 
@@ -863,7 +732,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       return;
     }
 
-    // Validar formato de fecha DD/MM/AAAA
     if (!validarFecha(fechaClase) || !validarFecha(fechaRep)) {
       mostrarError('Formato de fecha inválido. Use DD/MM/AAAA');
       return;
@@ -888,7 +756,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
 
     if (esEdicion) {
       const rn = toSafeRowNumber(rowNumberStr);
-      // [ROWNUMBER GUARD]
       if (rn == null) {
         mostrarError('Error: No se pudo identificar la fila a actualizar (rowNumber inválido).');
         if (btnSubmit) {
@@ -919,7 +786,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       btnSubmit.textContent = 'Guardar Repaso';
     }
 
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo agregar el repaso.';
       mostrarError(msg);
@@ -938,7 +804,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
       btnSubmit.textContent = 'Guardar Repaso';
     }
 
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo actualizar el repaso.';
       mostrarError(msg);
@@ -961,10 +826,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     }
   }
 
-  /**
-   * ==========================================
-   * EDITAR REPASO
-   * ========================================== */
   function editarRepaso(rowNumber) {
     const rn = toSafeRowNumber(rowNumber);
     if (rn == null) {
@@ -995,13 +856,8 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     if (temaEl) temaEl.focus();
   }
 
-  /**
-   * ==========================================
-   * ELIMINAR REPASO
-   * ========================================== */
   function confirmarEliminarRepaso(rowNumber, tema) {
     const rn = toSafeRowNumber(rowNumber);
-    // [ROWNUMBER GUARD]
     if (rn == null) {
       mostrarError('Error: rowNumber inválido para eliminar.');
       return;
@@ -1015,7 +871,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
 
   function eliminarRepaso(rowNumber) {
     const rn = toSafeRowNumber(rowNumber);
-    // [ROWNUMBER GUARD]
     if (rn == null) {
       mostrarError('Error: rowNumber inválido para eliminar.');
       return;
@@ -1028,7 +883,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
   }
 
   function handleRepasoDeleted(response) {
-    // [PBE][NULL-GUARD]
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo eliminar el repaso.';
       mostrarError(msg);
@@ -1039,10 +893,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     cargarRepasos();
   }
 
-  /**
-   * ==========================================
-   * RESET Y CANCELAR FORMULARIO
-   * ========================================== */
   function resetFormRepaso() {
     const form = document.getElementById('repasoForm');
     if (form) form.reset();
@@ -1063,10 +913,6 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     resetFormRepaso();
   }
 
-  /**
-   * ==========================================
-   * UTILIDADES
-   * ========================================== */
   function handleError(error) {
     console.error('Error:', error);
     mostrarError('Error de conexión');
@@ -1093,19 +939,67 @@ PATCH V01.19 GPT EXTRA (PBE Standard + Extra Hardening):
     }
   }
 
-  /**
-   * ==========================================
-   * API PÚBLICA DEL MÓDULO
-   * ========================================== */
   window.RepasosModule = {
     aplicarFiltro: aplicarFiltro,
     toggleFormAgregar: toggleFormAgregar,
     handleSubmitRepaso: handleSubmitRepaso,
     editarRepaso: editarRepaso,
     confirmarEliminarRepaso: confirmarEliminarRepaso,
-    cancelarFormRepaso: cancelarFormRepaso
+    cancelarFormRepaso: cancelarFormRepaso,
+    init: init
   };
 
-  console.log('%c🔄 Sub-tab Repasos V01.19 GPT EXTRA Cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c🔄 Sub-tab Repasos V01.20 Cargado', 'font-size: 11px; color: #667eea;');
 })();
 </script>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Sub-tab de Repasos con CRUD completo
+Hardening de seguridad y validaciones robustas
+
+FUNCIONALIDAD:
+Crear, editar, eliminar repasos
+Filtro por curso
+Marcar repasos como "Evaluados" (fondo rosado)
+Estados: OK / Falta
+
+HARDENING DE SEGURIDAD:
+escHtml: Escape de HTML para prevenir XSS
+escOnclickSingleQuote: Escape seguro para onclick
+sanitizeEstado: Normalización de estados
+toSafeRowNumber: Validación de rowNumber
+NULL-GUARD: Validación response.success
+
+FORMULARIO:
+Curso (dropdown) - obligatorio
+Tema (texto) - obligatorio
+Fecha Clase (DD/MM/AAAA) - obligatorio
+Fecha Repaso (DD/MM/AAAA) - obligatorio
+Estado (OK/Falta) - obligatorio
+Detalle (textarea) - opcional
+Checkbox Evaluado - opcional
+
+CONEXIÓN BACKEND:
+studentObtenerCursos: Carga cursos activos
+studentObtenerRepasos: Carga repasos del alumno
+studentAgregarRepaso: Crea nuevo repaso
+studentActualizarRepaso: Actualiza repaso existente
+studentEliminarRepaso: Elimina repaso por rowNumber
+
+DEPENDENCIAS:
+currentUser.codeAlum: ID del estudiante
+showAlert: Función global de alertas
+updateDeberesBadge: Actualiza contador en parent
+
+PATCH V01.19 → V01.20:
+Remodulación Estándar CodeWorkShop v4.0
+CSS en MOD-002
+HTML en MOD-003
+JavaScript (IIFE) en MOD-004
+Comentarios consolidados en MOD-099
+Mantiene hardening completo
+-->
+<!-- MOD-099: FIN -->
