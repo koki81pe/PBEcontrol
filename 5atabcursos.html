@@ -1,490 +1,15 @@
 <!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-/******************************************
+*****************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabcursos.html
-VERSIÓN: 01.26
-FECHA: 17/01/2026 06:18 (UTC-5)
-******************************************/
+VERSIÓN: 01.27
+FECHA: 18/01/2026 15:35 (UTC-5)
+*****************************************
 -->
 <!-- MOD-001: FIN -->
 
-<!-- MOD-002: JAVASCRIPT - MÓDULO PRINCIPAL [INICIO] -->
-<script>
-(function() {
-'use strict';
-
-/* ==========================================
-   VARIABLES GLOBALES
-   ========================================== */
-let cursosData = [];
-let _initDone = false;
-let _retryCount = 0;
-const MAX_RETRIES = 5;
-
-/* ==========================================
-   INIT CONTROLADO (CON RETRY LOGIC)
-   ========================================== */
-function init() {
-  console.log('📚 CursosModule.init() llamado (intento ' + (_retryCount + 1) + ')');
-
-  if (_initDone) {
-    console.log('📚 CursosModule ya inicializado, ignorando');
-    return;
-  }
-
-  if (typeof currentUser === 'undefined' || !currentUser) {
-    console.warn('📚 currentUser no disponible aún, reintentando...');
-    
-    if (_retryCount < MAX_RETRIES) {
-      _retryCount++;
-      setTimeout(init, 200);
-    } else {
-      console.error('📚 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
-      renderError('Usuario no disponible. Recarga la página.');
-    }
-    return;
-  }
-
-  if (!currentUser.codeAlum) {
-    console.error('📚 currentUser.codeAlum está vacío:', currentUser);
-    renderError('Código de alumno no disponible');
-    return;
-  }
-
-  _initDone = true;
-  console.log('📚 CursosModule inicializado correctamente para:', currentUser.codeAlum);
-  cargarCursos();
-}
-
-/* ==========================================
-   CARGA DE DATOS
-   ========================================== */
-function cargarCursos() {
-  console.log('📚 Cargando cursos para:', currentUser.codeAlum);
-
-  google.script.run
-    .withSuccessHandler(handleCursosLoaded)
-    .withFailureHandler(handleCursosError)
-    .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
-}
-
-function handleCursosLoaded(response) {
-  console.log('📚 Respuesta recibida:', response);
-
-  if (!response) {
-    console.error('📚 Response es NULL');
-    renderError('Error: El servidor retornó NULL');
-    return;
-  }
-
-  if (response.success !== true) {
-    console.error('📚 Response no exitoso:', response.error);
-    renderError(response.error || 'Error al cargar cursos');
-    return;
-  }
-
-  cursosData = response.data || [];
-  console.log('📚 Cursos cargados:', cursosData.length);
-
-  if (cursosData.length > 0) {
-    renderTable();
-  } else {
-    renderEmptyState();
-  }
-}
-
-function handleCursosError(error) {
-  console.error('📚 Error al cargar cursos:', error);
-  renderError('Error de conexión con el servidor');
-}
-
-/* ==========================================
-   RENDER - TABLA DE CURSOS
-   ========================================== */
-function renderTable() {
-  const container = document.getElementById('cursosTableContainer');
-  if (!container) return;
-
-  let html = '<table class="cursos-table">';
-  html += '<thead>';
-  html += '<tr>';
-  html += '<th style="width:60px;">Color</th>';
-  html += '<th>Curso</th>';
-  html += '<th>Nombre Completo</th>';
-  html += '<th style="width:100px;">Acciones</th>';
-  html += '</tr>';
-  html += '</thead>';
-  html += '<tbody>';
-
-  cursosData.forEach(function(curso) {
-    html += '<tr>';
-    html += '<td>';
-    html += '<div class="curso-color-box" style="background-color:' + curso.Color + ';"></div>';
-    html += '</td>';
-    html += '<td><strong>' + curso.Curso + '</strong></td>';
-    html += '<td>' + curso.Completo + '</td>';
-    html += '<td>';
-    html += '<button onclick="window.editarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;" title="Editar">✏️</button>';
-    html += '<button onclick="window.eliminarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;margin-left:8px;" title="Eliminar">🗑️</button>';
-    html += '</td>';
-    html += '</tr>';
-  });
-
-  html += '</tbody></table>';
-  container.innerHTML = html;
-  console.log('📚 Tabla renderizada con', cursosData.length, 'cursos');
-}
-
-/* ==========================================
-   RENDER - ESTADO VACÍO
-   ========================================== */
-function renderEmptyState() {
-  const container = document.getElementById('cursosTableContainer');
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-state-icon">📚</div>
-      <div class="empty-state-text">
-        No tienes cursos registrados aún.
-      </div>
-      <button class="btn-primary" onclick="window.abrirModalNuevoCurso()">
-        ➕ Agregar Primer Curso
-      </button>
-    </div>
-  `;
-  console.log('📚 Empty state renderizado');
-}
-
-/* ==========================================
-   RENDER - ESTADO DE ERROR
-   ========================================== */
-function renderError(message) {
-  const container = document.getElementById('cursosTableContainer');
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="error-state">
-      <div class="error-icon">⚠️</div>
-      <div class="error-text">${message}</div>
-      <button class="btn-danger" onclick="location.reload()">
-        🔄 Recargar Página
-      </button>
-    </div>
-  `;
-  console.error('📚 Error state renderizado:', message);
-}
-
-/* ==========================================
-   MODAL - ABRIR NUEVO CURSO
-   ========================================== */
-function abrirModalNuevoCurso() {
-  console.log('➕ Abrir modal nuevo curso');
-  
-  document.getElementById('modalCursoTitle').textContent = 'Agregar Curso';
-  document.getElementById('cursoRowNumber').value = '';
-  document.getElementById('cursoModoEdicion').value = 'false';
-  document.getElementById('cursoCodigo').value = '';
-  document.getElementById('cursoNombre').value = '';
-  document.getElementById('cursoColor').value = '#667eea';
-  
-  document.getElementById('btnEliminarCurso').style.display = 'none';
-  document.getElementById('btnSubmitCurso').textContent = 'Guardar';
-  
-  document.getElementById('modalCurso').classList.add('active');
-  
-  setTimeout(function() {
-    document.getElementById('cursoCodigo').focus();
-  }, 100);
-}
-
-/* ==========================================
-   MODAL - EDITAR CURSO
-   ========================================== */
-function editarCurso(rowNumber) {
-  console.log('✏️ Editar curso:', rowNumber);
-  
-  const curso = cursosData.find(function(c) {
-    return c._rowNumber === rowNumber;
-  });
-  
-  if (!curso) {
-    alert('Error: Curso no encontrado');
-    return;
-  }
-  
-  document.getElementById('modalCursoTitle').textContent = 'Editar Curso';
-  document.getElementById('cursoRowNumber').value = rowNumber;
-  document.getElementById('cursoModoEdicion').value = 'true';
-  document.getElementById('cursoCodigo').value = curso.Curso;
-  document.getElementById('cursoNombre').value = curso.Completo;
-  document.getElementById('cursoColor').value = curso.Color || '#667eea';
-  
-  document.getElementById('btnEliminarCurso').style.display = 'inline-block';
-  document.getElementById('btnSubmitCurso').textContent = 'Actualizar';
-  
-  document.getElementById('modalCurso').classList.add('active');
-}
-
-/* ==========================================
-   MODAL - CERRAR
-   ========================================== */
-function cerrarModalCurso() {
-  document.getElementById('modalCurso').classList.remove('active');
-  document.getElementById('formCurso').reset();
-}
-
-/* ==========================================
-   SUBMIT - GUARDAR CURSO
-   ========================================== */
-function handleSubmitCurso(event) {
-  event.preventDefault();
-  
-  const codigo = document.getElementById('cursoCodigo').value.trim();
-  const nombre = document.getElementById('cursoNombre').value.trim();
-  const color = document.getElementById('cursoColor').value;
-  const esEdicion = document.getElementById('cursoModoEdicion').value === 'true';
-  const rowNumber = document.getElementById('cursoRowNumber').value;
-  
-  if (!codigo || !nombre) {
-    alert('Por favor completa todos los campos');
-    return false;
-  }
-  
-  const btnSubmit = document.getElementById('btnSubmitCurso');
-  btnSubmit.disabled = true;
-  btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
-  
-  const params = {
-    codeAlum: currentUser.codeAlum,
-    curso: codigo,
-    completo: nombre,
-    color: color
-  };
-  
-  if (esEdicion) {
-    if (rowNumber) {
-      params.rowNumber = parseInt(rowNumber);
-    }
-    
-    google.script.run
-      .withSuccessHandler(function(r) {
-        handleCursoGuardado(r, true);
-      })
-      .withFailureHandler(function(e) {
-        handleCursoError(e, true);
-      })
-      .studentActualizarCurso(params);
-  } else {
-    google.script.run
-      .withSuccessHandler(function(r) {
-        handleCursoGuardado(r, false);
-      })
-      .withFailureHandler(function(e) {
-        handleCursoError(e, false);
-      })
-      .studentAgregarCurso(params);
-  }
-  
-  return false;
-}
-
-function handleCursoGuardado(response, esEdicion) {
-  const btnSubmit = document.getElementById('btnSubmitCurso');
-  btnSubmit.disabled = false;
-  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
-  if (response && response.success) {
-    const msg = esEdicion ? '✔ Curso actualizado' : '✔ Curso agregado';
-    
-    if (window.showAlert) {
-      showAlert('success', msg);
-    } else {
-      alert(msg);
-    }
-    
-    cerrarModalCurso();
-    cargarCursos();
-  } else {
-    const error = response ? response.error : 'Error desconocido';
-    
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
-  }
-}
-
-function handleCursoError(error, esEdicion) {
-  console.error('📚 Error:', error);
-  
-  const btnSubmit = document.getElementById('btnSubmitCurso');
-  btnSubmit.disabled = false;
-  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
-  if (window.showAlert) {
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
-  } else {
-    alert('Error de conexión. Intenta nuevamente');
-  }
-}
-
-/* ==========================================
-   ELIMINAR CURSO
-   ========================================== */
-function eliminarCurso(rowNumber) {
-  console.log('🗑️ Eliminar curso:', rowNumber);
-  
-  const curso = cursosData.find(function(c) {
-    return c._rowNumber === rowNumber;
-  });
-  
-  if (!curso) {
-    alert('Error: Curso no encontrado');
-    return;
-  }
-  
-  if (!confirm('¿Eliminar el curso "' + curso.Curso + '"?\n\nEsta acción no se puede deshacer.')) {
-    return;
-  }
-  
-  google.script.run
-    .withSuccessHandler(handleCursoEliminado)
-    .withFailureHandler(function(e) {
-      console.error('📚 Error al eliminar:', e);
-      
-      if (window.showAlert) {
-        showAlert('error', 'Error al eliminar');
-      } else {
-        alert('Error al eliminar');
-      }
-    })
-    .studentEliminarCurso({ rowNumber: rowNumber });
-}
-
-function handleCursoEliminado(response) {
-  if (response && response.success) {
-    if (window.showAlert) {
-      showAlert('success', '✔ Curso eliminado');
-    } else {
-      alert('Curso eliminado');
-    }
-    
-    cerrarModalCurso();
-    cargarCursos();
-  } else {
-    const error = response ? response.error : 'Error desconocido';
-    
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
-  }
-}
-
-/* ==========================================
-   EXPOSICIÓN GLOBAL
-   ========================================== */
-window.abrirModalNuevoCurso = abrirModalNuevoCurso;
-window.editarCurso = editarCurso;
-window.eliminarCurso = eliminarCurso;
-window.cerrarModalCurso = cerrarModalCurso;
-window.handleSubmitCurso = handleSubmitCurso;
-
-window.CursosModule = {
-  init: init,
-  reload: function() {
-    _initDone = false;
-    _retryCount = 0;
-    init();
-  }
-};
-
-/* ==========================================
-   AUTO-INIT SI CURRENTUSER EXISTE
-   ========================================== */
-setTimeout(function() {
-  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
-    console.log('📚 currentUser detectado, auto-inicializando...');
-    init();
-  } else {
-    console.log('📚 currentUser no disponible, esperando llamada externa');
-  }
-}, 150);
-
-console.log('%c📚 CursosModule V01.24 cargado',
-  'font-size:11px;color:#667eea;font-weight:bold');
-
-})();
-</script>
-<!-- MOD-002: FIN -->
-
-<!-- MOD-003: HTML CONTAINER [INICIO] -->
-<!-- Header con título y botón agregar -->
-<div class="cursos-header">
-  <h2>📚 Mis Cursos</h2>
-  <div class="header-actions">
-    <button class="btn-agregar" onclick="window.abrirModalNuevoCurso()">
-      + Agregar Curso
-    </button>
-  </div>
-</div>
-
-<!-- Tabla de cursos -->
-<div id="cursosTableContainer">
-  <div class="loading-state">
-    <div class="loading-icon">⏳</div>
-    <div class="loading-text">Cargando cursos...</div>
-  </div>
-</div>
-
-<!-- Modal Curso -->
-<div id="modalCurso" class="modal-overlay">
-  <div class="modal-content">
-    <h3 id="modalCursoTitle">Agregar Curso</h3>
-    
-    <form id="formCurso" onsubmit="return handleSubmitCurso(event)">
-      <input type="hidden" id="cursoRowNumber">
-      <input type="hidden" id="cursoModoEdicion" value="false">
-      
-      <div class="form-group">
-        <label>Código del Curso (corto):</label>
-        <input type="text" id="cursoCodigo" required maxlength="10" 
-          placeholder="Ej: MATE, FIS, QUIM">
-      </div>
-      
-      <div class="form-group">
-        <label>Nombre Completo:</label>
-        <input type="text" id="cursoNombre" required 
-          placeholder="Ej: Matemática Avanzada">
-      </div>
-      
-      <div class="form-group">
-        <label>Color:</label>
-        <input type="color" id="cursoColor" value="#667eea">
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" onclick="window.cerrarModalCurso()">
-          Cancelar
-        </button>
-        <button type="button" class="btn-danger" id="btnEliminarCurso" 
-          style="display:none;" onclick="window.eliminarCurso(parseInt(document.getElementById('cursoRowNumber').value))">
-          Eliminar
-        </button>
-        <button type="submit" class="btn-primary" id="btnSubmitCurso">
-          Guardar
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-<!-- MOD-003: FIN -->
-
-<!-- MOD-004: ESTILOS CSS [INICIO] -->
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
 /* Header */
 .cursos-header {
@@ -757,33 +282,502 @@ console.log('%c📚 CursosModule V01.24 cargado',
   }
 }
 </style>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: HTML CONTAINER [INICIO] -->
+<div class="cursos-header">
+  <h2>📚 Mis Cursos</h2>
+  <div class="header-actions">
+    <button class="btn-agregar" onclick="window.abrirModalNuevoCurso()">
+      + Agregar Curso
+    </button>
+  </div>
+</div>
+
+<div id="cursosTableContainer">
+  <div class="loading-state">
+    <div class="loading-icon">⏳</div>
+    <div class="loading-text">Cargando cursos...</div>
+  </div>
+</div>
+
+<div id="modalCurso" class="modal-overlay">
+  <div class="modal-content">
+    <h3 id="modalCursoTitle">Agregar Curso</h3>
+    
+    <form id="formCurso" onsubmit="return handleSubmitCurso(event)">
+      <input type="hidden" id="cursoRowNumber">
+      <input type="hidden" id="cursoModoEdicion" value="false">
+      
+      <div class="form-group">
+        <label>Código del Curso (corto):</label>
+        <input type="text" id="cursoCodigo" required maxlength="10" 
+          placeholder="Ej: MATE, FIS, QUIM">
+      </div>
+      
+      <div class="form-group">
+        <label>Nombre Completo:</label>
+        <input type="text" id="cursoNombre" required 
+          placeholder="Ej: Matemática Avanzada">
+      </div>
+      
+      <div class="form-group">
+        <label>Color:</label>
+        <input type="color" id="cursoColor" value="#667eea">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="window.cerrarModalCurso()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-danger" id="btnEliminarCurso" 
+          style="display:none;" onclick="window.eliminarCurso(parseInt(document.getElementById('cursoRowNumber').value))">
+          Eliminar
+        </button>
+        <button type="submit" class="btn-primary" id="btnSubmitCurso">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
+<script>
+(function() {
+'use strict';
+
+// VARIABLES GLOBALES
+let cursosData = [];
+let _initDone = false;
+let _retryCount = 0;
+const MAX_RETRIES = 5;
+
+// INIT CONTROLADO (CON RETRY LOGIC)
+function init() {
+  console.log('📚 CursosModule.init() llamado (intento ' + (_retryCount + 1) + ')');
+
+  if (_initDone) {
+    console.log('📚 CursosModule ya inicializado, ignorando');
+    return;
+  }
+
+  if (typeof currentUser === 'undefined' || !currentUser) {
+    console.warn('📚 currentUser no disponible aún, reintentando...');
+    
+    if (_retryCount < MAX_RETRIES) {
+      _retryCount++;
+      setTimeout(init, 200);
+    } else {
+      console.error('📚 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
+      renderError('Usuario no disponible. Recarga la página.');
+    }
+    return;
+  }
+
+  if (!currentUser.codeAlum) {
+    console.error('📚 currentUser.codeAlum está vacío:', currentUser);
+    renderError('Código de alumno no disponible');
+    return;
+  }
+
+  _initDone = true;
+  console.log('📚 CursosModule inicializado correctamente para:', currentUser.codeAlum);
+  cargarCursos();
+}
+
+// CARGA DE DATOS
+function cargarCursos() {
+  console.log('📚 Cargando cursos para:', currentUser.codeAlum);
+
+  google.script.run
+    .withSuccessHandler(handleCursosLoaded)
+    .withFailureHandler(handleCursosError)
+    .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+}
+
+function handleCursosLoaded(response) {
+  console.log('📚 Respuesta recibida:', response);
+
+  if (!response) {
+    console.error('📚 Response es NULL');
+    renderError('Error: El servidor retornó NULL');
+    return;
+  }
+
+  if (response.success !== true) {
+    console.error('📚 Response no exitoso:', response.error);
+    renderError(response.error || 'Error al cargar cursos');
+    return;
+  }
+
+  cursosData = response.data || [];
+  console.log('📚 Cursos cargados:', cursosData.length);
+
+  if (cursosData.length > 0) {
+    renderTable();
+  } else {
+    renderEmptyState();
+  }
+}
+
+function handleCursosError(error) {
+  console.error('📚 Error al cargar cursos:', error);
+  renderError('Error de conexión con el servidor');
+}
+
+// RENDER - TABLA DE CURSOS
+function renderTable() {
+  const container = document.getElementById('cursosTableContainer');
+  if (!container) return;
+
+  let html = '<table class="cursos-table">';
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th style="width:60px;">Color</th>';
+  html += '<th>Curso</th>';
+  html += '<th>Nombre Completo</th>';
+  html += '<th style="width:100px;">Acciones</th>';
+  html += '</tr>';
+  html += '</thead>';
+  html += '<tbody>';
+
+  cursosData.forEach(function(curso) {
+    html += '<tr>';
+    html += '<td>';
+    html += '<div class="curso-color-box" style="background-color:' + curso.Color + ';"></div>';
+    html += '</td>';
+    html += '<td><strong>' + curso.Curso + '</strong></td>';
+    html += '<td>' + curso.Completo + '</td>';
+    html += '<td>';
+    html += '<button onclick="window.editarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;" title="Editar">✏️</button>';
+    html += '<button onclick="window.eliminarCurso(' + curso._rowNumber + ')" style="background:none;border:none;cursor:pointer;font-size:16px;margin-left:8px;" title="Eliminar">🗑️</button>';
+    html += '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  console.log('📚 Tabla renderizada con', cursosData.length, 'cursos');
+}
+
+// RENDER - ESTADO VACÍO
+function renderEmptyState() {
+  const container = document.getElementById('cursosTableContainer');
+  if (!container) return;
+
+  container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-text">No tienes cursos registrados aún.</div><button class="btn-primary" onclick="window.abrirModalNuevoCurso()">➕ Agregar Primer Curso</button></div>';
+  console.log('📚 Empty state renderizado');
+}
+
+// RENDER - ESTADO DE ERROR
+function renderError(message) {
+  const container = document.getElementById('cursosTableContainer');
+  if (!container) return;
+
+  container.innerHTML = '<div class="error-state"><div class="error-icon">⚠️</div><div class="error-text">' + message + '</div><button class="btn-danger" onclick="location.reload()">🔄 Recargar Página</button></div>';
+  console.error('📚 Error state renderizado:', message);
+}
+
+// MODAL - ABRIR NUEVO CURSO
+function abrirModalNuevoCurso() {
+  console.log('➕ Abrir modal nuevo curso');
+  
+  document.getElementById('modalCursoTitle').textContent = 'Agregar Curso';
+  document.getElementById('cursoRowNumber').value = '';
+  document.getElementById('cursoModoEdicion').value = 'false';
+  document.getElementById('cursoCodigo').value = '';
+  document.getElementById('cursoNombre').value = '';
+  document.getElementById('cursoColor').value = '#667eea';
+  
+  document.getElementById('btnEliminarCurso').style.display = 'none';
+  document.getElementById('btnSubmitCurso').textContent = 'Guardar';
+  
+  document.getElementById('modalCurso').classList.add('active');
+  
+  setTimeout(function() {
+    document.getElementById('cursoCodigo').focus();
+  }, 100);
+}
+
+// MODAL - EDITAR CURSO
+function editarCurso(rowNumber) {
+  console.log('✏️ Editar curso:', rowNumber);
+  
+  const curso = cursosData.find(function(c) {
+    return c._rowNumber === rowNumber;
+  });
+  
+  if (!curso) {
+    alert('Error: Curso no encontrado');
+    return;
+  }
+  
+  document.getElementById('modalCursoTitle').textContent = 'Editar Curso';
+  document.getElementById('cursoRowNumber').value = rowNumber;
+  document.getElementById('cursoModoEdicion').value = 'true';
+  document.getElementById('cursoCodigo').value = curso.Curso;
+  document.getElementById('cursoNombre').value = curso.Completo;
+  document.getElementById('cursoColor').value = curso.Color || '#667eea';
+  
+  document.getElementById('btnEliminarCurso').style.display = 'inline-block';
+  document.getElementById('btnSubmitCurso').textContent = 'Actualizar';
+  
+  document.getElementById('modalCurso').classList.add('active');
+}
+
+// MODAL - CERRAR
+function cerrarModalCurso() {
+  document.getElementById('modalCurso').classList.remove('active');
+  document.getElementById('formCurso').reset();
+}
+
+// SUBMIT - GUARDAR CURSO
+function handleSubmitCurso(event) {
+  event.preventDefault();
+  
+  const codigo = document.getElementById('cursoCodigo').value.trim();
+  const nombre = document.getElementById('cursoNombre').value.trim();
+  const color = document.getElementById('cursoColor').value;
+  const esEdicion = document.getElementById('cursoModoEdicion').value === 'true';
+  const rowNumber = document.getElementById('cursoRowNumber').value;
+  
+  if (!codigo || !nombre) {
+    alert('Por favor completa todos los campos');
+    return false;
+  }
+  
+  const btnSubmit = document.getElementById('btnSubmitCurso');
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+  
+  const params = {
+    codeAlum: currentUser.codeAlum,
+    curso: codigo,
+    completo: nombre,
+    color: color
+  };
+  
+  if (esEdicion) {
+    if (rowNumber) {
+      params.rowNumber = parseInt(rowNumber);
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(r) {
+        handleCursoGuardado(r, true);
+      })
+      .withFailureHandler(function(e) {
+        handleCursoError(e, true);
+      })
+      .studentActualizarCurso(params);
+  } else {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        handleCursoGuardado(r, false);
+      })
+      .withFailureHandler(function(e) {
+        handleCursoError(e, false);
+      })
+      .studentAgregarCurso(params);
+  }
+  
+  return false;
+}
+
+function handleCursoGuardado(response, esEdicion) {
+  const btnSubmit = document.getElementById('btnSubmitCurso');
+  btnSubmit.disabled = false;
+  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+  
+  if (response && response.success) {
+    const msg = esEdicion ? '✔ Curso actualizado' : '✔ Curso agregado';
+    
+    if (window.showAlert) {
+      showAlert('success', msg);
+    } else {
+      alert(msg);
+    }
+    
+    cerrarModalCurso();
+    cargarCursos();
+  } else {
+    const error = response ? response.error : 'Error desconocido';
+    
+    if (window.showAlert) {
+      showAlert('error', error);
+    } else {
+      alert('Error: ' + error);
+    }
+  }
+}
+
+function handleCursoError(error, esEdicion) {
+  console.error('📚 Error:', error);
+  
+  const btnSubmit = document.getElementById('btnSubmitCurso');
+  btnSubmit.disabled = false;
+  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
+  
+  if (window.showAlert) {
+    showAlert('error', 'Error de conexión. Intenta nuevamente');
+  } else {
+    alert('Error de conexión. Intenta nuevamente');
+  }
+}
+
+// ELIMINAR CURSO
+function eliminarCurso(rowNumber) {
+  console.log('🗑️ Eliminar curso:', rowNumber);
+  
+  const curso = cursosData.find(function(c) {
+    return c._rowNumber === rowNumber;
+  });
+  
+  if (!curso) {
+    alert('Error: Curso no encontrado');
+    return;
+  }
+  
+  if (!confirm('¿Eliminar el curso "' + curso.Curso + '"?\n\nEsta acción no se puede deshacer.')) {
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler(handleCursoEliminado)
+    .withFailureHandler(function(e) {
+      console.error('📚 Error al eliminar:', e);
+      
+      if (window.showAlert) {
+        showAlert('error', 'Error al eliminar');
+      } else {
+        alert('Error al eliminar');
+      }
+    })
+    .studentEliminarCurso({ rowNumber: rowNumber });
+}
+
+function handleCursoEliminado(response) {
+  if (response && response.success) {
+    if (window.showAlert) {
+      showAlert('success', '✔ Curso eliminado');
+    } else {
+      alert('Curso eliminado');
+    }
+    
+    cerrarModalCurso();
+    cargarCursos();
+  } else {
+    const error = response ? response.error : 'Error desconocido';
+    
+    if (window.showAlert) {
+      showAlert('error', error);
+    } else {
+      alert('Error: ' + error);
+    }
+  }
+}
+
+// EXPOSICIÓN GLOBAL
+window.abrirModalNuevoCurso = abrirModalNuevoCurso;
+window.editarCurso = editarCurso;
+window.eliminarCurso = eliminarCurso;
+window.cerrarModalCurso = cerrarModalCurso;
+window.handleSubmitCurso = handleSubmitCurso;
+
+window.CursosModule = {
+  init: init,
+  reload: function() {
+    _initDone = false;
+    _retryCount = 0;
+    init();
+  }
+};
+
+// AUTO-INIT SI CURRENTUSER EXISTE
+setTimeout(function() {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+    console.log('📚 currentUser detectado, auto-inicializando...');
+    init();
+  } else {
+    console.log('📚 currentUser no disponible, esperando llamada externa');
+  }
+}, 150);
+
+console.log('%c📚 CursosModule V01.27 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+
+})();
+</script>
 <!-- MOD-004: FIN -->
 
-<!-- MOD-005: NOTAS [INICIO] -->
+<!-- MOD-099: NOTAS [INICIO] -->
 <!--
-===========================================
-CURSOS - DOCUMENTACIÓN TÉCNICA
-===========================================
-
 DESCRIPCIÓN:
-Subtab para gestión de cursos del estudiante con CRUD completo.
+Sub-tab de gestión de cursos con CRUD completo
+Tabla con colores personalizados y modal responsive
 
-CAMBIOS V01.26:
-- Se agregó botón para agregar curso
-
-CARACTERÍSTICAS:
-- Tabla con colores personalizados por curso
-- Botones Editar y Eliminar por curso
-- Modal responsive con validación
-- Auto-inicialización con retry logic
-
-DEPENDENCIAS BACKEND:
-- studentObtenerCursos()
-- studentAgregarCurso()
-- studentActualizarCurso()
-- studentEliminarCurso()
+FUNCIONALIDAD:
+Crear, editar y eliminar cursos del estudiante
+Asignar color personalizado a cada curso
+Visualización en tabla con color, código y nombre
+Modal con validación de campos obligatorios
 
 ESTRUCTURA DE DATOS:
-Cursos: {FechaReg, CodeAlum, Curso, Completo, Color, _rowNumber}
+Curso: { FechaReg, CodeAlum, Curso, Completo, Color, _rowNumber }
+- Curso: Código corto (máx 10 caracteres)
+- Completo: Nombre completo del curso
+- Color: Hex color para identificación visual (#667eea por defecto)
+- _rowNumber: ID interno para operaciones de edición/eliminación
+
+CARACTERÍSTICAS TÉCNICAS:
+Retry logic robusto: 5 intentos con 200ms de delay
+Init tracking: _initDone previene dobles inicializaciones
+Auto-init: setTimeout(150ms) para inicialización automática
+Fallbacks: alert() si showAlert no está disponible
+Validación: HTML5 + validación manual de campos
+
+FLUJO DE TRABAJO:
+1. Init verifica currentUser y carga cursos
+2. Render de tabla con colores y acciones
+3. Modal se abre vacío (agregar) o prellenado (editar)
+4. Validación de campos en submit
+5. Llamada al backend correspondiente
+6. Refresh automático de tabla tras éxito
+
+CONEXIÓN BACKEND:
+studentObtenerCursos({ codeAlum }): Lista de cursos
+studentAgregarCurso({ codeAlum, curso, completo, color }): Crear
+studentActualizarCurso({ codeAlum, curso, completo, color, rowNumber }): Actualizar
+studentEliminarCurso({ rowNumber }): Eliminar
+
+DEPENDENCIAS:
+currentUser.codeAlum: Identificador del estudiante (obligatorio)
+showAlert(type, message): Función global de alertas (fallback a alert())
+
+ESTADOS UI:
+Loading: Spinner con mensaje "Cargando cursos..."
+Vacío: Icono + botón "Agregar Primer Curso"
+Tabla: Grid con cursos y botones de acción (✏️ editar, 🗑️ eliminar)
+Error: Mensaje de error con botón "Recargar Página"
+
+TABLA:
+Columna Color: Box visual de 30x30px con el color del curso
+Columna Curso: Código corto en negrita
+Columna Nombre Completo: Nombre descriptivo
+Columna Acciones: Botones inline para editar y eliminar
+
+MODAL:
+Título dinámico: "Agregar Curso" o "Editar Curso"
+3 campos: Código (max 10 chars), Nombre completo, Color picker
+Botones: Cancelar, Eliminar (solo en edición), Guardar/Actualizar
+Focus automático en primer campo al abrir
+
+CAMBIOS V01.26 → V01.27:
+Remodulación completa según Estándar CodeWorkShop v4.0
+Reordenamiento: CSS (MOD-002) → HTML (MOD-003) → JS (MOD-004) → Notas (MOD-099)
+Comentarios internos aligerados: sin barras decorativas
+Notas consolidadas y expandidas en MOD-099
+Mantiene lógica funcional sin cambios
 -->
-<!-- MOD-005: FIN -->
+<!-- MOD-099: FIN -->
