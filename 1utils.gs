@@ -1,102 +1,55 @@
+// MOD-001: ENCABEZADO [INICIO]
 /*
-******************************************
-PBE CONTROL - 1utils.gs - V01.13
-Sistema de Gestión Académica
-03/01/2026 - 20:00
-******************************************
-
-CONTENIDO:
-- Funciones de utilidad reutilizables
-- Manejo de fechas (formato DD/MM/AAAA)
-- Validaciones (email, etc.)
-- Paleta de colores predefinida
-
-FUNCIONES:
-- fechaHoy: Retorna fecha actual en formato DD/MM/AAAA
-- validarEmail: Valida formato de email
-- COLORES: Paleta de colores del sistema
-
-IMPORTANTE:
-- Módulo standalone (no depende de otros)
-- Zona horaria: GMT-5 (Lima, Perú)
-- Formato de fechas: DD/MM/AAAA
-
-🔑 FORMATO DE FECHAS: "Todas las fechas en DD/MM/AAAA, zona horaria GMT-5 (Lima)"
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 1utils.gs
+VERSIÓN: 01.14
+FECHA: 18/01/2026 11:58 (UTC-5)
+*****************************************
 */
+// MOD-001: FIN
 
-// ==========================================
-// MÓDULO UTILS - FUNCIONES DE UTILIDAD
-// ==========================================
-
+// MOD-002: MÓDULO UTILS - DECLARACIÓN [INICIO]
 var Utils = (function() {
-  
-  // ==========================================
-  // 1. MANEJO DE FECHAS
-  // ==========================================
-  
-  /**
-   * Obtener fecha actual en formato DD/MM/AAAA
-   * 
-   * Zona horaria: GMT-5 (Lima, Perú)
-   * 
-   * @return {string} - Fecha en formato DD/MM/AAAA
-   * 
-   * Ejemplo:
-   * Utils.fechaHoy() → "03/01/2026"
-   */
-  function fechaHoy() {
-    var fecha = new Date();
-    var dia = ('0' + fecha.getDate()).slice(-2);
-    var mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
-    var anio = fecha.getFullYear();
-    return dia + '/' + mes + '/' + anio;
-  }
-  
-  // ==========================================
-  // 2. VALIDACIONES
-  // ==========================================
-  
-  /**
-   * Validar formato de email
-   * 
-   * Regex: [texto]@[dominio].[extension]
-   * 
-   * @param {string} email - Email a validar
-   * @return {boolean} - true si es válido, false si no
-   * 
-   * Ejemplo:
-   * Utils.validarEmail("jorge@example.com") → true
-   * Utils.validarEmail("jorge@") → false
-   * Utils.validarEmail("jorge.com") → false
-   */
-  function validarEmail(email) {
-    var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  }
-  
-  // ==========================================
-  // EXPORTAR FUNCIONES PÚBLICAS
-  // ==========================================
-  
-  return {
-    fechaHoy: fechaHoy,
-    validarEmail: validarEmail
-  };
-  
-})();
+// MOD-002: FIN
 
-// ==========================================
-// 3. PALETA DE COLORES DEL SISTEMA
-// ==========================================
-
+// MOD-003: FECHA ACTUAL [INICIO]
 /**
- * Paleta de colores predefinida
- * 
- * Uso:
- * var color = COLORES.rojo; // '#FF5733'
- * var color = COLORES.azul; // '#3498DB'
+ * Obtener fecha actual en formato DD/MM/AAAA
+ * Zona horaria: GMT-5 (Lima, Perú)
  */
+function fechaHoy() {
+  var fecha = new Date();
+  var dia = ('0' + fecha.getDate()).slice(-2);
+  var mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
+  var anio = fecha.getFullYear();
+  return dia + '/' + mes + '/' + anio;
+}
+// MOD-003: FIN
+
+// MOD-004: VALIDAR EMAIL [INICIO]
+/**
+ * Validar formato de email
+ * Regex: [texto]@[dominio].[extension]
+ */
+function validarEmail(email) {
+  var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+}
+// MOD-004: FIN
+
+// MOD-005: EXPORTAR FUNCIONES PÚBLICAS [INICIO]
+return {
+  fechaHoy: fechaHoy,
+  validarEmail: validarEmail
+};
+// MOD-005: FIN
+
+// MOD-006: CIERRE MÓDULO UTILS [INICIO]
+})();
+// MOD-006: FIN
+
+// MOD-007: PALETA DE COLORES [INICIO]
 var COLORES = {
   rojo: '#FF5733',
   azul: '#3498DB',
@@ -107,11 +60,42 @@ var COLORES = {
   rosa: '#E91E63',
   turquesa: '#1ABC9C'
 };
+// MOD-007: FIN
 
-// ==========================================
-// FIN DE 1utils.gs
-// Total: 2 funciones públicas + COLORES
-// - fechaHoy(): Formato DD/MM/AAAA
-// - validarEmail(): Validación con regex
-// - COLORES: 8 colores predefinidos
-// ==========================================
+// MOD-008: CÓDIGO DE CIERRE [INICIO]
+Logger.log('✅ 1utils.gs v01.14 cargado');
+// MOD-008: FIN
+
+// MOD-099: NOTAS [INICIO]
+/*
+DESCRIPCIÓN:
+Funciones de utilidad reutilizables para el sistema
+Módulo standalone sin dependencias externas
+
+FUNCIONES PÚBLICAS:
+- fechaHoy: Retorna fecha actual en formato DD/MM/AAAA
+- validarEmail: Valida formato de email con regex
+
+CONSTANTES GLOBALES:
+- COLORES: Paleta de 8 colores predefinidos del sistema
+
+CARACTERÍSTICAS:
+- Zona horaria: GMT-5 (Lima, Perú)
+- Formato de fechas: DD/MM/AAAA
+- Validación de email con expresión regular estándar
+
+EJEMPLOS DE USO:
+Utils.fechaHoy() → "18/01/2026"
+Utils.validarEmail("usuario@dominio.com") → true
+Utils.validarEmail("invalido@") → false
+var colorPrimario = COLORES.azul; // '#3498DB'
+
+DEPENDENCIAS:
+Ninguna - Módulo completamente standalone
+
+CAMBIOS V01.13 → V01.14:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- Estructura modular simplificada
+- Comentarios consolidados en MOD-099
+*/
+// MOD-099: FIN
