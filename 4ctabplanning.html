@@ -1,53 +1,53 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 4ctabplanning.html - V01.18
-Sistema de Gestión Académica
-07/01/2026
-DESCRIPCIÓN:
-Contenedor de sub-tabs de Planning.
-VERSIÓN:
-- Encapsulado total
-- Prevención de colisiones globales
-- DOM-safe
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 4ctabplanning.html
+VERSIÓN: 01.19
+FECHA: 18/01/2026 15:07 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
 
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-  .subtabs-container { margin-bottom: 20px; }
-  .subtabs-nav {
-    display: flex;
-    gap: 8px;
-    border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 20px;
-  }
-  .subtab-btn {
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.3s;
-    white-space: nowrap;
-  }
-  .subtab-btn:hover { color: #667eea; background: #f9f9f9; }
-  .subtab-btn.active { color: #667eea; border-bottom-color: #667eea; }
-  .subtab-content { display: none; }
-  .subtab-content.active { display: block; animation: fadeIn 0.3s ease-out; }
+.subtabs-container { margin-bottom: 20px; }
+.subtabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+.subtab-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.subtab-btn:hover { color: #667eea; background: #f9f9f9; }
+.subtab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+.subtab-content { display: none; }
+.subtab-content.active { display: block; animation: fadeIn 0.3s ease-out; }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  @media (max-width: 768px) {
-    .subtabs-nav { overflow-x: auto; }
-    .subtab-btn { padding: 10px 18px; font-size: 13px; }
-  }
+@media (max-width: 768px) {
+  .subtabs-nav { overflow-x: auto; }
+  .subtab-btn { padding: 10px 18px; font-size: 13px; }
+}
 </style>
+<!-- MOD-002: FIN -->
 
+<!-- MOD-003: CONTENEDOR SUBTABS [INICIO] -->
 <div class="subtabs-container" id="planning-container">
 
   <div class="subtabs-nav">
@@ -74,11 +74,11 @@ VERSIÓN:
   </div>
 
 </div>
+<!-- MOD-003: FIN -->
 
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
-/* ==========================================
-   PLANNING MODULE (ENCAPSULADO)
-========================================== */
+// Planning Module (Encapsulado)
 window.PlanningModule = (function () {
 
   const state = {
@@ -108,8 +108,7 @@ window.PlanningModule = (function () {
     console.log('[Planning] Sub-tab activo:', name);
   }
 
-  /* ===== Helpers reutilizados por sub-tabs ===== */
-
+  // Helpers reutilizados por sub-tabs
   function obtenerDiasSemanaActual() {
     const hoy = new Date();
     const lunes = new Date(hoy);
@@ -141,7 +140,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.18 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.19 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
@@ -154,3 +153,85 @@ window.PlanningModule = (function () {
 
 })();
 </script>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Contenedor de sub-tabs de Planning
+Módulo totalmente encapsulado en PlanningModule
+
+SUB-TABS INCLUIDOS:
+- subtab-horarioclase → include('7ctabhorarioclase'): Horario de clases
+- subtab-horariosem → include('7ctabhorariosem'): Horario semanal
+- subtab-notas → include('7ctabnotas'): Sistema de notas y promedios
+- subtab-calendario → include('7ctabcalendario'): Vista de calendario
+
+ESTRUCTURA:
+Contenedor ligero que organiza cuatro sub-tabs de planning:
+1. Horario Clases: Gestión de horarios de clases
+2. Horario Semanal: Vista semanal del horario
+3. Notas: Cálculo de promedios ponderados
+4. Calendario: Vista de calendario mensual
+
+MÓDULO ENCAPSULADO:
+window.PlanningModule: IIFE que expone funciones públicas
+- Previene colisiones globales
+- Encapsula estado interno
+- Provee helpers compartidos
+
+FUNCIONALIDAD:
+- Navegación entre sub-tabs mediante PlanningModule.switchTab()
+- Estado compartido: currentWeekOffset, currentMonth, currentYear
+- Helpers disponibles para todos los sub-tabs
+
+ESTADO COMPARTIDO:
+- state.currentWeekOffset: Offset de semana actual (para navegación)
+- state.currentMonth: Mes actual en vista de calendario
+- state.currentYear: Año actual en vista de calendario
+
+HELPERS COMPARTIDOS:
+- obtenerDiasSemanaActual(): Retorna array de 7 días (L-D) de la semana actual
+- horaAMinutos(hora): Convierte "HH:MM" a minutos totales
+- minutosAHora(minutos): Convierte minutos totales a "HH:MM"
+- calcularPromedioPonderado(items): Calcula promedio con pesos
+
+FLUJO DE NAVEGACIÓN:
+1. Usuario hace clic en botón de sub-tab
+2. onclick llama a PlanningModule.switchTab(name)
+3. switchTab() actualiza clases active en DOM
+4. Sub-tab correspondiente se muestra con animación fadeIn
+
+CARACTERÍSTICAS TÉCNICAS:
+- IIFE completo para encapsulación total
+- Getters seguros (getContainer verifica existencia)
+- Helpers matemáticos para horarios y notas
+- Estado interno protegido
+- API pública clara y limitada
+
+DEPENDENCIAS:
+- Sub-módulos: 7ctabhorarioclase.html, 7ctabhorariosem.html, 7ctabnotas.html, 7ctabcalendario.html
+- currentUser: Variable global del panel principal
+- Funciones globales: showAlert, showLoading, hideLoading (del parent)
+
+USO DE HELPERS DESDE SUB-TABS:
+// En cualquier sub-tab de planning:
+const dias = PlanningModule.obtenerDiasSemanaActual();
+const minutos = PlanningModule.horaAMinutos('14:30');
+const promedio = PlanningModule.calcularPromedioPonderado(evaluaciones);
+
+VENTAJAS DEL ENCAPSULADO:
+- Sin colisiones de nombres en scope global
+- Estado centralizado y protegido
+- Helpers compartidos sin duplicación
+- Fácil debugging (todo bajo PlanningModule)
+
+CAMBIOS V01.18 → V01.19:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- CSS encapsulado en MOD-002
+- HTML en MOD-003
+- JavaScript (IIFE) en MOD-004
+- Comentarios consolidados en MOD-099
+- Estructura consistente con otros contenedores de sub-tabs
+-->
+<!-- MOD-099: FIN -->
