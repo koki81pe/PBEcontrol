@@ -1,1155 +1,759 @@
 <!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-/******************************************
+*****************************************
 PROYECTO: PBE Control
-ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.23 CODEWORKSHOP
-FECHA: 10/01/2026 08:30 (UTC-5)
-******************************************/
+ARCHIVO: 7ctabcalendario.html
+VERSIÓN: 01.20
+FECHA: 18/01/2026 17:20 (UTC-5)
+*****************************************
 -->
 <!-- MOD-001: FIN -->
 
-<!-- MOD-002: APERTURA [INICIO] -->
-<!DOCTYPE html>
-<html>
-<head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horario de Clases</title>
-<!-- MOD-002: FIN -->
-
-<!-- MOD-003: ESTILOS CSS [INICIO] -->
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-.hc-grid-container {
-  background: #fff;
-  border-radius: 8px;
+/* CONTENEDOR PRINCIPAL */
+.calendario-container {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  position: relative;
-  min-height: 400px;
 }
 
-.hc-grid {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.calendario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 8px;
+  color: #fff;
 }
 
-.hc-grid thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.calendario-header h2 {
+  margin: 0;
+  font-size: 24px;
 }
 
-.hc-grid th {
-  padding: 12px 8px;
+.calendario-nav button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.calendario-nav button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* GRID DEL CALENDARIO */
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendario-dia-header {
+  background: #f5f5f5;
+  padding: 12px;
   text-align: center;
   font-weight: 600;
-  border: 1px solid rgba(255,255,255,.2);
+  font-size: 14px;
 }
 
-.hc-grid .hc-col-hora {
-  width: 80px;
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-}
-
-.hc-grid .hc-col-dia {
-  width: calc((100% - 80px) / 7);
-  min-width: 100px;
-}
-
-.hc-grid td {
-  padding: 4px;
-  border: 1px solid #dee2e6;
-  height: 45px;
-  vertical-align: middle;
-}
-
-.hc-celda-clase {
-  min-height: 35px;
-  border-radius: 4px;
+.calendario-celda {
+  background: #fff;
+  min-height: 100px;
+  padding: 8px;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  font-size: 12px;
+  position: relative;
+  transition: background 0.2s;
 }
 
-.hc-celda-clase:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+.calendario-celda:hover {
+  background: #f0f0f0;
 }
 
-.hc-celda-clase.ocupada {
-  color: white;
-  padding: 6px 8px;
+.calendario-celda.fuera-mes {
+  background: #e0e0e0;
+  color: #999;
+  cursor: default;
 }
 
-.hc-celda-clase.conflicto {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
-  font-size: 11px;
+.calendario-celda.fuera-mes:hover {
+  background: #e0e0e0;
+}
+
+.calendario-celda.hoy {
+  border: 3px solid #667eea;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+}
+
+.calendario-dia-numero {
   font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 16px;
 }
 
-.hc-form-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,.5);
+.calendario-indicadores {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.calendario-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.calendario-dot.evaluacion {
+  background: #dc3545;
+}
+
+.calendario-dot.tarea {
+  background: #ffc107;
+}
+
+.calendario-dot.lectura {
+  background: #28a745;
+}
+
+.calendario-dot.actividad {
+  background: #17a2b8;
+}
+
+/* MODAL */
+.calendario-modal {
   display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
 }
 
-.hc-form-overlay.active {
+.calendario-modal.active {
   display: flex;
 }
 
-.hc-form-content {
-  background: white;
+.calendario-modal-content {
+  background: #fff;
   border-radius: 12px;
-  padding: 24px;
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.hc-form-content h3 {
-  margin: 0 0 20px;
-  color: #667eea;
+.calendario-modal-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendario-modal-header h3 {
+  margin: 0;
   font-size: 20px;
 }
 
-.hc-form-group {
+.calendario-modal-header button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.calendario-modal-header button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.calendario-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.calendario-actividad-item {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #ccc;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.calendario-actividad-item.evaluacion {
+  border-color: #dc3545;
+  background: #fee;
+}
+
+.calendario-actividad-item.tarea {
+  border-color: #ffc107;
+  background: #fff3cd;
+}
+
+.calendario-actividad-item.lectura {
+  border-color: #28a745;
+  background: #d4edda;
+}
+
+.calendario-actividad-item.actividad {
+  border-color: #17a2b8;
+  background: #d1ecf1;
+}
+
+.calendario-actividad-item strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendario-actividad-item div {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* LOADING */
+.calendario-loading {
+  text-align: center;
+  padding: 40px;
+  display: none;
+}
+
+.calendario-loading.active {
+  display: block;
+}
+
+.calendario-loading .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ERROR */
+.calendario-error {
+  text-align: center;
+  padding: 40px;
+  color: #dc3545;
+  display: none;
+}
+
+.calendario-error.active {
+  display: block;
+}
+
+.calendario-error-icon {
+  font-size: 48px;
   margin-bottom: 16px;
 }
 
-.hc-form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #333;
-  font-size: 13px;
-}
-
-.hc-form-group input,
-.hc-form-group select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border 0.3s;
-  box-sizing: border-box;
-}
-
-.hc-form-group input:focus,
-.hc-form-group select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-}
-
-.hc-form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-  justify-content: flex-end;
-}
-
-.hc-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.hc-btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.hc-btn-primary:hover {
-  background: #5568d3;
-}
-
-.hc-btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.hc-btn-secondary:hover {
-  background: #5a6268;
-}
-
-.hc-btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.hc-btn-danger:hover {
-  background: #c82333;
-}
-
-.hc-modal-seleccion {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-}
-
-.hc-modal-seleccion.active {
-  display: flex;
-}
-
-.hc-modal-seleccion-content {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.2);
-}
-
-.hc-modal-seleccion-content h3 {
-  margin: 0 0 16px;
-  color: #667eea;
-  font-size: 18px;
-}
-
-.hc-modal-seleccion-content p {
-  margin: 0 0 16px;
-  color: #666;
-  font-size: 14px;
-}
-
-.hc-clase-option {
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.hc-clase-option:hover {
-  border-color: #667eea;
-  background: #f8f9ff;
-  transform: translateX(4px);
-}
-
-.hc-clase-option-curso {
-  font-weight: 700;
+.calendario-error-text {
   font-size: 16px;
-  color: #333;
-  margin-bottom: 4px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.hc-clase-option-horario {
-  font-size: 13px;
-  color: #666;
+.calendario-error-subtext {
+  font-size: 14px;
+  color: #999;
 }
 
-.hc-modal-seleccion-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
-.hc-loading {
-  text-align: center;
-  padding: 40px;
-  color: #667eea;
-}
-
-.hc-spinner {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(102,126,234,.2);
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: hc-spin .8s linear infinite;
-}
-
-@keyframes hc-spin {
-  to { transform: rotate(360deg); }
-}
-
+/* RESPONSIVE */
 @media (max-width: 768px) {
-  .hc-grid {
-    font-size: 11px;
+  .calendario-header {
+    flex-direction: column;
+    gap: 12px;
   }
-  
-  .hc-grid .hc-col-hora {
-    width: 60px;
+
+  .calendario-nav {
+    display: flex;
+    gap: 8px;
   }
-  
-  .hc-celda-clase {
-    font-size: 10px;
-    padding: 4px;
+
+  .calendario-celda {
+    min-height: 80px;
+    padding: 6px;
   }
-  
-  .hc-form-content {
+
+  .calendario-dia-numero {
+    font-size: 14px;
+  }
+
+  .calendario-modal-content {
     width: 95%;
-    padding: 20px;
+    max-width: none;
   }
 }
 </style>
-<!-- MOD-003: FIN -->
+<!-- MOD-002: FIN -->
 
-<!-- MOD-004: ESTRUCTURA HTML [INICIO] -->
-<div class="hc-grid-container">
-  <div class="hc-loading" id="loadingHC">
-    <div class="hc-spinner"></div>
-    <p>Cargando horario...</p>
-  </div>
-  <div id="hcGridContainer"></div>
-</div>
-
-<div id="formClase" class="hc-form-overlay">
-  <div class="hc-form-content">
-    <h3 id="formTitle">Agregar Clase</h3>
-    
-    <form id="claseForm" onsubmit="return window.handleSubmitClase(event)">
-      <input type="hidden" id="claseRowNumber">
-      <input type="hidden" id="claseModoEdicion" value="false">
-      <input type="hidden" id="claseDia">
-      <input type="hidden" id="claseHoraSlot">
-      
-      <div class="hc-form-group">
-        <label>Curso:</label>
-        <select id="claseCurso" required>
-          <option value="">Seleccionar...</option>
-        </select>
-      </div>
-      
-      <div class="hc-form-group">
-        <label>Hora Inicio:</label>
-        <input type="time" id="claseHoraIni" required>
-      </div>
-      
-      <div class="hc-form-group">
-        <label>Hora Fin:</label>
-        <input type="time" id="claseHoraFin" required>
-      </div>
-      
-      <div class="hc-form-actions">
-        <button type="button" class="hc-btn hc-btn-secondary" onclick="window.cancelarFormClase()">Cancelar</button>
-        <button type="button" class="hc-btn hc-btn-danger" id="btnEliminar" style="display:none" onclick="window.confirmarEliminarClase()">Eliminar</button>
-        <button type="submit" class="hc-btn hc-btn-primary" id="btnSubmit">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="modalSeleccion" class="hc-modal-seleccion">
-  <div class="hc-modal-seleccion-content">
-    <h3>Seleccionar Clase</h3>
-    <p>Hay múltiples clases en este horario. Selecciona una:</p>
-    <div id="modalSeleccionOpciones"></div>
-    <div class="hc-modal-seleccion-actions">
-      <button class="hc-btn hc-btn-secondary" onclick="window.cerrarModalSeleccion()">Cancelar</button>
+<!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
+<div class="calendario-container">
+  <div class="calendario-header">
+    <h2 id="calTitulo">Calendario</h2>
+    <div class="calendario-nav">
+      <button onclick="CalendarioModule.nav(-1)">← Anterior</button>
+      <button onclick="CalendarioModule.hoy()">Hoy</button>
+      <button onclick="CalendarioModule.nav(1)">Siguiente →</button>
     </div>
   </div>
+
+  <div id="calLoading" class="calendario-loading">
+    <div class="spinner"></div>
+    <div>Cargando calendario...</div>
+  </div>
+
+  <div id="calError" class="calendario-error">
+    <div class="calendario-error-icon">⚠️</div>
+    <div class="calendario-error-text">Error al cargar el calendario</div>
+    <div class="calendario-error-subtext">Por favor, recarga la página</div>
+  </div>
+
+  <div id="calGrid" class="calendario-grid">
+    <div class="calendario-dia-header">Lun</div>
+    <div class="calendario-dia-header">Mar</div>
+    <div class="calendario-dia-header">Mié</div>
+    <div class="calendario-dia-header">Jue</div>
+    <div class="calendario-dia-header">Vie</div>
+    <div class="calendario-dia-header">Sáb</div>
+    <div class="calendario-dia-header">Dom</div>
+  </div>
 </div>
-<!-- MOD-004: FIN -->
 
-<!-- MOD-005: JAVASCRIPT - INICIO [INICIO] -->
+<div id="calModal" class="calendario-modal" onclick="CalendarioModule.cerrarSiFondo(event)">
+  <div class="calendario-modal-content" onclick="event.stopPropagation()">
+    <div class="calendario-modal-header">
+      <h3 id="modalTitulo"></h3>
+      <button onclick="CalendarioModule.cerrar()">×</button>
+    </div>
+    <div id="modalBody" class="calendario-modal-body"></div>
+  </div>
+</div>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
-(function () {
-'use strict';
-<!-- MOD-005: FIN -->
+(function PBE_CALENDARIO_MODULE() {
+  'use strict';
 
-<!-- MOD-006: VERIFICACIÓN Y CONSTANTES [INICIO] -->
-if (window.HorarioClaseModule) {
-  console.log('🕐 HorarioClaseModule ya existe, ignorando carga');
-  return;
-}
-
-console.log('🕐 HorarioClaseModule V01.23 CODEWORKSHOP iniciando...');
-
-let clasesData = [];
-let cursosData = [];
-let horarioMatrix = {};
-const HORA_INICIO = 7;
-const HORA_FIN = 22;
-const DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-const DIAS_CORTOS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-let _initDone = false;
-let _retryCount = 0;
-const MAX_RETRIES = 5;
-<!-- MOD-006: FIN -->
-
-<!-- MOD-007: FUNCIÓN INICIALIZACIÓN [INICIO] -->
-function init() {
-  console.log('🕐 HorarioClaseModule.init() llamado (intento ' + (_retryCount + 1) + ')');
-  
-  if (_initDone) {
-    console.log('🕐 Ya inicializado, ignorando');
-    return;
-  }
-  
-  if (!window.currentUser || !currentUser.codeAlum) {
-    console.warn('🕐 currentUser no disponible, reintentando...');
-    
-    if (_retryCount < MAX_RETRIES) {
-      _retryCount++;
-      setTimeout(init, 200);
-    } else {
-      console.error('🕐 currentUser no disponible después de ' + MAX_RETRIES + ' intentos');
-      ocultarLoading();
-    }
-    return;
-  }
-  
-  _initDone = true;
-  console.log('🕐 Inicializado para:', currentUser.codeAlum);
-  
-  cargarCursos();
-  cargarHorarioClases();
-}
-<!-- MOD-007: FIN -->
-
-<!-- MOD-008: FUNCIÓN CARGA DE CURSOS [INICIO] -->
-function cargarCursos() {
-  console.log('🕐 Cargando cursos...');
-  
-  google.script.run
-    .withSuccessHandler(r => {
-      console.log('🕐 Cursos response:', r);
-      
-      if (r && r.success) {
-        cursosData = r.data || [];
-        console.log('🕐 Cursos cargados:', cursosData.length);
-        poblarDropdownCursos();
-      } else {
-        console.error('🕐 Error en cursos:', r);
-      }
-    })
-    .withFailureHandler(e => {
-      console.error('🕐 Error al cargar cursos:', e);
-    })
-    .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
-}
-
-function poblarDropdownCursos() {
-  const select = document.getElementById('claseCurso');
-  if (!select) return;
-  
-  const primerOption = select.options[0].outerHTML;
-  select.innerHTML = primerOption;
-
-  cursosData.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.Curso;
-    opt.textContent = c.Curso + ' - ' + c.Completo;
-    opt.dataset.color = c.Color || '#667eea';
-    select.appendChild(opt);
-  });
-  
-  console.log('🕐 Dropdown poblado con', cursosData.length, 'cursos');
-}
-<!-- MOD-008: FIN -->
-
-<!-- MOD-009: FUNCIÓN CARGA DE HORARIO [INICIO] -->
-function cargarHorarioClases() {
-  console.log('🕐 Cargando horario clases...');
-  
-  google.script.run
-    .withSuccessHandler(r => {
-      console.log('🕐 HorarioClases response:', r);
-      
-      if (r && r.success) {
-        clasesData = r.data || [];
-        console.log('🕐 Clases cargadas:', clasesData.length);
-        
-        if (clasesData.length > 0) {
-          console.log('🕐 Ejemplo de clase:', clasesData[0]);
-        }
-        
-        construirMatriz();
-        renderGrid();
-        ocultarLoading();
-      } else {
-        console.error('🕐 Error en response:', r);
-        renderGrid();
-        ocultarLoading();
-      }
-    })
-    .withFailureHandler(e => {
-      console.error('🕐 Error de conexión:', e);
-      renderGrid();
-      ocultarLoading();
-    })
-    .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
-}
-<!-- MOD-009: FIN -->
-
-<!-- MOD-010: FUNCIÓN CONSTRUCCIÓN DE MATRIZ [INICIO] -->
-function construirMatriz() {
-  console.log('🕐 Construyendo matriz con', clasesData.length, 'clases');
-  
-  horarioMatrix = {};
-  DIAS.forEach(d => horarioMatrix[d] = {});
-  
-  clasesData.forEach((c, idx) => {
-    console.log('🕐 Procesando clase ' + (idx + 1) + ':', {
-      Curso: c.Curso,
-      Detalle: c.Detalle,
-      HoraIni: c.HoraIni,
-      HoraFin: c.HoraFin
-    });
-    
-    const dia = extraerDia(c.Detalle);
-    console.log('🕐 Día extraído:', dia, 'de Detalle:', c.Detalle);
-    
-    if (!dia) {
-      console.warn('🕐 No se pudo extraer día de:', c.Detalle);
-      return;
-    }
-    
-    const horas = calcularHoras(c.HoraIni, c.HoraFin);
-    console.log('🕐 Horas calculadas:', horas.length, 'slots');
-    
-    horas.forEach(h => {
-      horarioMatrix[dia][h.hora] = horarioMatrix[dia][h.hora] || [];
-      horarioMatrix[dia][h.hora].push({ clase: c, ...h });
-    });
-  });
-  
-  let conflictos = 0;
-  DIAS.forEach(d => {
-    Object.keys(horarioMatrix[d]).forEach(h => {
-      if (horarioMatrix[d][h].length > 1) {
-        conflictos++;
-        const cursos = horarioMatrix[d][h].map(x => x.clase.Curso).join(', ');
-        console.log('🕐 ⚠️ Conflicto en', d, h + ':', cursos);
-      }
-    });
-  });
-  
-  if (conflictos > 0) {
-    console.log('🕐 Total de conflictos detectados:', conflictos);
-  }
-  
-  console.log('🕐 Matriz construida:', horarioMatrix);
-}
-<!-- MOD-010: FIN -->
-
-<!-- MOD-011: FUNCIONES HELPER DE PROCESAMIENTO [INICIO] -->
-function extraerDia(t) {
-  if (!t) return null;
-  const s = String(t).toLowerCase().trim();
-  const diaEncontrado = DIAS.find(d => {
-    const dLower = d.toLowerCase();
-    return s.includes(dLower) || dLower.includes(s);
-  });
-  return diaEncontrado || null;
-}
-
-function calcularHoras(i, f) {
-  const horaIniStr = normalizarHora(i);
-  const horaFinStr = normalizarHora(f);
-  
-  if (!horaIniStr || !horaFinStr) {
-    console.error('🕐 Horas inválidas después de normalizar');
-    return [];
-  }
-  
-  const [hi, mi] = horaIniStr.split(':').map(Number);
-  const [hf, mf] = horaFinStr.split(':').map(Number);
-  
-  const res = [];
-  
-  for (let h = hi; h <= hf; h++) {
-    if (h > HORA_FIN) break;
-    if (h === hf && mf === 0) continue;
-    
-    res.push({
-      hora: String(h).padStart(2, '0') + ':00',
-      prefijo: (h === hi && mi >= 30) ? '/' : '',
-      sufijo: (h === hf && mf > 0 && mf < 60) ? '/' : ''
-    });
-  }
-  
-  return res;
-}
-
-function normalizarHora(valor) {
-  if (!valor) return null;
-  
-  if (typeof valor === 'string') {
-    const match = valor.match(/(\d{1,2}):(\d{2})/);
-    if (match) {
-      const h = match[1].padStart(2, '0');
-      const m = match[2];
-      return h + ':' + m;
-    }
-  }
-  
-  if (typeof valor === 'object' && valor !== null) {
-    if ('hour' in valor && 'minute' in valor) {
-      const h = String(valor.hour).padStart(2, '0');
-      const m = String(valor.minute).padStart(2, '0');
-      return h + ':' + m;
-    }
-  }
-  
-  return null;
-}
-
-function colorCurso(curso) {
-  const c = cursosData.find(x => x.Curso === curso);
-  return c ? c.Color : '#667eea';
-}
-<!-- MOD-011: FIN -->
-
-<!-- MOD-012: FUNCIÓN RENDERIZADO DE GRID [INICIO] -->
-function renderGrid() {
-  console.log('🕐 Renderizando grid...');
-  
-  const c = document.getElementById('hcGridContainer');
-  if (!c) {
-    console.error('🕐 No se encontró hcGridContainer');
+  // PREVENIR DOBLE CARGA
+  if (window.CalendarioModule && window.CalendarioModule._loaded) {
+    console.log('🗓️ CalendarioModule ya cargado, ignorando');
     return;
   }
 
-  let html = '<table class="hc-grid"><thead><tr><th class="hc-col-hora">Hora</th>';
-  DIAS_CORTOS.forEach(d => html += `<th class="hc-col-dia">${d}</th>`);
-  html += '</tr></thead><tbody>';
+  console.log('🗓️ CalendarioModule V01.20 iniciando...');
 
-  let celdasOcupadas = 0;
-  let celdasVacias = 0;
-  let celdasConflicto = 0;
+  const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-  for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
-    const k = String(h).padStart(2, '0') + ':00';
-    const horaFormato = formatearHora12(h);
-    
-    html += `<tr><td class="hc-col-hora">${horaFormato}</td>`;
-    
-    DIAS.forEach(d => {
-      const s = horarioMatrix[d][k];
-      
-      if (s && s.length > 0) {
-        if (s.length > 1) {
-          celdasConflicto++;
-          
-          const nombres = s.map(x => {
-            const curso = x.clase.Curso;
-            return curso.length > 4 ? curso.substring(0, 4) : curso;
-          }).join('/');
-          
-          html += `<td><div class="hc-celda-clase ocupada conflicto" 
-            onclick="window.mostrarSeleccionClase('${d}','${k}')">
-            ${nombres}
-          </div></td>`;
-        } else {
-          celdasOcupadas++;
-          const x = s[0];
-          const color = colorCurso(x.clase.Curso);
-          const texto = x.prefijo + x.clase.Curso + x.sufijo;
-          
-          html += `<td><div class="hc-celda-clase ocupada" 
-            style="background:${color}" 
-            onclick="window.editarClase('${d}','${k}')">
-            ${texto}
-          </div></td>`;
-        }
-      } else {
-        celdasVacias++;
-        html += `<td><div class="hc-celda-clase" 
-          onclick="window.clickCelda('${d}','${k}')">
-        </div></td>`;
-      }
-    });
-    
-    html += '</tr>';
-  }
+  const CalendarioModule = {
+    _loaded: true,
+    _initDone: false,
+    _retryCount: 0,
+    m: new Date().getMonth(),
+    y: new Date().getFullYear(),
+    acts: [],
 
-  html += '</tbody></table>';
-  c.innerHTML = html;
-  
-  console.log('🕐 Grid renderizado:', { celdasOcupadas, celdasVacias, celdasConflicto });
-}
+    // INIT CON RETRY LOGIC
+    init() {
+      console.log('🗓️ CalendarioModule.init() llamado (intento ' + (this._retryCount + 1) + ')');
 
-function ocultarLoading() {
-  const l = document.getElementById('loadingHC');
-  if (l) l.style.display = 'none';
-}
-<!-- MOD-012: FIN -->
-
-<!-- MOD-013: FUNCIÓN MODAL SELECCIÓN [INICIO] -->
-function mostrarSeleccionClase(dia, hora) {
-  console.log('🕐 Mostrando selección de clase:', { dia, hora });
-  
-  const clases = horarioMatrix[dia][hora];
-  
-  if (!clases || clases.length === 0) {
-    alert('No hay clases en esta celda');
-    return;
-  }
-  
-  const modal = document.getElementById('modalSeleccion');
-  const opciones = document.getElementById('modalSeleccionOpciones');
-  
-  opciones.innerHTML = '';
-  
-  clases.forEach((c, idx) => {
-    const clase = c.clase;
-    const div = document.createElement('div');
-    div.className = 'hc-clase-option';
-    div.onclick = function() {
-      cerrarModalSeleccion();
-      editarClaseDirecta(clase);
-    };
-    
-    div.innerHTML = `
-      <div class="hc-clase-option-curso">${clase.Curso}</div>
-      <div class="hc-clase-option-horario">${clase.HoraIni} - ${clase.HoraFin}</div>
-    `;
-    
-    opciones.appendChild(div);
-  });
-  
-  modal.classList.add('active');
-}
-
-function cerrarModalSeleccion() {
-  const modal = document.getElementById('modalSeleccion');
-  modal.classList.remove('active');
-}
-
-function editarClaseDirecta(clase) {
-  console.log('🕐 Editando clase directa:', clase);
-  
-  const dia = extraerDia(clase.Detalle);
-  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
-  
-  document.getElementById('formTitle').textContent = 'Editar Clase - ' + diaCorto;
-  document.getElementById('claseRowNumber').value = clase._rowNumber || '';
-  document.getElementById('claseModoEdicion').value = 'true';
-  document.getElementById('claseDia').value = dia;
-  document.getElementById('claseHoraSlot').value = '';
-  document.getElementById('claseCurso').value = clase.Curso;
-  
-  document.getElementById('claseHoraIni').value = normalizarHora(clase.HoraIni) || '';
-  document.getElementById('claseHoraFin').value = normalizarHora(clase.HoraFin) || '';
-  
-  document.getElementById('btnSubmit').textContent = 'Actualizar';
-  document.getElementById('btnEliminar').style.display = 'block';
-
-  document.getElementById('formClase').classList.add('active');
-}
-<!-- MOD-013: FIN -->
-
-<!-- MOD-014: FUNCIÓN VALIDACIÓN SOLAPAMIENTO [INICIO] -->
-function verificarSolapamiento(dia, horaIni, horaFin, rowNumberActual) {
-  console.log('🕐 Verificando solapamiento:', { dia, horaIni, horaFin });
-  
-  const [hi, mi] = horaIni.split(':').map(Number);
-  const [hf, mf] = horaFin.split(':').map(Number);
-  
-  const horasOcupadas = calcularHoras(horaIni, horaFin);
-  const solapamientos = [];
-  
-  horasOcupadas.forEach(h => {
-    const clasesEnHora = horarioMatrix[dia][h.hora] || [];
-    
-    clasesEnHora.forEach(c => {
-      if (rowNumberActual && c.clase._rowNumber === rowNumberActual) {
+      if (this._initDone) {
+        console.log('🗓️ CalendarioModule ya inicializado, ignorando');
         return;
       }
+
+      if (typeof currentUser === 'undefined' || !currentUser) {
+        console.warn('🗓️ currentUser no disponible aún, reintentando...');
+        
+        if (this._retryCount < 5) {
+          this._retryCount++;
+          setTimeout(() => this.init(), 200);
+        } else {
+          console.error('🗓️ currentUser no disponible después de 5 intentos');
+          this.mostrarError('Usuario no disponible', 'Recarga la página');
+        }
+        return;
+      }
+
+      if (!currentUser.codeAlum) {
+        console.error('🗓️ currentUser.codeAlum vacío:', currentUser);
+        this.mostrarError('Código de alumno no disponible', 'Recarga la página');
+        return;
+      }
+
+      this._initDone = true;
+      console.log('🗓️ CalendarioModule inicializado para:', currentUser.codeAlum);
+
+      this.load();
+    },
+
+    nav(d) { 
+      this.m += d; 
+      if (this.m > 11) { this.m = 0; this.y++; } 
+      if (this.m < 0) { this.m = 11; this.y--; }
+      console.log('🗓️ Navegando a:', MESES[this.m], this.y);
+      this.render(); 
+    },
+
+    hoy() { 
+      const n = new Date(); 
+      this.m = n.getMonth(); 
+      this.y = n.getFullYear();
+      console.log('🗓️ Volviendo a hoy:', MESES[this.m], this.y);
+      this.render(); 
+    },
+
+    mostrarError(titulo, subtitulo) {
+      const loading = document.getElementById('calLoading');
+      const error = document.getElementById('calError');
+      const grid = document.getElementById('calGrid');
+
+      if (loading) loading.classList.remove('active');
+      if (grid) grid.style.display = 'none';
+
+      if (error) {
+        error.classList.add('active');
+        const t = error.querySelector('.calendario-error-text');
+        const s = error.querySelector('.calendario-error-subtext');
+        if (t) t.textContent = titulo || 'Error';
+        if (s) s.textContent = subtitulo || 'Por favor, recarga la página';
+      }
+    },
+
+    // CARGA DE DATOS
+    load() {
+      console.log('🗓️ Cargando datos del calendario...');
       
-      solapamientos.push(c.clase.Curso);
-    });
-  });
-  
-  const solapamientosUnicos = [...new Set(solapamientos)];
-  
-  return solapamientosUnicos;
-}
-<!-- MOD-014: FIN -->
+      const loading = document.getElementById('calLoading');
+      const error = document.getElementById('calError');
+      const grid = document.getElementById('calGrid');
 
-<!-- MOD-015: FUNCIONES FORMULARIO - AGREGAR [INICIO] -->
-function clickCelda(dia, hora) {
-  console.log('🕐 Click en celda:', { dia, hora });
-  abrirFormularioAgregar(dia, hora);
-}
+      if (loading) loading.classList.add('active');
+      if (error) error.classList.remove('active');
+      if (grid) grid.style.display = 'none';
 
-function abrirFormularioAgregar(dia, hora) {
-  resetFormClase();
+      Promise.all([
+        this.call('studentObtenerEvaluaciones', 'FechaEval', 'Evaluacion', 'evaluacion', 'Evaluación'),
+        this.call('studentObtenerTareas', 'FechaEntrega', 'TipoTarea', 'tarea', 'Tarea'),
+        this.call('studentObtenerLecturas', 'FechaEval', 'Título', 'lectura', 'Lectura'),
+        this.call('studentObtenerHorarioSem', 'FechaHS', 'Actividad', 'actividad', 'Actividad')
+      ]).then(results => {
+        this.acts = results.flat();
+        console.log('🗓️ Total de actividades cargadas:', this.acts.length);
+        console.log('🗓️ Desglose:', {
+          evaluaciones: results[0].length,
+          tareas: results[1].length,
+          lecturas: results[2].length,
+          actividades: results[3].length
+        });
 
-  const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
-  const horaFormato = formatearHora12Desde24(hora);
+        if (loading) loading.classList.remove('active');
+        if (grid) grid.style.display = 'grid';
+        
+        this.render();
+      }).catch(err => {
+        console.error('🗓️ Error en Promise.all:', err);
+        this.mostrarError('Error al cargar datos', 'No se pudieron obtener las actividades');
+      });
+    },
 
-  document.getElementById('formTitle').textContent = 'Agregar Clase - ' + diaCorto + ' ' + horaFormato;
-  document.getElementById('claseModoEdicion').value = 'false';
-  document.getElementById('claseDia').value = dia;
-  document.getElementById('claseHoraSlot').value = hora;
-  document.getElementById('btnSubmit').textContent = 'Guardar';
-  document.getElementById('btnEliminar').style.display = 'none';
+    // LLAMADAS AL BACKEND
+    call(fn, campoFecha, campoNombre, tipo, tipoNombre) {
+      console.log('🗓️ Llamando a:', fn);
+      
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(response => {
+            console.log('🗓️', fn, 'response:', response);
+            
+            if (!response) {
+              console.error('🗓️', fn, 'retornó NULL');
+              resolve([]);
+              return;
+            }
 
-  document.getElementById('claseHoraIni').value = hora;
-  
-  const [h] = hora.split(':').map(Number);
-  const horaFinSugerida = String(Math.min(h + 1, HORA_FIN + 1)).padStart(2, '0') + ':00';
-  document.getElementById('claseHoraFin').value = horaFinSugerida;
+            if (!response.success) {
+              console.error('🗓️', fn, 'error:', response.error);
+              resolve([]);
+              return;
+            }
 
-  document.getElementById('formClase').classList.add('active');
-  
-  const select = document.getElementById('claseCurso');
-  if (select) select.focus();
-}
-<!-- MOD-015: FIN -->
+            if (!Array.isArray(response.data)) {
+              console.error('🗓️', fn, 'data no es array:', response.data);
+              resolve([]);
+              return;
+            }
 
-<!-- MOD-016: FUNCIONES FORMULARIO - EDITAR [INICIO] -->
-function editarClase(dia, hora) {
-  console.log('🕐 Editar clase:', { dia, hora });
-  
-  const clases = horarioMatrix[dia][hora];
+            const mapped = response.data.map(item => {
+              const actividad = {
+                tipo: tipo,
+                tipoNombre: tipoNombre,
+                fecha: item[campoFecha] || '',
+                nombre: item[campoNombre] || 'Sin nombre',
+                curso: item.Curso || ''
+              };
 
-  if (!clases || clases.length === 0) {
-    if (window.showAlert) {
-      showAlert('error', 'No hay clase en esta celda');
-    } else {
-      alert('No hay clase en esta celda');
+              if (response.data.indexOf(item) === 0) {
+                console.log('🗓️', fn, 'ejemplo:', actividad);
+              }
+
+              return actividad;
+            });
+
+            console.log('🗓️', fn, 'mapeados:', mapped.length);
+            resolve(mapped);
+          })
+          .withFailureHandler(error => {
+            console.error('🗓️', fn, 'falló:', error);
+            resolve([]);
+          })
+          [fn]({ codeAlum: currentUser.codeAlum });
+      });
+    },
+
+    // RENDERIZADO
+    render() {
+      console.log('🗓️ Renderizando calendario:', MESES[this.m], this.y);
+      
+      document.getElementById('calTitulo').textContent = `${MESES[this.m]} ${this.y}`;
+      
+      const grid = document.getElementById('calGrid');
+      
+      while (grid.children.length > 7) {
+        grid.removeChild(grid.lastChild);
+      }
+
+      const primerDia = new Date(this.y, this.m, 1);
+      const start = (primerDia.getDay() || 7) - 1;
+      let d = 1 - start;
+
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < 42; i++, d++) {
+        const date = new Date(this.y, this.m, d);
+        const fueraMes = date.getMonth() !== this.m;
+        
+        const cell = document.createElement('div');
+        cell.className = 'calendario-celda' + (fueraMes ? ' fuera-mes' : '');
+        
+        const cellDate = new Date(date);
+        cellDate.setHours(0, 0, 0, 0);
+        if (cellDate.getTime() === hoy.getTime()) {
+          cell.classList.add('hoy');
+        }
+
+        cell.innerHTML = `<div class="calendario-dia-numero">${date.getDate()}</div>`;
+
+        if (!fueraMes) {
+          const fechaStr = this.formatearFecha(date);
+          const actsDia = this.acts.filter(a => a.fecha === fechaStr);
+
+          if (actsDia.length > 0) {
+            const ind = document.createElement('div');
+            ind.className = 'calendario-indicadores';
+            
+            const tiposUnicos = [...new Set(actsDia.map(a => a.tipo))];
+            tiposUnicos.forEach(t => {
+              const dot = document.createElement('span');
+              dot.className = 'calendario-dot ' + t;
+              ind.appendChild(dot);
+            });
+            
+            cell.appendChild(ind);
+            cell.onclick = () => this.abrirModal(date, actsDia);
+          }
+        }
+        
+        grid.appendChild(cell);
+      }
+
+      console.log('🗓️ Calendario renderizado con 42 celdas');
+    },
+
+    // MODAL
+    abrirModal(fecha, actividades) {
+      console.log('🗓️ Abriendo modal para:', this.formatearFecha(fecha), 'con', actividades.length, 'actividades');
+      
+      document.getElementById('modalTitulo').textContent = 
+        `${fecha.getDate()} de ${MESES[fecha.getMonth()]} ${this.y}`;
+      
+      const body = document.getElementById('modalBody');
+      body.innerHTML = actividades.map(a => `
+        <div class="calendario-actividad-item ${a.tipo}">
+          <strong>${a.tipoNombre}</strong>
+          <div>${a.nombre}</div>
+          ${a.curso ? `<div>Curso: ${a.curso}</div>` : ''}
+        </div>
+      `).join('');
+      
+      document.getElementById('calModal').classList.add('active');
+    },
+
+    cerrar() {
+      console.log('🗓️ Cerrando modal');
+      document.getElementById('calModal').classList.remove('active');
+    },
+
+    cerrarSiFondo(event) {
+      if (event.target.id === 'calModal') {
+        this.cerrar();
+      }
+    },
+
+    // HELPERS
+    formatearFecha(date) {
+      const dia = String(date.getDate()).padStart(2, '0');
+      const mes = String(date.getMonth() + 1).padStart(2, '0');
+      const anio = date.getFullYear();
+      return `${dia}/${mes}/${anio}`;
     }
-    return;
-  }
-
-  const clase = clases[0].clase;
-  editarClaseDirecta(clase);
-}
-<!-- MOD-016: FIN -->
-
-<!-- MOD-017: FUNCIONES FORMULARIO - SUBMIT [INICIO] -->
-function handleSubmitClase(event) {
-  event.preventDefault();
-
-  const curso = document.getElementById('claseCurso').value.trim();
-  const horaIni = document.getElementById('claseHoraIni').value.trim();
-  const horaFin = document.getElementById('claseHoraFin').value.trim();
-  const dia = document.getElementById('claseDia').value;
-  const esEdicion = document.getElementById('claseModoEdicion').value === 'true';
-  const rowNumber = document.getElementById('claseRowNumber').value;
-
-  if (!curso || !horaIni || !horaFin) {
-    if (window.showAlert) {
-      showAlert('error', 'Completa todos los campos');
-    } else {
-      alert('Completa todos los campos');
-    }
-    return false;
-  }
-
-  if (horaIni >= horaFin) {
-    if (window.showAlert) {
-      showAlert('error', 'La hora de fin debe ser mayor a la de inicio');
-    } else {
-      alert('La hora de fin debe ser mayor a la de inicio');
-    }
-    return false;
-  }
-
-  const solapamientos = verificarSolapamiento(dia, horaIni, horaFin, rowNumber ? parseInt(rowNumber) : null);
-  
-  if (solapamientos.length > 0) {
-    const mensaje = `⚠️ Ya existe ${solapamientos.join(', ')} en este horario.\n\n¿Crear solapamiento de todos modos?`;
-    
-    if (!confirm(mensaje)) {
-      return false;
-    }
-  }
-
-  const btnSubmit = document.getElementById('btnSubmit');
-  btnSubmit.disabled = true;
-  btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
-
-  const params = {
-    codeAlum: currentUser.codeAlum,
-    curso: curso,
-    horaIni: horaIni,
-    horaFin: horaFin,
-    detalle: dia
   };
 
-  if (esEdicion) {
-    if (rowNumber) {
-      params.rowNumber = parseInt(rowNumber);
-    }
+  // EXPONER GLOBALMENTE
+  window.CalendarioModule = CalendarioModule;
 
-    google.script.run
-      .withSuccessHandler(r => handleClaseGuardada(r, true))
-      .withFailureHandler(e => handleClaseError(e, true))
-      .studentActualizarHorarioClase(params);
-  } else {
-    google.script.run
-      .withSuccessHandler(r => handleClaseGuardada(r, false))
-      .withFailureHandler(e => handleClaseError(e, false))
-      .studentAgregarHorarioClase(params);
-  }
-
-  return false;
-}
-
-function handleClaseGuardada(response, esEdicion) {
-  const btnSubmit = document.getElementById('btnSubmit');
-  btnSubmit.disabled = false;
-  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-
-  if (response && response.success) {
-    const msg = esEdicion ? '✔ Clase actualizada' : '✔ Clase agregada';
-    if (window.showAlert) {
-      showAlert('success', msg);
+  // AUTO-INIT CON RETRY
+  setTimeout(() => {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+      console.log('🗓️ currentUser detectado, auto-inicializando...');
+      CalendarioModule.init();
     } else {
-      alert(msg);
+      console.log('🗓️ currentUser no disponible, iniciando retry logic...');
+      CalendarioModule.init();
     }
-    cancelarFormClase();
-    cargarHorarioClases();
-  } else {
-    const error = response ? response.error : 'Error desconocido';
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
-  }
-}
+  }, 150);
 
-function handleClaseError(error, esEdicion) {
-  console.error('🕐 Error:', error);
-  
-  const btnSubmit = document.getElementById('btnSubmit');
-  btnSubmit.disabled = false;
-  btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
-  if (window.showAlert) {
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
-  } else {
-    alert('Error de conexión. Intenta nuevamente');
-  }
-}
-<!-- MOD-017: FIN -->
-
-<!-- MOD-018: FUNCIONES FORMULARIO - ELIMINAR [INICIO] -->
-function confirmarEliminarClase() {
-  const rowNumber = document.getElementById('claseRowNumber').value;
-
-  if (!rowNumber) {
-    if (window.showAlert) {
-      showAlert('error', 'No se puede eliminar esta clase');
-    } else {
-      alert('No se puede eliminar esta clase');
-    }
-    return;
-  }
-
-  if (confirm('¿Eliminar esta clase del horario?\n\nEsta acción no se puede deshacer.')) {
-    eliminarClase(parseInt(rowNumber));
-  }
-}
-
-function eliminarClase(rowNumber) {
-  google.script.run
-    .withSuccessHandler(handleClaseEliminada)
-    .withFailureHandler(e => {
-      console.error('🕐 Error al eliminar:', e);
-      if (window.showAlert) {
-        showAlert('error', 'Error al eliminar');
-      } else {
-        alert('Error al eliminar');
-      }
-    })
-    .studentEliminarHorarioClase({ rowNumber: rowNumber });
-}
-
-function handleClaseEliminada(response) {
-  if (response && response.success) {
-    if (window.showAlert) {
-      showAlert('success', '✔ Clase eliminada');
-    } else {
-      alert('Clase eliminada');
-    }
-    cancelarFormClase();
-    cargarHorarioClases();
-  } else {
-    const error = response ? response.error : 'Error desconocido';
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
-  }
-}
-<!-- MOD-018: FIN -->
-
-<!-- MOD-019: FUNCIONES FORMULARIO - HELPERS [INICIO] -->
-function resetFormClase() {
-  const form = document.getElementById('claseForm');
-  if (form) form.reset();
-  
-  document.getElementById('claseRowNumber').value = '';
-  document.getElementById('claseModoEdicion').value = 'false';
-  document.getElementById('claseDia').value = '';
-  document.getElementById('claseHoraSlot').value = '';
-}
-
-function cancelarFormClase() {
-  const formDiv = document.getElementById('formClase');
-  if (formDiv) formDiv.classList.remove('active');
-  resetFormClase();
-}
-<!-- MOD-019: FIN -->
-
-<!-- MOD-020: FUNCIONES FORMATEO [INICIO] -->
-function formatearHora12(h) {
-  if (h === 12) return '12 PM';
-  if (h > 12) return (h - 12) + ' PM';
-  if (h === 0) return '12 AM';
-  return h + ' AM';
-}
-
-function formatearHora12Desde24(hora24Str) {
-  const [h] = hora24Str.split(':').map(Number);
-  return formatearHora12(h);
-}
-<!-- MOD-020: FIN -->
-
-<!-- MOD-021: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO] -->
-window.clickCelda = clickCelda;
-window.abrirFormularioAgregar = abrirFormularioAgregar;
-window.editarClase = editarClase;
-window.mostrarSeleccionClase = mostrarSeleccionClase;
-window.cerrarModalSeleccion = cerrarModalSeleccion;
-window.handleSubmitClase = handleSubmitClase;
-window.confirmarEliminarClase = confirmarEliminarClase;
-window.cancelarFormClase = cancelarFormClase;
-
-setTimeout(function() {
-  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
-    console.log('🕐 currentUser detectado, inicializando...');
-    init();
-  } else {
-    console.log('🕐 currentUser no disponible, iniciando retry...');
-    init();
-  }
-}, 150);
-
-window.HorarioClaseModule = {
-  init: init,
-  clickCelda: clickCelda,
-  abrirFormularioAgregar: abrirFormularioAgregar,
-  editarClase: editarClase,
-  mostrarSeleccionClase: mostrarSeleccionClase,
-  guardarClase: handleSubmitClase,
-  eliminarClase: confirmarEliminarClase,
-  cancelar: cancelarFormClase
-};
-
-console.log('%c🕐 HorarioClaseModule V01.23 CODEWORKSHOP cargado',
-  'font-size:11px;color:#667eea;font-weight:bold');
+  console.log('%c🗓️ CalendarioModule V01.20 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
 })();
 </script>
-<!-- MOD-021: FIN -->
+<!-- MOD-004: FIN -->
 
-
-<!-- MOD-022: CIERRE [INICIO] -->
-  </body>
-</html>
-<!-- MOD-022: FIN -->
-
-
-<!-- MOD-023: DOCUMENTACIÓN Y NOTAS [INICIO] -->
+<!-- MOD-099: NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN GENERAL:
-Sistema de Horario de Clases fijas semanales.
-Grid visual 7 días × 16 horas (7 AM - 10 PM).
+DESCRIPCIÓN:
+Calendario mensual interactivo con vista de actividades académicas
+Muestra evaluaciones, tareas, lecturas y actividades del horario semanal
 
-CAMBIOS V01.23 CODEWORKSHOP:
-✅ Aplicación completa del estándar CodeWorkshop v2.1
-✅ Corrección de comentarios: uso de // en lugar de comentarios HTML
-✅ Enumeración secuencial correcta de módulos
-✅ Eliminación de comentarios redundantes
-✅ Cierre correcto de cada módulo
-✅ Uso apropiado de /* */ solo cuando es necesario
+FUNCIONALIDAD:
+Renderizar calendario mensual con grid de 6x7
+Navegar entre meses (anterior/siguiente/hoy)
+Cargar actividades desde múltiples fuentes
+Mostrar indicadores visuales por tipo de actividad
+Modal con detalle de actividades al hacer click en día
 
-
-CARACTERÍSTICAS:
-- Grid 15 filas (7 AM - 10 PM) × 7 días
-- Click en celda → Formulario agregar/editar
-- Click en conflicto → Menú selección de clase
-- Visualización con color del curso
-- Validación de solapamientos antes de guardar
-- Regla medias horas: "/" indica inicio/fin con minutos
-- Celda conflicto muestra ambos cursos "QUIM/BIOL"
-- Modal de selección con botones claros
-- Trunca nombres largos con "..." si no caben
-
-DESCRIPCIÓN TÉCNICA:
-Sistema de Horario de Clases con grid visual 7x16, 
-formularios modales, manejo de conflictos y 
-validación de solapamientos.
-
-DEPENDENCIAS:
-- MOD-007: Requiere window.currentUser.codeAlum
-- MOD-008: Requiere studentObtenerCursos() backend
-- MOD-009: Requiere studentObtenerHorarioClases() backend
-- MOD-017: Requiere studentAgregarHorarioClase() y 
-           studentActualizarHorarioClase() backend
-- MOD-018: Requiere studentEliminarHorarioClase() backend
-- Opcional: window.showAlert() para notificaciones
+TIPOS DE ACTIVIDADES:
+Evaluaciones (rojo): Exámenes y pruebas
+Tareas (amarillo): Trabajos y asignaciones
+Lecturas (verde): Material de lectura
+Actividades (azul): Horario semanal
 
 ESTRUCTURA DE DATOS:
-HorarioClases {
-  FechaReg, CodeAlum, Curso, HoraIni, HoraFin, Detalle
-}
+Cada actividad contiene:
+- tipo: evaluacion, tarea, lectura, actividad
+- tipoNombre: Nombre legible del tipo
+- fecha: DD/MM/AAAA
+- nombre: Nombre de la actividad
+- curso: Código del curso
 
-Cursos {
-  Curso, Completo, Color
-}
+CARACTERÍSTICAS TÉCNICAS:
+Módulo objeto CalendarioModule
+Retry logic para currentUser (5 intentos, 200ms)
+Promise.all para carga paralela de datos
+Validación robusta de respuestas backend
+Logs exhaustivos con prefijo 🗓️
 
-ADVERTENCIAS CRÍTICAS:
-- MOD-006: DIAS es constante, no usar .push()
-- MOD-010: extraerDia() requiere Detalle con nombre de día
-- MOD-011: calcularHoras() no valida fuera rango 7-22
-- MOD-012: renderGrid() sobrescribe innerHTML completo
-- MOD-014: verificarSolapamiento() no valida día inválido
-- MOD-017: handleSubmitClase() permite solapamientos 
-           con confirmación del usuario
+MAPEO DE CAMPOS BACKEND:
+Evaluaciones: FechaEval → Evaluacion
+Tareas: FechaEntrega → TipoTarea
+Lecturas: FechaEval → Título
+Horario: FechaHS → Actividad
 
-AISLAMIENTO:
-- Prefijo CSS: .hc-
-- IDs únicos: hcGridContainer, loadingHC, 
-              formClase, modalSeleccion
-- Sin conflicto con HorarioSemanal (prefijo .hs-)
-- IIFE con 'use strict' para encapsulamiento
+CONEXIÓN BACKEND:
+studentObtenerEvaluaciones({ codeAlum }): Lista de evaluaciones
+studentObtenerTareas({ codeAlum }): Lista de tareas
+studentObtenerLecturas({ codeAlum }): Lista de lecturas
+studentObtenerHorarioSem({ codeAlum }): Horario semanal
 
-PRÓXIMAS MEJORAS SUGERIDAS:
-- Drag & drop para mover clases
-- Vista de impresión optimizada
-- Exportación a PDF/imagen
-- Responsive mejorado para móviles pequeños
-- Atajos de teclado (Esc para cerrar modales)
-- Modo oscuro
-- Sincronización en tiempo real
+DEPENDENCIAS:
+currentUser.codeAlum: Identificador del estudiante
+Requiere backend V01.25+ (fechas DD/MM/AAAA)
+
+CALENDARIO:
+Grid de 7 columnas (Lun-Dom)
+42 celdas (6 semanas)
+Semana comienza en Lunes
+Marca el día actual con borde azul
+Días fuera del mes en gris
+
+INDICADORES:
+Puntos de colores en días con actividades
+Un punto por tipo único de actividad
+Click en día abre modal con lista completa
+
+MODAL:
+Header con fecha seleccionada
+Lista de actividades con colores por tipo
+Cierre con botón X o click fuera del modal
+
+NAVEGACIÓN:
+← Anterior: Mes anterior
+Hoy: Volver al mes actual
+Siguiente →: Mes siguiente
+
+ESTADOS UI:
+Loading: Spinner mientras carga datos
+Error: Mensaje de error con opción de recarga
+Calendario: Grid con días y actividades
+
+PROTECCIONES:
+Previene doble carga (_loaded flag)
+Init idempotente (_initDone flag)
+Retry logic robusto para currentUser
+Validación de respuestas NULL/success/data
+
+RESPONSIVE:
+Mobile: Header en columna, celdas más pequeñas
+Desktop: Header en fila, celdas amplias
+Modal: Ancho adaptativo (95% mobile, 90% desktop)
+
+CAMBIOS V01.19 → V01.20:
+Remodulación Estándar CodeWorkShop v4.0
+CSS en MOD-002
+HTML en MOD-003
+JavaScript (módulo objeto) en MOD-004
+Comentarios aligerados
+Notas consolidadas en MOD-099
+Mantiene lógica funcional sin cambios
+Mantiene retry logic y mapeo de campos corregidos
 -->
-<!-- MOD-023: FIN -->
+<!-- MOD-099: FIN -->
