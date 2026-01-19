@@ -1,54 +1,48 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 4atabcursosyrep.html - V01.22 CLAUDE
-Sistema de Gestión Académica
-07/01/2026
-
-CAMBIOS V01.22 CLAUDE:
-✅ FIX CRÍTICO: Activa subtab Cursos por defecto
-✅ FIX CRÍTICO: Conecta evento 'pbe:subtab-activated' con módulos
-✅ Llama a CursosModule.init() o RepasosModule.init() cuando se activan
-✅ Subtabs ahora se inicializan correctamente
-
-CAMBIOS V01.21 GPT:
-- NO se carga ningún subtab automáticamente
-- Los subtabs solo se inicializan por clic del usuario
-- Evita ejecución múltiple de scripts hijos
-- Mantiene lazy-load controlado vía evento
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 4atabcursosyrep.html
+VERSIÓN: 01.23
+FECHA: 18/01/2026 12:35 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
 
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-  .subtabs-container { margin-bottom: 20px; }
+.subtabs-container { margin-bottom: 20px; }
 
-  .subtabs-nav {
-    display: flex;
-    gap: 8px;
-    border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 20px;
-  }
+.subtabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 20px;
+}
 
-  .subtab-btn {
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
+.subtab-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
 
-  .subtab-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-  }
+.subtab-btn.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
 
-  .subtab-content { display: none; }
-  .subtab-content.active { display: block; }
+.subtab-content { display: none; }
+.subtab-content.active { display: block; }
 </style>
+<!-- MOD-002: FIN -->
 
+<!-- MOD-003: CONTENEDOR SUBTABS [INICIO] -->
 <div class="subtabs-container">
 
   <div class="subtabs-nav">
@@ -68,7 +62,9 @@ CAMBIOS V01.21 GPT:
   </div>
 
 </div>
+<!-- MOD-003: FIN -->
 
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
 (function () {
   'use strict';
@@ -78,30 +74,21 @@ CAMBIOS V01.21 GPT:
     repasos: false
   };
 
-  /* ==========================================
-     SWITCH DE SUBTABS
-     ========================================== */
+  // Switch de SubTabs
   function switchSubTab(name) {
 
-    // Ocultar todos los subtabs
     document.querySelectorAll('.subtab-content')
       .forEach(el => el.classList.remove('active'));
 
-    // Desactivar todos los botones
     document.querySelectorAll('.subtab-btn')
       .forEach(el => el.classList.remove('active'));
 
-    // Activar el subtab seleccionado
     document.getElementById('subtab-' + name).classList.add('active');
     document.getElementById('btn-subtab-' + name).classList.add('active');
 
-    // Inicializar subtab si es primera vez
     if (!loaded[name]) {
       loaded[name] = true;
 
-      // ==========================================
-      // V01.22 CLAUDE: LLAMAR DIRECTAMENTE AL MÓDULO
-      // ==========================================
       console.log('🟢 Inicializando subtab:', name);
       
       if (name === 'cursos' && window.CursosModule) {
@@ -110,7 +97,6 @@ CAMBIOS V01.21 GPT:
         window.RepasosModule.init();
       }
 
-      // Disparar evento por si algún módulo lo necesita
       document.dispatchEvent(
         new CustomEvent('pbe:subtab-activated', {
           detail: name
@@ -119,29 +105,83 @@ CAMBIOS V01.21 GPT:
     }
   }
 
-  /* ==========================================
-     V01.22 CLAUDE: AUTO-ACTIVAR CURSOS AL CARGAR
-     ========================================== */
+  // Auto-activar Cursos al cargar
   function initDefaultSubTab() {
-    console.log('📦 4atabcursosyrep V01.22 CLAUDE: Activando Cursos por defecto');
+    console.log('📦 4atabcursosyrep V01.23: Activando Cursos por defecto');
     
-    // Pequeño delay para asegurar que currentUser esté disponible
     setTimeout(function() {
       switchSubTab('cursos');
     }, 100);
   }
 
-  // Exponer función globalmente
   window.switchSubTab = switchSubTab;
 
-  // Activar subtab por defecto cuando el documento esté listo
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDefaultSubTab);
   } else {
     initDefaultSubTab();
   }
 
-  console.log('%c📦 4atabcursosyrep V01.22 CLAUDE cargado',
+  console.log('%c📦 4atabcursosyrep V01.23 cargado',
     'font-weight:bold;color:#667eea');
 })();
 </script>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Contenedor de subtabs para Cursos y Repasos
+Sistema de lazy-load controlado por eventos
+
+SUBTABS INCLUIDOS:
+- subtab-cursos → include('5atabcursos')
+- subtab-repasos → include('5atabrepasos')
+
+FUNCIONALIDAD:
+- Navegación entre Cursos y Repasos mediante botones
+- Lazy-load: Los subtabs solo se inicializan al activarse por primera vez
+- Auto-activación: Cursos se activa por defecto al cargar
+
+FLUJO DE INICIALIZACIÓN:
+1. IIFE se ejecuta inmediatamente al cargar el módulo
+2. initDefaultSubTab() se llama con delay de 100ms
+3. switchSubTab('cursos') activa el primer subtab
+4. Llama a CursosModule.init() si existe
+5. Dispara evento 'pbe:subtab-activated'
+
+SISTEMA DE LAZY-LOAD:
+- Variable loaded controla qué subtabs ya fueron inicializados
+- Primera activación: loaded[name] = false → inicializa módulo
+- Activaciones posteriores: loaded[name] = true → solo cambia UI
+
+CONEXIÓN CON MÓDULOS:
+- window.CursosModule.init(): Inicializa módulo de cursos
+- window.RepasosModule.init(): Inicializa módulo de repasos
+- Evento 'pbe:subtab-activated': Notifica activación de subtab
+
+CARACTERÍSTICAS TÉCNICAS:
+- IIFE para encapsular lógica
+- switchSubTab() expuesto globalmente
+- Auto-inicialización inteligente (DOMContentLoaded o inmediato)
+- Delay de 100ms para garantizar currentUser disponible
+
+DEPENDENCIAS:
+- window.CursosModule: Definido en 5atabcursos.html
+- window.RepasosModule: Definido en 5atabrepasos.html
+- currentUser: Variable global del panel principal
+
+FIX CRÍTICO V01.22 → V01.23:
+- Activa subtab Cursos por defecto automáticamente
+- Conecta eventos con módulos hijos correctamente
+- Llama directamente a init() de módulos
+- Elimina race condition de inicialización
+
+CAMBIOS V01.22 → V01.23:
+- Remodulación completa según Estándar CodeWorkShop v4.0
+- CSS encapsulado en MOD-002
+- HTML en MOD-003
+- JavaScript en MOD-004 (IIFE completo)
+- Comentarios consolidados en MOD-099
+-->
+<!-- MOD-099: FIN -->
