@@ -1,15 +1,15 @@
-/* MOD-001: ENCABEZADO [INICIO] */
+// MOD-001: ENCABEZADO [INICIO]
 /*
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1code.gs
-VERSIÓN: 01.28 CLAUDE
+VERSIÓN: 01.28
 FECHA: 10/01/2026 18:30 (UTC-5)
 ******************************************
 */
-/* MOD-001: FIN */
+// MOD-001: FIN
 
-/* MOD-002: ROUTER PRINCIPAL [INICIO] */
+// MOD-002: ROUTER PRINCIPAL [INICIO]
 function doGet(e) {
   var page = e.parameter.page;
   var scriptUrl = ScriptApp.getService().getUrl(); 
@@ -40,16 +40,16 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
-/* MOD-002: FIN */
+// MOD-002: FIN
 
-/* MOD-003: INCLUDE DINÁMICO [INICIO] */
+// MOD-003: INCLUDE DINÁMICO [INICIO]
 function include(filename) {
   var template = HtmlService.createTemplateFromFile(filename);
   return template.evaluate().getContent();
 }
-/* MOD-003: FIN */
+// MOD-003: FIN
 
-/* MOD-004: AUTENTICACIÓN [INICIO] */
+// MOD-004: AUTENTICACIÓN [INICIO]
 function autenticar(params) {
   try {
     var clave = params.clave;
@@ -86,9 +86,9 @@ function autenticar(params) {
     return { success: false, error: 'Error de servidor' };
   }
 }
-/* MOD-004: FIN */
+// MOD-004: FIN
 
-/* MOD-005: LIMPIEZA DE DATOS [INICIO] */
+// MOD-005: LIMPIEZA DE DATOS [INICIO]
 function cleanDataForSerialization(result) {
   if (!result || !result.success || !result.data) {
     return result;
@@ -172,9 +172,9 @@ function cleanObject(obj) {
   
   return cleaned;
 }
-/* MOD-005: FIN */
+// MOD-005: FIN
 
-/* MOD-006: WRAPPERS CURSOS [INICIO] */
+// MOD-006: WRAPPERS CURSOS [INICIO]
 function studentObtenerCursos(params) { 
   var result = Student.obtenerCursos(params);
   return cleanDataForSerialization(result);
@@ -194,9 +194,9 @@ function studentEliminarCurso(params) {
   var result = Student.eliminarCurso(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-006: FIN */
+// MOD-006: FIN
 
-/* MOD-007: WRAPPERS REPASOS [INICIO] */
+// MOD-007: WRAPPERS REPASOS [INICIO]
 function studentObtenerRepasos(params) { 
   var result = Student.obtenerRepasos(params);
   return cleanDataForSerialization(result);
@@ -216,9 +216,9 @@ function studentEliminarRepaso(params) {
   var result = Student.eliminarRepaso(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-007: FIN */
+// MOD-007: FIN
 
-/* MOD-008: WRAPPERS EVALUACIONES [INICIO] */
+// MOD-008: WRAPPERS EVALUACIONES [INICIO]
 function studentObtenerEvaluaciones(params) { 
   var result = Student.obtenerEvaluaciones(params);
   return cleanDataForSerialization(result);
@@ -238,9 +238,9 @@ function studentEliminarEvaluacion(params) {
   var result = Student.eliminarEvaluacion(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-008: FIN */
+// MOD-008: FIN
 
-/* MOD-009: WRAPPERS TAREAS [INICIO] */
+// MOD-009: WRAPPERS TAREAS [INICIO]
 function studentObtenerTareas(params) { 
   var result = Student.obtenerTareas(params);
   return cleanDataForSerialization(result);
@@ -260,9 +260,9 @@ function studentEliminarTarea(params) {
   var result = Student.eliminarTarea(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-009: FIN */
+// MOD-009: FIN
 
-/* MOD-010: WRAPPERS LECTURAS [INICIO] */
+// MOD-010: WRAPPERS LECTURAS [INICIO]
 function studentObtenerLecturas(params) { 
   var result = Student.obtenerLecturas(params);
   return cleanDataForSerialization(result);
@@ -282,9 +282,9 @@ function studentEliminarLectura(params) {
   var result = Student.eliminarLectura(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-010: FIN */
+// MOD-010: FIN
 
-/* MOD-011: WRAPPERS HORARIO CLASES [INICIO] */
+// MOD-011: WRAPPERS HORARIO CLASES [INICIO]
 function studentObtenerHorarioClases(params) { 
   var result = Student.obtenerHorarioClases(params);
   return cleanDataForSerialization(result);
@@ -304,9 +304,9 @@ function studentEliminarHorarioClase(params) {
   var result = Student.eliminarHorarioClase(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-011: FIN */
+// MOD-011: FIN
 
-/* MOD-012: WRAPPERS HORARIO SEMANAL [INICIO] */
+// MOD-012: WRAPPERS HORARIO SEMANAL [INICIO]
 function studentObtenerHorarioSem(params) { 
   var result = Student.obtenerHorarioSem(params);
   return cleanDataForSerialization(result);
@@ -326,9 +326,9 @@ function studentEliminarHorarioSem(params) {
   var result = Student.eliminarHorarioSem(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-012: FIN */
+// MOD-012: FIN
 
-/* MOD-013: WRAPPERS CONFIG SEMANAS [INICIO] */
+// MOD-013: WRAPPERS CONFIG SEMANAS [INICIO]
 function studentObtenerConfigSemana(params) {
   var result = Student.obtenerConfigSemana(params);
   return cleanDataForSerialization(result);
@@ -348,9 +348,9 @@ function studentLimpiarSemana(params) {
   var result = Student.limpiarSemana(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-013: FIN */
+// MOD-013: FIN
 
-/* MOD-014: WRAPPERS GESTIÓN SEMANAS [INICIO] */
+// MOD-014: WRAPPERS GESTIÓN SEMANAS [INICIO]
 function studentObtenerSemanas(params) {
   var result = Student.obtenerSemanas(params.codeAlum);
   return cleanDataForSerialization(result);
@@ -365,9 +365,9 @@ function studentEliminarSemana(params) {
   var result = Student.eliminarSemana(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-014: FIN */
+// MOD-014: FIN
 
-/* MOD-015: WRAPPERS NOTAS [INICIO] */
+// MOD-015: WRAPPERS NOTAS [INICIO]
 function studentObtenerNotasPorCurso(params) { 
   var result = Student.obtenerNotasPorCurso(params);
   return cleanDataForSerialization(result);
@@ -377,9 +377,9 @@ function studentObtenerResumenNotas(params) {
   var result = Student.obtenerResumenNotas(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-015: FIN */
+// MOD-015: FIN
 
-/* MOD-016: WRAPPERS DEBERES [INICIO] */
+// MOD-016: WRAPPERS DEBERES [INICIO]
 function studentObtenerTodosDeberes(params) { 
   var result = Student.obtenerTodosDeberes(params);
   return cleanDataForSerialization(result);
@@ -389,9 +389,9 @@ function studentObtenerDeberesPorTipo(params) {
   var result = Student.obtenerDeberesPorTipo(params);
   return cleanDataForSerialization(result);
 }
-/* MOD-016: FIN */
+// MOD-016: FIN
 
-/* MOD-017: WRAPPERS ADMIN [INICIO] */
+// MOD-017: WRAPPERS ADMIN [INICIO]
 function adminCrearAlumno(params) { 
   return Admin.crearAlumno(params); 
 }
@@ -403,11 +403,12 @@ function adminBuscarAlumno(params) {
 function adminEliminarAlumno(params) { 
   return Admin.eliminarAlumno(params); 
 }
-/* MOD-017: FIN */
+// MOD-017: FIN
 
-/* MOD-018: NOTAS [INICIO] */
+// MOD-018: NOTAS [INICIO]
 /*
-CAMBIOS V01.28 CLAUDE:
+CAMBIOS V01.28 CLAUDE+ fix mod coment:
+- Se corrigió etiquetado de comentarios para identificar los MOD el 17/01/2026
 ✅ Agregado MOD-014: Gestión Semanas (3 wrappers)
   - studentObtenerSemanas()
   - studentCrearSemana()
@@ -451,4 +452,4 @@ ADVERTENCIAS CRÍTICAS:
 ● MOD-005: isTimeValue() procesa times ANTES de fechas
 ● MOD-014: obtenerSemanas() recibe codeAlum directo, no params completo
 */
-/* MOD-018: FIN */
+// MOD-018: FIN
