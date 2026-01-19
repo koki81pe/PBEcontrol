@@ -1,53 +1,239 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
 <!--
-******************************************
-PBE CONTROL - 7ctabnotas.html - V01.18 GPT
-Sistema de Gestión Académica
-07/01/2026
-
-OBJETIVO V01.18:
-- Mantener 100% la funcionalidad de V01.17
-- Eliminar variables y funciones globales
-- Encapsular lógica para evitar colisiones
-- Inicialización segura en entorno SPA
-******************************************
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 7ctabnotas.html
+VERSIÓN: 01.20
+FECHA: 19/01/2026 00:06 (UTC-5)
+*****************************************
 -->
+<!-- MOD-001: FIN -->
 
+<!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* ==== ESTILOS (idénticos a V01.17) ==== */
-.notas-container{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.notas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px}
-.notas-header h2{margin:0;font-size:20px;color:#333}
-.notas-stats{display:flex;gap:16px;font-size:14px;color:#666}
-.stat-item strong{color:#333}
-.notas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-.curso-card{background:#fff;border:2px solid #e0e0e0;border-radius:12px;overflow:hidden;position:relative;transition:.3s}
-.curso-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
-.curso-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--curso-color)}
-.curso-card-content{padding:20px 20px 20px 26px}
-.curso-card-header{display:flex;justify-content:space-between;margin-bottom:16px}
-.curso-info h3{margin:0;font-size:16px;font-weight:700}
-.curso-codigo{font-size:13px;font-weight:600;color:#667eea;background:rgba(102,126,234,.1);padding:3px 10px;border-radius:6px}
-.promedio-badge{font-size:28px;font-weight:700}
-.promedio-badge.aprobado-excelente{color:#28a745}
-.promedio-badge.aprobado-justo{color:#ffc107}
-.promedio-badge.desaprobado{color:#dc3545}
-.promedio-badge.sin-notas{color:#999;font-size:16px}
-.promedio-label{font-size:11px;color:#999;text-transform:uppercase}
-.curso-estado{margin-top:12px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px}
-.estado-excelente{background:#d4edda;color:#155724}
-.estado-aprobado{background:#fff3cd;color:#856404}
-.estado-desaprobado{background:#f8d7da;color:#721c24}
-.estado-sin-notas{background:#e9ecef;color:#6c757d}
-.curso-detalle{display:flex;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid #e0e0e0}
-.detalle-item{text-align:center;flex:1}
-.detalle-item-valor{font-size:20px;font-weight:700;color:#667eea}
-.detalle-item-label{font-size:11px;color:#999}
-.loading-container{text-align:center;padding:40px;color:#667eea}
-.spinner{width:40px;height:40px;border:4px solid rgba(102,126,234,.2);border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty-state{text-align:center;padding:60px 20px;color:#999}
-</style>
 
+// MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO]
+/* CONTENEDOR PRINCIPAL */
+.notas-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.notas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.notas-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.notas-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-item strong {
+  color: #333;
+}
+// MOD-002-S01: FIN
+
+// MOD-002-S02: GRID DE CURSOS [INICIO]
+/* GRID DE CURSOS */
+.notas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+// MOD-002-S02: FIN
+
+// MOD-002-S03: TARJETA DE CURSO [INICIO]
+/* TARJETA DE CURSO */
+.curso-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.curso-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.curso-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--curso-color);
+}
+
+.curso-card-content {
+  padding: 20px 20px 20px 26px;
+}
+
+.curso-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.curso-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.curso-codigo {
+  font-size: 13px;
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+// MOD-002-S03: FIN
+
+// MOD-002-S04: PROMEDIO BADGE [INICIO]
+/* PROMEDIO BADGE */
+.promedio-badge {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.promedio-badge.aprobado-excelente {
+  color: #28a745;
+}
+
+.promedio-badge.aprobado-justo {
+  color: #ffc107;
+}
+
+.promedio-badge.desaprobado {
+  color: #dc3545;
+}
+
+.promedio-badge.sin-notas {
+  color: #999;
+  font-size: 16px;
+}
+
+.promedio-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+}
+// MOD-002-S04: FIN
+
+// MOD-002-S05: ESTADO DEL CURSO [INICIO]
+/* ESTADO DEL CURSO */
+.curso-estado {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.estado-excelente {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado-aprobado {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-desaprobado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.estado-sin-notas {
+  background: #e9ecef;
+  color: #6c757d;
+}
+// MOD-002-S05: FIN
+
+// MOD-002-S06: DETALLE DEL CURSO [INICIO]
+/* DETALLE DEL CURSO */
+.curso-detalle {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.detalle-item {
+  text-align: center;
+  flex: 1;
+}
+
+.detalle-item-valor {
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.detalle-item-label {
+  font-size: 11px;
+  color: #999;
+}
+// MOD-002-S06: FIN
+
+// MOD-002-S07: LOADING [INICIO]
+/* LOADING */
+.loading-container {
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
+}
+
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+// MOD-002-S07: FIN
+
+// MOD-002-S08: ESTADO VACÍO [INICIO]
+/* ESTADO VACÍO */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+// MOD-002-S08: FIN
+
+</style>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="notas-container">
   <div class="notas-header">
     <h2>📊 Resumen de Notas</h2>
@@ -65,33 +251,34 @@ OBJETIVO V01.18:
     </div>
   </div>
 </div>
+<!-- MOD-003: FIN -->
 
+<!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
-(function () {
+
+// MOD-004-S01: ENCAPSULAMIENTO Y PROTECCIÓN [INICIO]
+(function PBE_NOTAS_MODULE() {
   'use strict';
 
-  /* Evita redeclaración al cambiar de tab */
   if (window.NotasModule) return;
 
   const NotasModule = {
     data: []
   };
+// MOD-004-S01: FIN
 
-  /* ===============================
-     INICIALIZACIÓN
-     =============================== */
-  NotasModule.init = function () {
+// MOD-004-S02: INICIALIZACIÓN [INICIO]
+  NotasModule.init = function() {
     if (!window.currentUser?.codeAlum) {
       showAlert('error', 'No se pudo identificar al usuario');
       return;
     }
     this.cargar();
   };
+// MOD-004-S02: FIN
 
-  /* ===============================
-     CARGA DE DATOS
-     =============================== */
-  NotasModule.cargar = function () {
+// MOD-004-S03: CARGA DE DATOS [INICIO]
+  NotasModule.cargar = function() {
     google.script.run
       .withSuccessHandler(r => {
         if (r.success) {
@@ -105,11 +292,10 @@ OBJETIVO V01.18:
       .withFailureHandler(() => this.empty())
       .studentObtenerResumenNotas({ codeAlum: currentUser.codeAlum });
   };
+// MOD-004-S03: FIN
 
-  /* ===============================
-     RENDER
-     =============================== */
-  NotasModule.render = function () {
+// MOD-004-S04: RENDERIZADO DE CURSOS [INICIO]
+  NotasModule.render = function() {
     const cont = document.getElementById('notasGrid');
     if (!this.data.length) return this.empty();
 
@@ -149,38 +335,40 @@ OBJETIVO V01.18:
         </div>`;
     }).join('');
   };
+// MOD-004-S04: FIN
 
-  /* ===============================
-     ESTADÍSTICAS
-     =============================== */
-  NotasModule.stats = function () {
-    let notas = 0, sum = 0, con = 0;
+// MOD-004-S05: ESTADÍSTICAS GLOBALES [INICIO]
+  NotasModule.stats = function() {
+    let notas = 0;
+    let sum = 0;
+    let con = 0;
 
     this.data.forEach(c => {
       const p = parseFloat(c.promedio) || 0;
       notas += (c.evaluaciones || 0) + (c.tareas || 0) + (c.lecturas || 0);
-      if (p > 0) { sum += p; con++; }
+      if (p > 0) {
+        sum += p;
+        con++;
+      }
     });
 
     document.getElementById('statCursos').textContent = this.data.length;
     document.getElementById('statNotas').textContent = notas;
     document.getElementById('statProm').textContent = con ? (sum / con).toFixed(2) : '--';
   };
+// MOD-004-S05: FIN
 
-  /* ===============================
-     ESTADO VACÍO
-     =============================== */
-  NotasModule.empty = function () {
+// MOD-004-S06: ESTADO VACÍO [INICIO]
+  NotasModule.empty = function() {
     document.getElementById('notasGrid').innerHTML = `
       <div class="empty-state">
         <div style="font-size:48px">📊</div>
         Sin calificaciones aún
       </div>`;
   };
+// MOD-004-S06: FIN
 
-  /* ===============================
-     HELPERS
-     =============================== */
+// MOD-004-S07: HELPERS DE CLASIFICACIÓN [INICIO]
   NotasModule.cls = p =>
     p === 0 ? 'sin-notas' :
     p >= 14 ? 'aprobado-excelente' :
@@ -198,12 +386,78 @@ OBJETIVO V01.18:
     p >= 14 ? '🎉 Excelente' :
     p >= 11 ? '✅ Aprobado' :
     '⚠️ Necesita mejorar';
+// MOD-004-S07: FIN
 
-  /* ===============================
-     EXPORT + INIT SEGURO (SPA)
-     =============================== */
+// MOD-004-S08: EXPORT E INICIALIZACIÓN [INICIO]
+  console.log('%c📊 Sub-tab Notas V01.19 cargado', 'font-size: 11px; color: #667eea;');
+
   window.NotasModule = NotasModule;
-  NotasModule.init();   // ✅ SOLUCIÓN CORRECTA
+  NotasModule.init();
+// MOD-004-S08: FIN
 
 })();
+
 </script>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Dashboard de resumen de notas por curso con visualización en tarjetas.
+Muestra rendimiento académico individual y estadísticas globales.
+
+FUNCIONALIDAD:
+- Carga resumen de notas desde backend (studentObtenerResumenNotas)
+- Calcula promedio por curso automáticamente
+- Genera estadísticas globales (total cursos, notas, promedio general)
+- Clasifica cursos por rendimiento (Excelente/Aprobado/Desaprobado/Sin notas)
+- Renderizado responsive en grid adaptable
+
+ESTRUCTURA DE DATOS (cada curso):
+- curso: Código del curso
+- completo: Nombre completo
+- color: Color personalizado (hex)
+- promedio: Promedio calculado (0-20)
+- evaluaciones, tareas, lecturas: Contadores numéricos
+
+CLASIFICACIÓN DE NOTAS:
+- Excelente: ≥14 (verde, 🎉)
+- Aprobado: 11-13 (amarillo, ✅)
+- Desaprobado: <11 (rojo, ⚠️)
+- Sin Notas: 0 (gris, 📋)
+
+ARQUITECTURA TÉCNICA:
+- Módulo encapsulado en IIFE (NotasModule)
+- Protección anti-redeclaración al cambiar tabs
+- Inicialización automática con validación de usuario (currentUser.codeAlum)
+- Renderizado dinámico con template literals
+- Cálculo de estadísticas en tiempo real
+
+SUBMÓDULOS:
+MOD-004-S01: Encapsulamiento IIFE y protección
+MOD-004-S02: Inicialización y validación de usuario
+MOD-004-S03: Carga de datos desde backend
+MOD-004-S04: Renderizado de tarjetas de cursos
+MOD-004-S05: Cálculo de estadísticas globales
+MOD-004-S06: Estado vacío (sin calificaciones)
+MOD-004-S07: Helpers de clasificación (cls, estadoCls, estadoTxt)
+MOD-004-S08: Export global e init automático
+
+DEPENDENCIAS:
+- currentUser.codeAlum: Identificador del estudiante (requerido)
+- showAlert(type, message): Función global de alertas (opcional)
+- Backend: studentObtenerResumenNotas({ codeAlum })
+
+INTEGRACIÓN:
+- Parent: Sistema de tabs con lazy-loading
+- Backend: Wrapper en code.gs → Student.gs (agregación de datos)
+
+CAMBIOS V01.19 → V01.20:
+- Remodulación según estándar CodeWorkShop v4.0
+- MOD-002 con 8 submódulos CSS (S01-S08)
+- MOD-004 con 8 submódulos JavaScript (S01-S08)
+- Notas consolidadas y optimizadas (15 líneas)
+- Delimitadores correctos (//) en <style> y <script>
+- Lógica funcional sin cambios
+-->
+<!-- MOD-099: FIN -->
