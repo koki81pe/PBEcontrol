@@ -3,37 +3,31 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btablecturas.html
-VERSIÓN: 01.23
-FECHA: 20/01/2026 17:36 (UTC-5)
-*****************************************
-CAMBIOS V01.21 → V01.22 FIXED:
-- ✅ Mantiene tabla con filas (NO cards)
-- ✅ Elimina columna "Progreso" (barra visual)
-- ✅ Elimina columna "Semana"
-- ✅ Agrega columna "Págs/Día" con cálculo dinámico
-- ✅ Conserva botón "+Agregar Lectura"
-- ✅ Conserva botones Editar/Eliminar
-- ✅ Integra LecturasHelpers para fechas
+VERSIÓN: 01.24
+FECHA: 20/01/2026 18:03 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* RESET Y BASE */
+/* MOD-002-S01: RESET Y BASE [INICIO] */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
+/* MOD-002-S01: FIN */
 
-/* CONTENEDOR PRINCIPAL */
+/* MOD-002-S02: CONTENEDOR PRINCIPAL [INICIO] */
 .lecturas-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
+/* MOD-002-S02: FIN */
 
+/* MOD-002-S03: HEADER PRINCIPAL [INICIO] */
 .lecturas-header {
   display: flex;
   justify-content: space-between;
@@ -58,8 +52,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   align-items: center;
   flex-wrap: wrap;
 }
+/* MOD-002-S03: FIN */
 
-/* FILTRO */
+/* MOD-002-S04: FILTRO [INICIO] */
 .filtro-container {
   display: flex;
   gap: 8px;
@@ -87,7 +82,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
+/* MOD-002-S04: FIN */
 
+/* MOD-002-S05: BOTÓN AGREGAR [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -112,8 +109,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
 .btn-agregar:active {
   transform: translateY(0);
 }
+/* MOD-002-S05: FIN */
 
-/* FORMULARIO */
+/* MOD-002-S06: FORMULARIO BASE [INICIO] */
 .form-lectura {
   background: white;
   border-radius: 12px;
@@ -138,7 +136,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     transform: translateY(0);
   }
 }
+/* MOD-002-S06: FIN */
 
+/* MOD-002-S07: FORM HEADER Y CIERRE [INICIO] */
 .form-header {
   display: flex;
   justify-content: space-between;
@@ -174,7 +174,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   background: #f0f0f0;
   color: #333;
 }
+/* MOD-002-S07: FIN */
 
+/* MOD-002-S08: FORM LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -202,7 +204,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   color: #dc3545;
   margin-left: 4px;
 }
+/* MOD-002-S08: FIN */
 
+/* MOD-002-S09: FORM INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   padding: 10px 12px;
@@ -229,7 +233,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   color: #666;
   font-style: italic;
 }
+/* MOD-002-S09: FIN */
 
+/* MOD-002-S10: FORM ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
@@ -271,8 +277,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
 .btn-cancelar:hover {
   background: #e8e8e8;
 }
+/* MOD-002-S10: FIN */
 
-/* TABLA */
+/* MOD-002-S11: TABLA CONTENEDOR [INICIO] */
 .lecturas-table-container {
   background: white;
   border-radius: 12px;
@@ -284,7 +291,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   width: 100%;
   border-collapse: collapse;
 }
+/* MOD-002-S11: FIN */
 
+/* MOD-002-S12: TABLA HEADER [INICIO] */
 .lecturas-table thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -298,7 +307,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+/* MOD-002-S12: FIN */
 
+/* MOD-002-S13: TABLA BODY [INICIO] */
 .lecturas-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -317,7 +328,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   font-size: 14px;
   color: #333;
 }
+/* MOD-002-S13: FIN */
 
+/* MOD-002-S14: BADGES Y TAGS [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -332,8 +345,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   font-weight: 600;
   color: #333;
 }
+/* MOD-002-S14: FIN */
 
-/* NUEVA: Columna Págs/Día */
+/* MOD-002-S15: PÁGS/DÍA BADGES [INICIO] */
 .pags-dia {
   font-weight: 700;
   font-size: 15px;
@@ -356,7 +370,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   color: #dc3545;
   background: #f8d7da;
 }
+/* MOD-002-S15: FIN */
 
+/* MOD-002-S16: NOTA BADGES [INICIO] */
 .nota-badge {
   display: inline-block;
   padding: 6px 12px;
@@ -384,7 +400,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   background: #e9ecef;
   color: #6c757d;
 }
+/* MOD-002-S16: FIN */
 
+/* MOD-002-S17: ACCIONES BOTONES [INICIO] */
 .acciones-container {
   display: flex;
   gap: 8px;
@@ -413,7 +431,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   border-color: #dc3545;
   background: #fff5f5;
 }
+/* MOD-002-S17: FIN */
 
+/* MOD-002-S18: ESTADOS VACÍO/LOADING [INICIO] */
 .estado-vacio,
 .loading-lecturas {
   text-align: center;
@@ -437,8 +457,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
   font-size: 14px;
   color: #999;
 }
+/* MOD-002-S18: FIN */
 
-/* RESPONSIVE */
+/* MOD-002-S19: RESPONSIVE 768PX [INICIO] */
 @media (max-width: 768px) {
   .lecturas-header {
     flex-direction: column;
@@ -463,6 +484,7 @@ CAMBIOS V01.21 → V01.22 FIXED:
     padding: 10px 8px;
   }
 }
+/* MOD-002-S19: FIN */
 </style>
 <!-- MOD-002: FIN -->
 
@@ -628,15 +650,15 @@ CAMBIOS V01.21 → V01.22 FIXED:
 <script>
 (function() {
   'use strict';
-
-  // === VARIABLES GLOBALES ===
+// MOD-004-S01: VARIABLES GLOBALES [INICIO]
   let lecturasData = [];
   let cursosData = [];
   let filtroActual = '';
   let modoEdicion = false;
   let _initDone = false;
+// MOD-004-S01: FIN
 
-  // === INICIALIZACIÓN ===
+// MOD-004-S02: INICIALIZACIÓN [INICIO]
   function inicializar() {
     if (_initDone) {
       console.log('📖 Ya inicializado, saltando...');
@@ -656,8 +678,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     cargarCursos();
     cargarLecturas();
   }
+// MOD-004-S02: FIN
 
-  // === CARGAR CURSOS ===
+// MOD-004-S03: CARGAR CURSOS GAS [INICIO]
   function cargarCursos() {
     if (typeof google === 'undefined' || !google.script || !google.script.run) {
       console.warn('📖 Google Apps Script no disponible');
@@ -680,18 +703,18 @@ CAMBIOS V01.21 → V01.22 FIXED:
       })
       .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
   }
+// MOD-004-S03: FIN
 
+// MOD-004-S04: POBLAR SELECTS [INICIO]
   function poblarSelectCursos() {
     const selectCurso = document.getElementById('lectura_curso');
     const selectFiltro = document.getElementById('filtroCursoLectura');
 
     if (!selectCurso || !selectFiltro) return;
 
-    // Limpiar
     selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
 
-    // Poblar
     cursosData.forEach(function(curso) {
       const nombreCurso = String(curso.Curso || '').trim();
       if (!nombreCurso) return;
@@ -707,8 +730,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       selectFiltro.appendChild(optFiltro);
     });
   }
+// MOD-004-S04: FIN
 
-  // === CARGAR LECTURAS ===
+// MOD-004-S05: CARGAR LECTURAS GAS [INICIO]
   function cargarLecturas() {
     mostrarLoading();
 
@@ -731,9 +755,7 @@ CAMBIOS V01.21 → V01.22 FIXED:
         lecturasData = Array.isArray(response.data) ? response.data : [];
         console.log('📖 Lecturas cargadas:', lecturasData.length);
         
-        // CALCULAR PÁGS/DÍA para cada lectura
         lecturasData = lecturasData.map(calcularPagsDia);
-        
         renderizarTabla();
       })
       .withFailureHandler(function(error) {
@@ -743,37 +765,31 @@ CAMBIOS V01.21 → V01.22 FIXED:
       })
       .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
   }
+// MOD-004-S05: FIN
 
-  // === CÁLCULO PÁGS/DÍA (LÓGICA CRÍTICA) ===
+// MOD-004-S06: CÁLCULO PÁGS/DÍA [INICIO]
   function calcularPagsDia(lectura) {
-    const hoy = new Date(2026, 0, 20); // 20/01/2026 (mes 0-indexed)
+    const hoy = new Date(2026, 0, 20);
     const fInicio = parseFecha(lectura.FechaInicio);
     const fFin = parseFecha(lectura.FechaFin);
     const cantPag = safeInt(lectura.CantPag, 0);
     const pagActual = safeInt(lectura.PagActual, 0);
     
-    // Páginas pendientes
     const pagsPendientes = Math.max(0, cantPag - pagActual);
-    
-    // Inicio real: lo que sea mayor entre hoy y fecha inicio
     const inicioReal = new Date(Math.max(hoy, fInicio));
-    
-    // Días disponibles
     const diasDisponibles = Math.ceil((fFin - inicioReal) / (1000 * 60 * 60 * 24));
     
-    // Cálculo
     if (diasDisponibles > 0 && pagsPendientes > 0) {
       lectura.pagsDia = (pagsPendientes / diasDisponibles).toFixed(1);
-    } else if (pagsPendientes === 0) {
-      lectura.pagsDia = '0.0'; // Lectura completada
     } else {
-      lectura.pagsDia = '0.0'; // Sin días disponibles
+      lectura.pagsDia = '0.0';
     }
     
     return lectura;
   }
+// MOD-004-S06: FIN
 
-  // === PARSEAR FECHA DD/MM/AAAA ===
+// MOD-004-S07: PARSE FECHA [INICIO]
   function parseFecha(fechaStr) {
     if (!fechaStr || typeof fechaStr !== 'string') return new Date();
     
@@ -781,12 +797,11 @@ CAMBIOS V01.21 → V01.22 FIXED:
     if (partes.length !== 3) return new Date();
     
     const dia = parseInt(partes[0], 10);
-    const mes = parseInt(partes[1], 10) - 1; // Meses 0-indexed
+    const mes = parseInt(partes[1], 10) - 1;
     const anio = parseInt(partes[2], 10);
     
     const fecha = new Date(anio, mes, dia);
     
-    // Validar fecha válida
     if (fecha.getFullYear() !== anio || 
         fecha.getMonth() !== mes || 
         fecha.getDate() !== dia) {
@@ -795,8 +810,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     
     return fecha;
   }
+// MOD-004-S07: FIN
 
-  // === RENDERIZAR TABLA ===
+// MOD-004-S08: RENDER TABLA [INICIO]
   function renderizarTabla() {
     const tabla = document.getElementById('tablaLecturas');
     const tbody = document.getElementById('tbodyLecturas');
@@ -804,7 +820,6 @@ CAMBIOS V01.21 → V01.22 FIXED:
 
     if (!tabla || !tbody || !estadoVacio) return;
 
-    // Filtrar
     let lecturasFiltradas = lecturasData;
     if (filtroActual && filtroActual !== '' && filtroActual.toLowerCase() !== 'todos') {
       lecturasFiltradas = lecturasData.filter(function(l) {
@@ -812,7 +827,6 @@ CAMBIOS V01.21 → V01.22 FIXED:
       });
     }
 
-    // Sin datos
     if (lecturasFiltradas.length === 0) {
       tabla.style.display = 'none';
       estadoVacio.style.display = 'block';
@@ -824,7 +838,6 @@ CAMBIOS V01.21 → V01.22 FIXED:
       return;
     }
 
-    // Renderizar
     estadoVacio.style.display = 'none';
     tabla.style.display = 'block';
 
@@ -838,14 +851,12 @@ CAMBIOS V01.21 → V01.22 FIXED:
       const peso = lectura.Peso && String(lectura.Peso).trim() !== '' ? escHtml(lectura.Peso) + '%' : '-';
       const rowNumber = lectura._rowNumber || 0;
       
-      // Págs/Día con colores
       const pagsDia = lectura.pagsDia || '0.0';
       const pagsDiaNum = parseFloat(pagsDia);
       let clasePagsDia = 'ok';
       if (pagsDiaNum >= 20) clasePagsDia = 'critical';
       else if (pagsDiaNum >= 10) clasePagsDia = 'warning';
       
-      // Nota con badge
       const claseNota = obtenerClaseNota(nota);
       const notaBadge = nota !== '-' 
         ? '<span class="nota-badge ' + claseNota + '">' + nota + '</span>'
@@ -862,20 +873,17 @@ CAMBIOS V01.21 → V01.22 FIXED:
           <td>${peso}</td>
           <td>
             <div class="acciones-container">
-              <button class="btn-icon" onclick="LecturasModule.editarLectura(${rowNumber})" title="Editar">
-                ✏️
-              </button>
-              <button class="btn-icon btn-eliminar" onclick="LecturasModule.eliminarLectura(${rowNumber})" title="Eliminar">
-                🗑️
-              </button>
+              <button class="btn-icon" onclick="LecturasModule.editarLectura(${rowNumber})" title="Editar">✏️</button>
+              <button class="btn-icon btn-eliminar" onclick="LecturasModule.eliminarLectura(${rowNumber})" title="Eliminar">🗑️</button>
             </div>
           </td>
         </tr>
       `;
     }).join('');
   }
+// MOD-004-S08: FIN
 
-  // === FILTRAR ===
+// MOD-004-S09: FILTRO [INICIO]
   function aplicarFiltro() {
     const select = document.getElementById('filtroCursoLectura');
     if (!select) return;
@@ -886,8 +894,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     console.log('📖 Aplicando filtro:', filtroActual || 'TODOS');
     renderizarTabla();
   }
+// MOD-004-S09: FIN
 
-  // === TOGGLE FORM ===
+// MOD-004-S10: FORM TOGGLE [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formLectura');
     const titulo = document.getElementById('formTitulo');
@@ -914,7 +923,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     if (form) form.classList.remove('active');
     limpiarFormulario();
   }
+// MOD-004-S10: FIN
 
+// MOD-004-S11: FORM LIMPIAR [INICIO]
   function limpiarFormulario() {
     setValue('lectura_rowNumber', '');
     setValue('lectura_curso', '');
@@ -927,8 +938,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     setValue('lectura_nota', '');
     setValue('lectura_peso', '');
   }
+// MOD-004-S11: FIN
 
-  // === SUBMIT LECTURA ===
+// MOD-004-S12: FORM SUBMIT [INICIO]
   function handleSubmitLectura(event) {
     if (event && typeof event.preventDefault === 'function') {
       event.preventDefault();
@@ -945,7 +957,6 @@ CAMBIOS V01.21 → V01.22 FIXED:
     const peso = getValueTrim('lectura_peso');
     const rowNumber = getValueTrim('lectura_rowNumber');
 
-    // Validaciones
     if (!curso || !titulo || !cantPag || !fechaInicio || !fechaFin) {
       showAlertSafe('error', 'Por favor completa todos los campos obligatorios');
       return;
@@ -990,7 +1001,7 @@ CAMBIOS V01.21 → V01.22 FIXED:
       fechaEval: fechaEval,
       nota: nota,
       peso: peso,
-      sem: '' // Ya no usamos semana
+      sem: ''
     };
 
     if (modoEdicion && rowNumber) {
@@ -1000,8 +1011,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       agregarLectura(params);
     }
   }
+// MOD-004-S12: FIN
 
-  // === AGREGAR ===
+// MOD-004-S13: AGREGAR LECTURA [INICIO]
   function agregarLectura(params) {
     google.script.run
       .withSuccessHandler(function(response) {
@@ -1021,8 +1033,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       })
       .studentAgregarLectura(params);
   }
+// MOD-004-S13: FIN
 
-  // === ACTUALIZAR ===
+// MOD-004-S14: ACTUALIZAR LECTURA [INICIO]
   function actualizarLectura(params) {
     google.script.run
       .withSuccessHandler(function(response) {
@@ -1042,8 +1055,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       })
       .studentActualizarLectura(params);
   }
+// MOD-004-S14: FIN
 
-  // === EDITAR ===
+// MOD-004-S15: EDITAR LECTURA [INICIO]
   function editarLectura(rowNumber) {
     const rn = safeInt(rowNumber, 0);
     if (!Number.isFinite(rn) || rn <= 0) {
@@ -1085,8 +1099,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       formWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+// MOD-004-S15: FIN
 
-  // === ELIMINAR ===
+// MOD-004-S16: ELIMINAR LECTURA [INICIO]
   function eliminarLectura(rowNumber) {
     const rn = safeInt(rowNumber, 0);
     if (!Number.isFinite(rn) || rn <= 0) {
@@ -1118,8 +1133,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       })
       .studentEliminarLectura({ rowNumber: rn });
   }
+// MOD-004-S16: FIN
 
-  // === HELPERS ===
+// MOD-004-S17: HELPERS VALIDACIÓN [INICIO]
   function obtenerClaseNota(nota) {
     if (nota == null || String(nota).trim() === '' || nota === '-') return 'nota-pendiente';
     const n = safeFloat(nota, NaN);
@@ -1147,7 +1163,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
 
     return true;
   }
+// MOD-004-S17: FIN
 
+// MOD-004-S18: HELPERS DOM [INICIO]
   function getValueTrim(id) {
     const el = document.getElementById(id);
     return el && el.value != null ? String(el.value).trim() : '';
@@ -1178,8 +1196,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
+// MOD-004-S18: FIN
 
-  // === UI HELPERS ===
+// MOD-004-S19: UI HELPERS [INICIO]
   function mostrarLoading() {
     const loading = document.getElementById('loadingLecturas');
     const tabla = document.getElementById('tablaLecturas');
@@ -1214,8 +1233,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     if (text) text.textContent = 'Error';
     if (sub) sub.textContent = mensaje;
   }
+// MOD-004-S19: FIN
 
-  // === ALERTAS ===
+// MOD-004-S20: ALERTAS [INICIO]
   function showAlertSafe(type, message) {
     if (typeof showAlert === 'function') {
       showAlert(type, message);
@@ -1261,10 +1281,11 @@ CAMBIOS V01.21 → V01.22 FIXED:
     `;
     document.head.appendChild(style);
   }
+// MOD-004-S20: FIN
 
+// MOD-004-S21: API PÚBLICA [INICIO]
   console.log('%c📖 LecturasModule V01.22 FIXED cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
-  // === API PÚBLICA ===
   window.LecturasModule = {
     inicializar: inicializar,
     aplicarFiltro: aplicarFiltro,
@@ -1275,8 +1296,9 @@ CAMBIOS V01.21 → V01.22 FIXED:
     cancelarFormulario: cancelarFormulario,
     recargar: cargarLecturas
   };
+// MOD-004-S21: FIN
 
-  // === AUTO-INIT ===
+// MOD-004-S22: AUTO-INIT [INICIO]
   setTimeout(function() {
     if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
       console.log('📖 currentUser detectado, auto-inicializando...');
@@ -1286,7 +1308,7 @@ CAMBIOS V01.21 → V01.22 FIXED:
       inicializar();
     }
   }, 150);
-
+// MOD-004-S22: FIN
 })();
 </script>
 <!-- MOD-004: FIN -->
@@ -1294,60 +1316,107 @@ CAMBIOS V01.21 → V01.22 FIXED:
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Gestión completa de lecturas académicas con cálculo dinámico de Págs/Día
+Sub-tab del módulo "Deberes" que gestiona lecturas académicas con seguimiento
+de progreso y cálculo dinámico de páginas/día para planificación de lectura.
 
-CAMBIOS V01.21 → V01.22 FIXED:
-✅ MANTIENE tabla con filas (NO cards)
-✅ ELIMINA columna "Progreso" (barra visual)
-✅ ELIMINA columna "Semana" (solo backend)
-✅ AGREGA columna "Págs/Día" con cálculo dinámico y colores
-✅ CONSERVA botón "+Agregar Lectura" con gradiente morado
-✅ CONSERVA botones Editar (✏️) y Eliminar (🗑️)
-✅ INTEGRA lógica LecturasHelpers para parseo de fechas
+ESTRUCTURA MODULAR (CodeWorkShop v5.0):
+├── MOD-001: Encabezado y metadata
+├── MOD-002: Estilos CSS (19 submódulos)
+├── MOD-003: HTML estructura
+├── MOD-004: JavaScript principal (22 submódulos - IIFE autocontenido)
+└── MOD-099: Documentación técnica
 
-CÁLCULO PÁGS/DÍA:
-- Páginas pendientes = CantPag - PagActual
-- Inicio real = MAX(hoy, FechaInicio)
-- Días disponibles = (FechaFin - InicioReal) en días
-- Págs/Día = PagsPendientes ÷ DíasDisponibles
-- Fecha hoy: 20/01/2026 (hardcoded en calcularPagsDia)
+CAMBIOS V01.23 → V01.24:
+✅ Submodulación completa de MOD-002 (CSS en 19 secciones)
+✅ Submodulación completa de MOD-004 (JS en 22 secciones)
+✅ MOD-005 eliminado (LecturasHelpers innecesario - funciones en MOD-004)
+✅ Optimización de documentación MOD-099
 
-COLORES PÁGS/DÍA:
-- Verde (ok): < 10 páginas/día
-- Amarillo (warning): 10-19 páginas/día  
-- Rojo (critical): ≥ 20 páginas/día
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-COLUMNAS DE LA TABLA:
-1. CURSO - Tag coloreado
-2. LECTURA - Título en negrita
-3. PÁGS/DÍA - Badge con color según urgencia
-4. PÁGINAS - Formato "X / Y"
-5. FECHA EVAL - DD/MM/AAAA o "-"
-6. NOTA - Badge coloreado (alta/media/baja/pendiente)
-7. PESO - Porcentaje o "-"
-8. ACCIONES - Botones Editar/Eliminar
+MOD-002: ESTRUCTURA CSS (19 submódulos)
+S01: Reset/Base → S02: Contenedor → S03: Header → S04: Filtro → S05: Botón Agregar
+S06-S10: Formulario completo → S11-S13: Tabla → S14-S18: Badges/Estados → S19: Responsive
 
-FUNCIONALIDAD COMPLETA:
-✅ CRUD completo (Create, Read, Update, Delete)
-✅ Filtro por curso con dropdown dinámico
-✅ Formulario desplegable animado
-✅ Validación exhaustiva de fechas (DD/MM/AAAA)
-✅ Validación de rangos (páginas, nota, peso)
-✅ Retry logic para currentUser
-✅ Estados UI: Loading, Vacío, Error
-✅ Sistema de alertas (success/error/warning)
+MOD-004: ESTRUCTURA JAVASCRIPT (22 submódulos)
+┌─ INICIALIZACIÓN ────────────────────────────────────┐
+│ S01: Variables globales (estado del módulo)         │
+│ S02: Inicialización con retry logic                 │
+├─ BACKEND I/O ───────────────────────────────────────┤
+│ S03: Cargar cursos (GAS)                            │
+│ S04: Poblar selects (UI update)                     │
+│ S05: Cargar lecturas (GAS)                          │
+├─ LÓGICA DE NEGOCIO ─────────────────────────────────┤
+│ S06: Cálculo Págs/Día (CRÍTICO - ver fórmula)      │
+│ S07: Parse fecha DD/MM/AAAA → Date object          │
+├─ RENDERING ─────────────────────────────────────────┤
+│ S08: Renderizar tabla (template literal)           │
+│ S09: Aplicar filtro por curso                       │
+├─ FORMULARIO ────────────────────────────────────────┤
+│ S10: Toggle form (abrir/cerrar)                     │
+│ S11: Limpiar campos                                 │
+│ S12: Submit + validaciones (70 líneas)             │
+├─ CRUD OPERATIONS ───────────────────────────────────┤
+│ S13: Agregar lectura (GAS)                          │
+│ S14: Actualizar lectura (GAS)                       │
+│ S15: Editar lectura (populate form)                 │
+│ S16: Eliminar lectura (GAS + confirm)              │
+├─ HELPERS ───────────────────────────────────────────┤
+│ S17: Validación (nota, fecha)                       │
+│ S18: DOM utils (getValue, setValue, safe*, escHtml) │
+│ S19: UI states (loading, error)                     │
+│ S20: Sistema de alertas (wrapper + fallback)       │
+├─ EXPORTS ───────────────────────────────────────────┤
+│ S21: API pública (window.LecturasModule)           │
+│ S22: Auto-init (150ms delay)                        │
+└──────────────────────────────────────────────────────┘
 
-BACKEND DEPENDENCIES:
-- studentObtenerLecturas({ codeAlum })
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LÓGICA CRÍTICA - CÁLCULO PÁGS/DÍA (S06):
+┌──────────────────────────────────────────────────────┐
+│ Fecha hoy: 20/01/2026 (hardcoded en calcularPagsDia)│
+│                                                       │
+│ pagsPendientes = CantPag - PagActual                 │
+│ inicioReal = MAX(hoy, FechaInicio)                   │
+│ diasDisponibles = ⌈(FechaFin - inicioReal) / 86400s⌉│
+│ pagsDia = pagsPendientes ÷ diasDisponibles           │
+│                                                       │
+│ Colores semáforo:                                    │
+│ • Verde (ok): < 10 págs/día                          │
+│ • Amarillo (warning): 10-19 págs/día                 │
+│ • Rojo (critical): ≥ 20 págs/día                     │
+└──────────────────────────────────────────────────────┘
+
+VALIDACIONES CRÍTICAS (S12 + S17):
+- Campos obligatorios: curso, lectura, cantPag, fechaInicio, fechaFin
+- Formato fecha: /^\d{2}\/\d{2}\/\d{4}$/ (DD/MM/AAAA)
+- Rango páginas: 0 ≤ PagActual ≤ CantPag
+- Nota: 0-20 (opcional) | Peso: 0-100% (opcional)
+
+BACKEND DEPENDENCIES (Google Apps Script):
 - studentObtenerCursos({ codeAlum })
-- studentAgregarLectura({ ...params })
+- studentObtenerLecturas({ codeAlum })
+- studentAgregarLectura({ codeAlum, curso, lectura, cantPag, pagActual, 
+    fechaInicio, fechaFin, fechaEval, nota, peso, sem })
 - studentActualizarLectura({ ...params, rowNumber })
 - studentEliminarLectura({ rowNumber })
 
+COLUMNAS TABLA (8 totales):
+CURSO | LECTURA | PÁGS/DÍA | PÁGINAS | FECHA EVAL | NOTA | PESO | ACCIONES
+  Tag    Título    Badge    X/Y      DD/MM/AAAA   Badge   %    ✏️🗑️
+
+NOTA PARA IA:
+- El módulo es autocontenido (IIFE) - NO depende de MOD-005
+- parseFecha() está en MOD-004-S07, no en helpers externos
+- Si el user pide "agregar helpers globales", recordar que YA existen internos
+- Sistema de alertas tiene fallback automático si showAlert() no existe (S20)
+- Retry logic en inicialización maneja currentUser asíncrono (S02)
+
 INTEGRACIÓN:
-- Requiere: currentUser.codeAlum
-- Opcional: showAlert() global
-- Encapsulado: IIFE con window.LecturasModule
-- Auto-init: 150ms delay
+- Requiere: currentUser.codeAlum (global)
+- Opcional: showAlert(type, message) (global)
+- Expone: window.LecturasModule (8 métodos públicos)
+- Auto-init: 150ms delay para esperar currentUser
 -->
 <!-- MOD-099: FIN -->
