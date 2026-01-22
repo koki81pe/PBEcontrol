@@ -1,4 +1,4 @@
-LOG: 2026/01/21 - 23:39
+LOG: 2026/01/21 - 23:49
 Navigated to https://script.google.com/macros/s/AKfycbwKVQQmUEiS3hJdRSFgbsGLLAdXUfWl9Iid-Mlr8UKymM6TWJSyT_Qq82ysCC2DfXpX_w/exec
 exec:11 Unrecognized feature: 'ambient-light-sensor'.
 exec:11 Unrecognized feature: 'ambient-light-sensor'.
@@ -20,159 +20,145 @@ userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'vr'.
 userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'vr'.
 1217504242-warden_bin_i18n_warden__es.js:149 Net state changed from IDLE to BUSY
 1217504242-warden_bin_i18n_warden__es.js:149 Net state changed from BUSY to IDLE
-VM216:38 ✅ Usuario inicializado correctamente: {codeAlum: 'TEST05', nombre: 'Alumno Test Cinco', email: 'test5@pbe.com'}
-VM216:49 🎓 PBE Control - Panel Estudiante V01.21
-VM216:51 ✓ currentUser inicializado ANTES de cargar tabs
-VM217:362 📚 CursosModule V01.27 cargado
-VM218:453 🔄 Sub-tab Repasos V01.20 Cargado
-VM219:58 📦 4atabcursosyrep V01.23 cargado
-VM220:385 📋 TodosModule V01.22 cargado
-VM221:354 📝 Sub-tab Evaluaciones V01.20 cargado
-VM222:365 ✏️ Sub-tab Tareas V01.19 cargado
-VM223:638 📖 LecturasModule V01.22 FIXED cargado
-VM224:157 📝 Tab Deberes Cargado [V01.19]
-VM224:159 Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas
-VM224:160 Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha
-VM224:161 currentUser disponible: true
-VM224:162 Lazy-init habilitado para todos los sub-tabs
-VM225:12 🕐 HorarioClaseModule V01.26 CODEWORKSHOP iniciando...
-VM225:697 🕐 HorarioClaseModule V01.26 CODEWORKSHOP cargado
-VM226:12 📅 HorarioSemanalModule V01.33 CODEWORKSHOP iniciando...
-VM226:1263 📅 HorarioSemanalModule V01.33 CODEWORKSHOP cargado
-VM227:136 📊 Sub-tab Notas V01.19 cargado
-VM228:11 🗓️ CalendarioModule V01.20 iniciando...
-VM228:295 🗓️ CalendarioModule V01.20 cargado
-VM229:64 📅 Planning V01.19 cargado
-VM219:43 📦 4atabcursosyrep V01.23: Activando Cursos por defecto
+VM284:38 ✅ Usuario inicializado correctamente: {codeAlum: 'TEST05', nombre: 'Alumno Test Cinco', email: 'test5@pbe.com'}
+VM284:49 🎓 PBE Control - Panel Estudiante V01.21
+VM284:51 ✓ currentUser inicializado ANTES de cargar tabs
+VM285:362 📚 CursosModule V01.27 cargado
+VM286:453 🔄 Sub-tab Repasos V01.20 Cargado
+VM287:58 📦 4atabcursosyrep V01.23 cargado
+VM288:385 📋 TodosModule V01.22 cargado
+VM289:354 📝 Sub-tab Evaluaciones V01.20 cargado
+VM290:365 ✏️ Sub-tab Tareas V01.19 cargado
+VM291:638 📖 LecturasModule V01.22 FIXED cargado
+VM292:157 📝 Tab Deberes Cargado [V01.19]
+VM292:159 Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas
+VM292:160 Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha
+VM292:161 currentUser disponible: true
+VM292:162 Lazy-init habilitado para todos los sub-tabs
+VM293:12 🕐 HorarioClaseModule V01.26 CODEWORKSHOP iniciando...
+VM293:697 🕐 HorarioClaseModule V01.26 CODEWORKSHOP cargado
+VM294:12 📅 HorarioSemanalModule V01.33 CODEWORKSHOP iniciando...
+VM294:1267 📅 HorarioSemanalModule V01.33 CODEWORKSHOP cargado
+VM295:136 📊 Sub-tab Notas V01.19 cargado
+VM296:11 🗓️ CalendarioModule V01.20 iniciando...
+VM296:295 🗓️ CalendarioModule V01.20 cargado
+VM297:64 📅 Planning V01.19 cargado
+VM287:43 📦 4atabcursosyrep V01.23: Activando Cursos por defecto
 1217504242-warden_bin_i18n_warden__es.js:149 Net state changed from IDLE to BUSY
-VM230:8 Variable global currentUser: {codeAlum: 'TEST05', nombre: 'Alumno Test Cinco', email: 'test5@pbe.com'}
-VM230:10 Funciones globales: showAlert, showLoading, hideLoading, switchTab
-VM224:153 [4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos
-VM224:12 [4btabdeberes] 🔄 switchSubTabDeberes llamada con: todos
-VM224:25 [4btabdeberes] ✅ Sub-tab activado: todos
-VM224:37 Sub-tab Deberes cambiado a: todos
-VM224:52 [4btabdeberes] 📋 Inicializando TodosModule...
-VM220:35 📋 TodosModule.inicializar() llamado (intento 1)
-VM220:62 📋 TodosModule inicializado para: TEST05
-VM220:295 📋 Cargando deberes para: TEST05
-VM219:25 🟢 Inicializando subtab: cursos
-VM217:13 📚 CursosModule.init() llamado (intento 1)
-VM217:40 📚 CursosModule inicializado correctamente para: TEST05
-VM217:46 📚 Cargando cursos para: TEST05
-VM217:355 📚 currentUser detectado, auto-inicializando...
-VM217:13 📚 CursosModule.init() llamado (intento 1)
-VM217:16 📚 CursosModule ya inicializado, ignorando
-VM220:377 📋 currentUser detectado, auto-inicializando...
-VM220:35 📋 TodosModule.inicializar() llamado (intento 1)
-VM220:38 📋 TodosModule ya inicializado, ignorando
-VM223:655 📖 currentUser detectado, auto-inicializando...
-VM223:19 📖 Inicializando LecturasModule V01.22 FIXED...
-VM223:28 📖 currentUser detectado: TEST05
-VM225:678 🕐 currentUser detectado, inicializando...
-VM225:30 🕐 HorarioClaseModule.init() llamado (intento 1)
-VM225:51 🕐 Inicializado para: TEST05
-VM225:59 🕐 Cargando cursos...
-VM228:287 🗓️ currentUser detectado, auto-inicializando...
-VM228:26 🗓️ CalendarioModule.init() llamado (intento 1)
-VM228:53 🗓️ CalendarioModule inicializado para: TEST05
-VM228:93 🗓️ Cargando datos del calendario...
-VM228:130 🗓️ Llamando a: studentObtenerEvaluaciones
-VM228:130 🗓️ Llamando a: studentObtenerTareas
-VM228:130 🗓️ Llamando a: studentObtenerLecturas
-VM228:130 🗓️ Llamando a: studentObtenerHorarioSem
-VM226:1246 📅 currentUser detectado, inicializando...
-VM226:37 📅 HorarioSemanalModule.init() llamado (intento 1)
-VM226:58 📅 Inicializado para: TEST05
-VM226:67 📅 Cargando configuración de semana...
-VM226:104 📅 Cargando semanas...
-VM217:55 📚 Respuesta recibida: {data: Array(6), success: true}
-VM217:70 📚 Cursos cargados: 6
-VM217:116 📚 Tabla renderizada con 6 cursos
-VM228:135 🗓️ studentObtenerHorarioSem response: {data: Array(9), success: true}
-VM228:165 🗓️ studentObtenerHorarioSem ejemplo: {tipo: 'actividad', tipoNombre: 'Actividad', fecha: '16/01/2026', nombre: 'repasar s2', curso: ''}
-VM228:171 🗓️ studentObtenerHorarioSem mapeados: 9
-VM223:49 📖 Cursos cargados: 6
-VM228:135 🗓️ studentObtenerEvaluaciones response: {data: Array(4), success: true}
-VM228:165 🗓️ studentObtenerEvaluaciones ejemplo: {tipo: 'evaluacion', tipoNombre: 'Evaluación', fecha: '05/01/2026', nombre: 'Sin nombre', curso: 'FIS'}
-VM228:171 🗓️ studentObtenerEvaluaciones mapeados: 4
-VM223:107 📖 Lecturas cargadas: 3
-VM225:63 🕐 Cursos response: {data: Array(6), success: true}
-VM225:67 🕐 Cursos cargados: 6
-VM225:97 🕐 Dropdown poblado con 6 cursos
-VM225:103 🕐 Cargando horario clases...
-VM228:135 🗓️ studentObtenerTareas response: {data: Array(3), success: true}
-VM228:165 🗓️ studentObtenerTareas ejemplo: {tipo: 'tarea', tipoNombre: 'Tarea', fecha: '12/01/2026', nombre: 'Sin nombre', curso: 'FIS'}
-VM228:171 🗓️ studentObtenerTareas mapeados: 3
-VM226:108 📅 Semanas response: {data: Array(0), success: true}
-VM226:115 📅 Sin semanas registradas
-VM226:71 📅 Config response: {data: {…}, success: true}
-VM226:75 📅 FechaInicio: 05/01/2026
-VM226:80 📅 FechaFin: 30/04/2026
-VM226:283 📅 Cargando cursos...
-VM226:301 📅 Cargando horario clases...
-VM226:319 📅 Cargando horario semanal...
-VM228:135 🗓️ studentObtenerLecturas response: {data: Array(3), success: true}
-VM228:165 🗓️ studentObtenerLecturas ejemplo: {tipo: 'lectura', tipoNombre: 'Lectura', fecha: '05/02/2026', nombre: 'Sin nombre', curso: 'ING'}
-VM228:171 🗓️ studentObtenerLecturas mapeados: 3
-VM228:110 🗓️ Total de actividades cargadas: 19
-VM228:111 🗓️ Desglose: {evaluaciones: 4, tareas: 3, lecturas: 3, actividades: 9}
-VM228:184 🗓️ Renderizando calendario: Enero 2026
-VM228:239 🗓️ Calendario renderizado con 42 celdas
-VM220:313 📋 Respuesta del backend: {data: Array(10), success: true}
-VM220:336 📋 Deberes cargados: 10
-VM220:337 📋 Ejemplo de fecha del backend: 05/01/2026
-VM220:349 📋 Deberes ordenados por fecha
-VM220:162 📋 Dropdown de cursos poblado con 5 cursos: (5) ['BIOL', 'FIS', 'HIST', 'ING', 'QUIM']
-VM220:247 📋 Aplicando filtros - Tipo: todos Curso:  Fecha: todos
-VM220:290 📋 Filtrados: 10 de 10
-VM220:235 📋 Tabla renderizada con 10 deberes
-VM225:107 🕐 HorarioClases response: {data: Array(6), success: true}
-VM225:111 🕐 Clases cargadas: 6
-VM225:114 🕐 Ejemplo de clase: {HoraIni: '14:00', _rowNumber: 2, CodeAlum: 'TEST05', Detalle: 'Miércoles', FechaReg: '05/01/2026', …}
-VM225:137 🕐 Construyendo matriz con 6 clases
-VM225:143 🕐 Procesando clase 1: {Curso: 'QUIM', Detalle: 'Miércoles', HoraIni: '14:00', HoraFin: '16:00'}
-VM225:151 🕐 Día extraído: Miércoles de Detalle: Miércoles
-VM225:159 🕐 Horas calculadas: 2 slots
-VM225:143 🕐 Procesando clase 2: {Curso: 'HIST', Detalle: 'Jueves', HoraIni: '11:35', HoraFin: '14:25'}
-VM225:151 🕐 Día extraído: Jueves de Detalle: Jueves
-VM225:159 🕐 Horas calculadas: 4 slots
-VM225:143 🕐 Procesando clase 3: {Curso: 'COMPU', Detalle: 'Lunes', HoraIni: '14:00', HoraFin: '15:00'}
-VM225:151 🕐 Día extraído: Lunes de Detalle: Lunes
-VM225:159 🕐 Horas calculadas: 1 slots
-VM225:143 🕐 Procesando clase 4: {Curso: 'BIOL', Detalle: 'Martes', HoraIni: '13:35', HoraFin: '15:00'}
-VM225:151 🕐 Día extraído: Martes de Detalle: Martes
-VM225:159 🕐 Horas calculadas: 2 slots
-VM225:143 🕐 Procesando clase 5: {Curso: 'MATE', Detalle: 'Lunes', HoraIni: '08:00', HoraFin: '09:00'}
-VM225:151 🕐 Día extraído: Lunes de Detalle: Lunes
-VM225:159 🕐 Horas calculadas: 1 slots
-VM225:143 🕐 Procesando clase 6: {Curso: 'COMPU', Detalle: 'Viernes', HoraIni: '08:00', HoraFin: '09:35'}
-VM225:151 🕐 Día extraído: Viernes de Detalle: Viernes
-VM225:159 🕐 Horas calculadas: 2 slots
-VM225:182 🕐 Matriz construida: {Lunes: {…}, Martes: {…}, Miércoles: {…}, Jueves: {…}, Viernes: {…}, …}
-VM225:256 🕐 Renderizando grid...
-VM225:320 🕐 Grid renderizado: {celdasOcupadas: 12, celdasVacias: 100, celdasConflicto: 0}
-3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291 Uncaught ns {message: 'Error in protected function: cursosData is not defined', cause: ReferenceError: cursosData is not defined
-    at <anonymous>:288:20
-    at rp (https://n-gtdvbwdpox…, g: true, stack: 'ReferenceError: cursosData is not defined\n    at <…e_html_user_bin_i18n_mae_html_user__es.js:191:52)'}
-ns @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291
-ms @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:289
-c @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:288
-a @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:191
-3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291 Uncaught ns {message: 'Error in protected function: clasesData is not defined', cause: ReferenceError: clasesData is not defined
-    at <anonymous>:306:20
-    at rp (https://n-gtdvbwdpox…, g: true, stack: 'ReferenceError: clasesData is not defined\n    at <…e_html_user_bin_i18n_mae_html_user__es.js:191:52)'}
-ns @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291
-ms @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:289
-c @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:288
-a @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:191
-VM226:323 📅 HorarioSem response: {data: Array(9), success: true}
-3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291 Uncaught ns {message: 'Error in protected function: actividadesData is not defined', cause: ReferenceError: actividadesData is not defined
-    at <anonymous>:326:25
-    at rp (https://n-gtdvb…, g: true, stack: 'ReferenceError: actividadesData is not defined\n   …e_html_user_bin_i18n_mae_html_user__es.js:191:52)'}
-ns @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:291
-ms @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:289
-c @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:288
-a @ 3968165246-mae_html_user_bin_i18n_mae_html_user__es.js:191
+VM298:8 Variable global currentUser: {codeAlum: 'TEST05', nombre: 'Alumno Test Cinco', email: 'test5@pbe.com'}
+VM298:10 Funciones globales: showAlert, showLoading, hideLoading, switchTab
+VM292:153 [4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos
+VM292:12 [4btabdeberes] 🔄 switchSubTabDeberes llamada con: todos
+VM292:25 [4btabdeberes] ✅ Sub-tab activado: todos
+VM292:37 Sub-tab Deberes cambiado a: todos
+VM292:52 [4btabdeberes] 📋 Inicializando TodosModule...
+VM288:35 📋 TodosModule.inicializar() llamado (intento 1)
+VM288:62 📋 TodosModule inicializado para: TEST05
+VM288:295 📋 Cargando deberes para: TEST05
+VM287:25 🟢 Inicializando subtab: cursos
+VM285:13 📚 CursosModule.init() llamado (intento 1)
+VM285:40 📚 CursosModule inicializado correctamente para: TEST05
+VM285:46 📚 Cargando cursos para: TEST05
+VM285:355 📚 currentUser detectado, auto-inicializando...
+VM285:13 📚 CursosModule.init() llamado (intento 1)
+VM285:16 📚 CursosModule ya inicializado, ignorando
+VM288:377 📋 currentUser detectado, auto-inicializando...
+VM288:35 📋 TodosModule.inicializar() llamado (intento 1)
+VM288:38 📋 TodosModule ya inicializado, ignorando
+VM291:655 📖 currentUser detectado, auto-inicializando...
+VM291:19 📖 Inicializando LecturasModule V01.22 FIXED...
+VM291:28 📖 currentUser detectado: TEST05
+VM293:678 🕐 currentUser detectado, inicializando...
+VM293:30 🕐 HorarioClaseModule.init() llamado (intento 1)
+VM293:51 🕐 Inicializado para: TEST05
+VM293:59 🕐 Cargando cursos...
+VM296:287 🗓️ currentUser detectado, auto-inicializando...
+VM296:26 🗓️ CalendarioModule.init() llamado (intento 1)
+VM296:53 🗓️ CalendarioModule inicializado para: TEST05
+VM296:93 🗓️ Cargando datos del calendario...
+VM296:130 🗓️ Llamando a: studentObtenerEvaluaciones
+VM296:130 🗓️ Llamando a: studentObtenerTareas
+VM296:130 🗓️ Llamando a: studentObtenerLecturas
+VM296:130 🗓️ Llamando a: studentObtenerHorarioSem
+VM294:1250 📅 currentUser detectado, inicializando...
+VM294:41 📅 HorarioSemanalModule.init() llamado (intento 1)
+VM294:62 📅 Inicializado para: TEST05
+VM294:71 📅 Cargando configuración de semana...
+VM294:108 📅 Cargando semanas...
+VM291:49 📖 Cursos cargados: 6
+VM294:75 📅 Config response: {data: {…}, success: true}
+VM294:79 📅 FechaInicio: 05/01/2026
+VM294:84 📅 FechaFin: 30/04/2026
+VM294:287 📅 Cargando cursos...
+VM294:305 📅 Cargando horario clases...
+VM294:323 📅 Cargando horario semanal...
+VM294:112 📅 Semanas response: {data: Array(0), success: true}
+VM294:119 📅 Sin semanas registradas
+VM285:55 📚 Respuesta recibida: {data: Array(6), success: true}
+VM285:70 📚 Cursos cargados: 6
+VM285:116 📚 Tabla renderizada con 6 cursos
+VM296:135 🗓️ studentObtenerHorarioSem response: {data: Array(9), success: true}
+VM296:165 🗓️ studentObtenerHorarioSem ejemplo: {tipo: 'actividad', tipoNombre: 'Actividad', fecha: '16/01/2026', nombre: 'repasar s2', curso: ''}
+VM296:171 🗓️ studentObtenerHorarioSem mapeados: 9
+VM296:135 🗓️ studentObtenerEvaluaciones response: {data: Array(4), success: true}
+VM296:165 🗓️ studentObtenerEvaluaciones ejemplo: {tipo: 'evaluacion', tipoNombre: 'Evaluación', fecha: '05/01/2026', nombre: 'Sin nombre', curso: 'FIS'}
+VM296:171 🗓️ studentObtenerEvaluaciones mapeados: 4
+VM291:107 📖 Lecturas cargadas: 3
+VM296:135 🗓️ studentObtenerLecturas response: {data: Array(3), success: true}
+VM296:165 🗓️ studentObtenerLecturas ejemplo: {tipo: 'lectura', tipoNombre: 'Lectura', fecha: '05/02/2026', nombre: 'Sin nombre', curso: 'ING'}
+VM296:171 🗓️ studentObtenerLecturas mapeados: 3
+VM296:135 🗓️ studentObtenerTareas response: {data: Array(3), success: true}
+VM296:165 🗓️ studentObtenerTareas ejemplo: {tipo: 'tarea', tipoNombre: 'Tarea', fecha: '12/01/2026', nombre: 'Sin nombre', curso: 'FIS'}
+VM296:171 🗓️ studentObtenerTareas mapeados: 3
+VM296:110 🗓️ Total de actividades cargadas: 19
+VM296:111 🗓️ Desglose: {evaluaciones: 4, tareas: 3, lecturas: 3, actividades: 9}
+VM296:184 🗓️ Renderizando calendario: Enero 2026
+VM296:239 🗓️ Calendario renderizado con 42 celdas
+VM293:63 🕐 Cursos response: {data: Array(6), success: true}
+VM293:67 🕐 Cursos cargados: 6
+VM293:97 🕐 Dropdown poblado con 6 cursos
+VM293:103 🕐 Cargando horario clases...
+VM288:313 📋 Respuesta del backend: {data: Array(10), success: true}
+VM288:336 📋 Deberes cargados: 10
+VM288:337 📋 Ejemplo de fecha del backend: 05/01/2026
+VM288:349 📋 Deberes ordenados por fecha
+VM288:162 📋 Dropdown de cursos poblado con 5 cursos: (5) ['BIOL', 'FIS', 'HIST', 'ING', 'QUIM']
+VM288:247 📋 Aplicando filtros - Tipo: todos Curso:  Fecha: todos
+VM288:290 📋 Filtrados: 10 de 10
+VM288:235 📋 Tabla renderizada con 10 deberes
+VM294:327 📅 HorarioSem response: {data: Array(9), success: true}
+VM294:331 📅 Actividades cargadas: 9
+VM294:355 📅 Construyendo matriz...
+VM294:411 📅 Matriz construida: {2026-04-27: {…}, 2026-04-28: {…}, 2026-04-29: {…}, 2026-04-30: {…}, 2026-05-01: {…}, …}
+VM294:484 📅 Renderizando grid...
+VM294:553 📅 Grid renderizado
+VM294:311 📅 Clases cargadas: 6
+VM294:293 📅 Cursos cargados: 6
 1217504242-warden_bin_i18n_warden__es.js:149 Net state changed from BUSY to IDLE
-VM230:27 Tab cambiado a: planning
-VM229:29 [Planning] Sub-tab activo: horariosem
+VM293:107 🕐 HorarioClases response: {data: Array(6), success: true}
+VM293:111 🕐 Clases cargadas: 6
+VM293:114 🕐 Ejemplo de clase: {HoraIni: '14:00', _rowNumber: 2, CodeAlum: 'TEST05', Detalle: 'Miércoles', FechaReg: '05/01/2026', …}
+VM293:137 🕐 Construyendo matriz con 6 clases
+VM293:143 🕐 Procesando clase 1: {Curso: 'QUIM', Detalle: 'Miércoles', HoraIni: '14:00', HoraFin: '16:00'}
+VM293:151 🕐 Día extraído: Miércoles de Detalle: Miércoles
+VM293:159 🕐 Horas calculadas: 2 slots
+VM293:143 🕐 Procesando clase 2: {Curso: 'HIST', Detalle: 'Jueves', HoraIni: '11:35', HoraFin: '14:25'}
+VM293:151 🕐 Día extraído: Jueves de Detalle: Jueves
+VM293:159 🕐 Horas calculadas: 4 slots
+VM293:143 🕐 Procesando clase 3: {Curso: 'COMPU', Detalle: 'Lunes', HoraIni: '14:00', HoraFin: '15:00'}
+VM293:151 🕐 Día extraído: Lunes de Detalle: Lunes
+VM293:159 🕐 Horas calculadas: 1 slots
+VM293:143 🕐 Procesando clase 4: {Curso: 'BIOL', Detalle: 'Martes', HoraIni: '13:35', HoraFin: '15:00'}
+VM293:151 🕐 Día extraído: Martes de Detalle: Martes
+VM293:159 🕐 Horas calculadas: 2 slots
+VM293:143 🕐 Procesando clase 5: {Curso: 'MATE', Detalle: 'Lunes', HoraIni: '08:00', HoraFin: '09:00'}
+VM293:151 🕐 Día extraído: Lunes de Detalle: Lunes
+VM293:159 🕐 Horas calculadas: 1 slots
+VM293:143 🕐 Procesando clase 6: {Curso: 'COMPU', Detalle: 'Viernes', HoraIni: '08:00', HoraFin: '09:35'}
+VM293:151 🕐 Día extraído: Viernes de Detalle: Viernes
+VM293:159 🕐 Horas calculadas: 2 slots
+VM293:182 🕐 Matriz construida: {Lunes: {…}, Martes: {…}, Miércoles: {…}, Jueves: {…}, Viernes: {…}, …}
+VM293:256 🕐 Renderizando grid...
+VM293:320 🕐 Grid renderizado: {celdasOcupadas: 12, celdasVacias: 100, celdasConflicto: 0}
+VM298:27 Tab cambiado a: planning
+VM297:29 [Planning] Sub-tab activo: horariosem
