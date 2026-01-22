@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.36
-FECHA: 21/01/2026 23:32 (UTC-5)
+VERSIÓN: 01.37
+FECHA: 21/01/2026 23:43 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -515,7 +515,7 @@ if (window.HorarioSemanalModule) {
 console.log('📅 HorarioSemanalModule V01.33 CODEWORKSHOP iniciando...');
 // MOD-005-S01: FIN
 
-// MOD-005-S02: VARIABLES GLOBALES [INICIO]
+// MOD-005-S02: VARIABLES GLOBALES V2 [INICIO]
 let semanaActual = 1;
 let configSemana = null;
 let todasSemanas = [];
@@ -523,6 +523,10 @@ let cursos = [];
 let horarioClases = [];
 let actividadesSem = [];
 let fechaFinClases = null;
+let cursosData = [];
+let clasesData = [];
+let actividadesData = [];
+let horarioMatrix = {};
 // MOD-005-S02: FIN
 
 // MOD-005-S03: CONSTANTES V2 [INICIO]
