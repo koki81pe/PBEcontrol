@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.37
-FECHA: 21/01/2026 23:43 (UTC-5)
+VERSIÓN: 01.38
+FECHA: 22/01/2026 00:09 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -191,7 +191,7 @@ FECHA: 21/01/2026 23:43 (UTC-5)
 </style>
 <!-- MOD-002: FIN -->
 
-<!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
+<!-- MOD-003: CONTENEDOR PRINCIPAL V2 [INICIO] -->
 <div class="hs-container">
   <div class="hs-header">
     <div class="hs-header-left">
@@ -235,20 +235,23 @@ FECHA: 21/01/2026 23:43 (UTC-5)
           🗑️ Limpiar
         </button>
       </div>
-    </div>
-    
-    <div class="hs-grid-container">
-      <div class="hs-loading" id="loadingHS">
-        <div class="hs-spinner"></div>
-        <p>Cargando horario...</p>
-      </div>
-      <div id="hsGridContainer"></div>
       
-      <!-- Grid de Deberes -->
-      <div id="hsDeberesContainer"></div>
+      <div class="hs-grid-container">
+        <div class="hs-loading" id="loadingHS">
+          <div class="hs-spinner"></div>
+          <p>Cargando horario...</p>
+        </div>
+        <div id="hsGridContainer"></div>
+        
+        <!-- Grid de Deberes -->
+        <div id="hsDeberesContainer"></div>
+      </div>
     </div>
   </div>
 </div>
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: MODALES Y FORMULARIOS V2 [INICIO] -->
 
 <!-- MODAL: Configurar Fechas de Inicio y Fin -->
 <div id="modalConfigSemana" class="hs-modal">
@@ -336,7 +339,8 @@ FECHA: 21/01/2026 23:43 (UTC-5)
 
       <div class="hs-modal-actions">
         <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalActividad()">Cancelar</button>
-        <button type="submit" class="hs-btn hs-btn-primary">Guardar</button>
+        <button type="button" class="hs-btn hs-btn-danger" id="btnEliminarActividad" style="display:none" onclick="window.hsConfirmarEliminarActividad()">Eliminar</button>
+        <button type="submit" class="hs-btn hs-btn-primary" id="btnSubmitActividad">Guardar</button>
       </div>
     </form>
   </div>
@@ -344,12 +348,19 @@ FECHA: 21/01/2026 23:43 (UTC-5)
 
 <!-- MODAL: Confirmación -->
 <div id="modalConfirmacion" class="hs-modal">
-  <div class="hs-modal-content">
-    <h3>⚠️ Confirmación</h3>
-    <p id="confirmacionMensaje" style="margin: 20px 0; line-height: 1.6;"></p>
+  <div class="hs-modal-content" style="max-width: 420px;">
+    <h3 id="confirmacionTitulo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+      <span style="font-size: 32px;">⚠️</span>
+      <span>Confirmación</span>
+    </h3>
+
+    <p id="confirmacionMensaje" style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 24px;">
+      ¿Estás seguro?
+    </p>
+
     <div class="hs-modal-actions">
-      <button class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalConfirmacion()">Cancelar</button>
-      <button id="btnConfirmarAccion" class="hs-btn hs-btn-primary">Confirmar</button>
+      <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalConfirmacion()">Cancelar</button>
+      <button type="button" class="hs-btn hs-btn-primary" id="btnConfirmarAccion">Confirmar</button>
     </div>
   </div>
 </div>
@@ -366,139 +377,8 @@ FECHA: 21/01/2026 23:43 (UTC-5)
     </div>
   </div>
 </div>
-<!-- MOD-003: FIN -->
 
-<!-- MOD-004: ESTRUCTURA HTML [INICIO] -->
-<div class="hs-container">
-  <div class="hs-sidebar">
-    <h3>📅 Semanas</h3>
-    <button class="hs-btn-primera-clase" onclick="window.hsAbrirConfigSemana()">
-      1ra clase
-    </button>
-    <div id="hsSemanasList"></div>
-    <button class="hs-btn-agregar-semana" onclick="window.hsAgregarNuevaSemana()">
-      ➕ Agregar Semana
-    </button>
-  </div>
-  
-  <div class="hs-main">
-    <div class="hs-toolbar">
-      <div class="hs-nav-semana">
-        <button class="hs-nav-btn" onclick="window.hsNavegarSemana(-1)">◀ Ant</button>
-        <div class="hs-semana-info" id="hsSemanaInfo">Semana 1</div>
-        <button class="hs-nav-btn" onclick="window.hsNavegarSemana(1)">Sig ▶</button>
-      </div>
-      
-      <div class="hs-actions">
-        <button class="hs-btn-action" onclick="window.hsCopiarSemanaAnterior()">
-          📋 Copiar Sem. ant.
-        </button>
-        <button class="hs-btn-action" onclick="window.hsLimpiarSemana()">
-          🗑️ Limpiar
-        </button>
-      </div>
-    </div>
-    
-    <div class="hs-grid-container">
-      <div class="hs-loading" id="loadingHS">
-        <div class="hs-spinner"></div>
-        <p>Cargando horario...</p>
-      </div>
-      <div id="hsGridContainer"></div>
-    </div>
-  </div>
-</div>
-
-<div id="modalConfigSemana" class="hs-modal">
-  <div class="hs-modal-content">
-    <h3>Configurar Semana 1</h3>
-    
-    <form id="formConfigSemana" onsubmit="return window.hsHandleConfigSemana(event)">
-      <div class="hs-form-group">
-        <label>Primer día de clases (cualquier día de la semana):</label>
-        <input type="date" id="configFechaInicio" required>
-      </div>
-      
-      <div class="hs-modal-actions">
-        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarConfigSemana()">Cancelar</button>
-        <button type="submit" class="hs-btn hs-btn-primary">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="modalActividad" class="hs-modal">
-  <div class="hs-modal-content">
-    <h3 id="actividadFormTitle">Agregar Actividad</h3>
-
-    <form id="formActividad" onsubmit="return window.hsHandleSubmitActividad(event)">
-      <input type="hidden" id="actividadRowNumber">
-      <input type="hidden" id="actividadModoEdicion" value="false">
-      <input type="hidden" id="actividadFecha">
-      <input type="hidden" id="actividadSem">
-
-      <div class="hs-form-group">
-        <label>Tipo de Actividad:</label>
-        <select id="actividadTipo" required>
-          <option value="">Seleccionar...</option>
-          <option value="Estudio">Estudio</option>
-          <option value="Repaso">Repaso</option>
-          <option value="Tarea">Tarea</option>
-          <option value="Proyecto">Proyecto</option>
-          <option value="Lectura">Lectura</option>
-          <option value="Personal">Personal</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-
-      <div class="hs-form-group">
-        <label>Nombre:</label>
-        <input type="text" id="actividadNombre" required placeholder="Ej: Estudio FIS">
-      </div>
-
-      <div class="hs-form-group">
-        <label>Hora Inicio:</label>
-        <input type="time" id="actividadHoraIni" required>
-      </div>
-
-      <div class="hs-form-group">
-        <label>Hora Fin:</label>
-        <input type="time" id="actividadHoraFin" required>
-      </div>
-
-      <div class="hs-form-group">
-        <label>Color:</label>
-        <input type="color" id="actividadColor" value="#17a2b8">
-      </div>
-
-      <div class="hs-modal-actions">
-        <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalActividad()">Cancelar</button>
-        <button type="button" class="hs-btn hs-btn-danger" id="btnEliminarActividad" style="display:none" onclick="window.hsConfirmarEliminarActividad()">Eliminar</button>
-        <button type="submit" class="hs-btn hs-btn-primary" id="btnSubmitActividad">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- V01.31 CLAUDE: Modal de confirmación estilizado -->
-<div id="modalConfirmacion" class="hs-modal">
-  <div class="hs-modal-content" style="max-width: 420px;">
-    <h3 id="confirmacionTitulo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-      <span style="font-size: 32px;">❓</span>
-      <span>Confirmación</span>
-    </h3>
-
-    <p id="confirmacionMensaje" style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 24px;">
-      ¿Estás seguro?
-    </p>
-
-    <div class="hs-modal-actions">
-      <button type="button" class="hs-btn hs-btn-secondary" onclick="window.hsCerrarModalConfirmacion()">Cancelar</button>
-      <button type="button" class="hs-btn hs-btn-primary" id="btnConfirmarAccion">Confirmar</button>
-    </div>
-  </div>
-</div>
-<!-- MOD-004: FIN  -->
+<!-- MOD-004: FIN -->
 
 <!-- MOD-005: JAVASCRIPT [INICIO] -->
 <script>
@@ -1730,10 +1610,11 @@ function cerrarModalDeber() {
 }
 // MOD-005-S23: FIN
 
-// MOD-005-S24: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
+// MOD-005-S24: EXPOSICIÓN GLOBAL Y ARRANQUE V2 [INICIO]
 window.hsInit = init;
 window.hsCargarHorarioSem = cargarHorarioSem;
 window.hsCambiarSemana = cambiarSemana;
+window.hsNavegar = navegar;  // ← AGREGADO
 window.hsNavegarSemana = navegarSemana;
 window.hsAgregarNuevaSemana = agregarNuevaSemana;
 window.hsAbrirConfigSemana = abrirConfigSemana;
@@ -1747,6 +1628,8 @@ window.hsConfirmarEliminarActividad = confirmarEliminarActividad;
 window.hsCopiarSemanaAnterior = copiarSemanaAnterior;
 window.hsLimpiarSemana = limpiarSemana;
 window.hsCerrarModalConfirmacion = cerrarModalConfirmacion;
+window.hsCerrarModalDeber = cerrarModalDeber;  // ← AGREGADO
+window.hsAbrirDetalleDeber = abrirDetalleDeber;  // ← AGREGADO
 
 setTimeout(function() {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
