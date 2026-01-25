@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.23
-FECHA: 17/01/2026 06:50 (UTC-5)
+VERSIÓN: 01.26
+FECHA: 24/01/2026 21:22 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -650,7 +650,9 @@ function eliminarHorarioSem(params) {
 }
 // MOD-009: FIN
 
-// MOD-010: CONFIG SEMANAS [INICIO]
+// MOD-010: CONFIG SEMANAS V5 [INICIO]
+
+// MOD-010-S01: OBTENER CONFIG SEMANA [INICIO]
 function obtenerConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -675,48 +677,39 @@ function obtenerConfigSemana(params) {
     
     for (var i = 1; i < data.length; i++) {
       if (data[i][codeAlumIdx] === codeAlum) {
-        var fechaInicio = data[i][fechaInicioIdx];
-        var fechaFin = data[i][fechaFinIdx] || '';
-        
-        if (fechaInicio instanceof Date) {
-          fechaInicio = Utilities.formatDate(fechaInicio, 
-            Session.getScriptTimeZone(), 'yyyy-MM-dd');
-        } else if (typeof fechaInicio === 'string') {
-          if (fechaInicio.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-            var partes = fechaInicio.split('/');
-            fechaInicio = partes[2] + '-' + partes[1] + '-' + partes[0];
-          }
-        }
-        
-        if (fechaFin instanceof Date) {
-          fechaFin = Utilities.formatDate(fechaFin, 
-            Session.getScriptTimeZone(), 'yyyy-MM-dd');
-        } else if (typeof fechaFin === 'string' && fechaFin.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-          var partesFin = fechaFin.split('/');
-          fechaFin = partesFin[2] + '-' + partesFin[1] + '-' + partesFin[0];
-        }
-        
-        return {
-          success: true,
-          data: {
-            FechaInicio: fechaInicio,
-            FechaFin: fechaFin
-          }
+        var config = {
+          FechaReg: data[i][0],
+          CodeAlum: data[i][codeAlumIdx],
+          FechaInicio: data[i][fechaInicioIdx]
         };
+        
+        // Agregar FechaFin si existe la columna y tiene valor
+        if (fechaFinIdx !== -1 && data[i][fechaFinIdx]) {
+          config.FechaFin = data[i][fechaFinIdx];
+        }
+        
+        return { success: true, data: config };
       }
     }
     
-    return { success: false, error: 'No hay configuración de semanas' };
+    return { success: false, error: 'Configuración no encontrada para el alumno' };
   } catch(error) {
     Logger.log('Error en Student.obtenerConfigSemana(): ' + error.toString());
-    return { success: false, error: 'Error al obtener configuración: ' + error.toString() };
+    return { success: false, error: 'Error al obtener configuración de semana' };
   }
 }
+// MOD-010-S01: FIN
 
+// MOD-010-S02: GUARDAR CONFIG SEMANA [INICIO]
 function guardarConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
-    var fechaInicio = params.fechaInicio;
+    var fechaInicio = params.fechaInicio; // Viene en formato ISO desde frontend
+    var fechaFin = params.fechaFin; // Viene en formato ISO desde frontend
+    
+    // ✅ CONVERTIR a Date de JavaScript
+    var fechaInicioDate = new Date(fechaInicio);
+    var fechaFinDate = new Date(fechaFin);
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('Fechas');
@@ -730,20 +723,47 @@ function guardarConfigSemana(params) {
     
     var codeAlumIdx = headers.indexOf('CodeAlum');
     var fechaInicioIdx = headers.indexOf('FechaInicio');
-    var fechaRegIdx = headers.indexOf('FechaReg');
+    var fechaFinIdx = headers.indexOf('FechaFin');
     
     if (codeAlumIdx === -1 || fechaInicioIdx === -1) {
       return { success: false, error: 'Estructura de hoja Fechas incorrecta' };
     }
     
+    // Si no existe columna FechaFin, retornar error
+    if (fechaFinIdx === -1) {
+      return { success: false, error: 'Columna FechaFin no encontrada en hoja Fechas' };
+    }
+    
+    // Buscar si ya existe configuración para este alumno
     for (var i = 1; i < data.length; i++) {
       if (data[i][codeAlumIdx] === codeAlum) {
-        var cell = sheet.getRange(i + 1, fechaInicioIdx + 1);
-        cell.setNumberFormat('@').setValue(fechaInicio);
-        return { success: true };
+        // ✅ Actualizar registro existente con Date
+        var cellInicio = sheet.getRange(i + 1, fechaInicioIdx + 1);
+        cellInicio.setNumberFormat('dd/mm/yyyy').setValue(fechaInicioDate);
+        
+        var cellFin = sheet.getRange(i + 1, fechaFinIdx + 1);
+        cellFin.setNumberFormat('dd/mm/yyyy').setValue(fechaFinDate);
+        
+        Logger.log('✅ Config actualizada como Date: ' + fechaInicioDate + ' a ' + fechaFinDate);
+        
+        // Generar todas las semanas automáticamente
+        var resultSemanas = generarTodasSemanas({
+          codeAlum: codeAlum,
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin
+        });
+        
+        if (!resultSemanas.success) {
+          Logger.log('⚠️ Error al generar semanas: ' + resultSemanas.error);
+        } else {
+          Logger.log('✅ ' + resultSemanas.data + ' semanas generadas automáticamente');
+        }
+        
+        return { success: true, semanas: resultSemanas.data };
       }
     }
     
+    // ✅ Si no existe, crear nuevo registro con Date
     var nuevaFila = [];
     for (var j = 0; j < headers.length; j++) {
       if (headers[j] === 'FechaReg') {
@@ -751,7 +771,9 @@ function guardarConfigSemana(params) {
       } else if (headers[j] === 'CodeAlum') {
         nuevaFila.push(codeAlum);
       } else if (headers[j] === 'FechaInicio') {
-        nuevaFila.push(fechaInicio);
+        nuevaFila.push(fechaInicioDate);
+      } else if (headers[j] === 'FechaFin') {
+        nuevaFila.push(fechaFinDate);
       } else {
         nuevaFila.push('');
       }
@@ -759,58 +781,208 @@ function guardarConfigSemana(params) {
     
     sheet.appendRow(nuevaFila);
     
+    // Formatear las celdas de fecha
     var lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow, fechaInicioIdx + 1).setNumberFormat('@');
+    sheet.getRange(lastRow, fechaInicioIdx + 1).setNumberFormat('dd/mm/yyyy');
+    sheet.getRange(lastRow, fechaFinIdx + 1).setNumberFormat('dd/mm/yyyy');
     
-    return { success: true };
+    Logger.log('✅ Nueva config creada como Date: ' + fechaInicioDate + ' a ' + fechaFinDate);
+    
+    // Generar todas las semanas automáticamente
+    var resultSemanas = generarTodasSemanas({
+      codeAlum: codeAlum,
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin
+    });
+    
+    if (!resultSemanas.success) {
+      Logger.log('⚠️ Error al generar semanas: ' + resultSemanas.error);
+    } else {
+      Logger.log('✅ ' + resultSemanas.data + ' semanas generadas automáticamente');
+    }
+    
+    return { success: true, semanas: resultSemanas.data };
   } catch(error) {
     Logger.log('Error en Student.guardarConfigSemana(): ' + error.toString());
     return { success: false, error: 'Error al guardar configuración: ' + error.toString() };
   }
 }
+// MOD-010-S02: FIN
 
+// MOD-010-S03: GENERAR TODAS SEMANAS [INICIO]
+function generarTodasSemanas(params) {
+  try {
+    var codeAlum = params.codeAlum;
+    var fechaInicio = params.fechaInicio; // Formato ISO
+    var fechaFin = params.fechaFin; // Formato ISO
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Semanas');
+    
+    if (!sheet) {
+      return { success: false, error: 'Hoja no encontrada: Semanas' };
+    }
+    
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var codeAlumIdx = headers.indexOf('CodeAlum');
+    var fechaInicioIdx = headers.indexOf('FechaInicio');
+    var fechaFinIdx = headers.indexOf('FechaFin');
+    
+    if (codeAlumIdx === -1) {
+      return { success: false, error: 'Estructura de hoja Semanas incorrecta' };
+    }
+    
+    // PASO 1: Eliminar todas las semanas anteriores del alumno
+    Logger.log('🗑️ Eliminando semanas anteriores del alumno ' + codeAlum);
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (data[i][codeAlumIdx] === codeAlum) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+    
+    // PASO 2: Calcular semanas desde inicio hasta fin
+    var inicio = new Date(fechaInicio + 'T00:00:00');
+    var fin = new Date(fechaFin + 'T00:00:00');
+    
+    // Ajustar inicio al lunes de esa semana
+    var diaSemanaInicio = inicio.getDay();
+    var diasHastaLunes = diaSemanaInicio === 0 ? 6 : diaSemanaInicio - 1;
+    var primerLunes = new Date(inicio);
+    primerLunes.setDate(primerLunes.getDate() - diasHastaLunes);
+    
+    Logger.log('📅 Primer lunes: ' + primerLunes.toISOString().split('T')[0]);
+    Logger.log('📅 Fecha fin: ' + fin.toISOString().split('T')[0]);
+    
+    // PASO 3: Generar semanas consecutivas
+    var numSemana = 1;
+    var lunesActual = new Date(primerLunes);
+    var semanasGeneradas = 0;
+    
+    while (lunesActual <= fin) {
+      var domingo = new Date(lunesActual);
+      domingo.setDate(domingo.getDate() + 6);
+      
+      // ✅ Guardar como Date, no como string
+      var fechaInicioSemana = new Date(lunesActual);
+      var fechaFinSemana = new Date(domingo);
+      
+      // Crear fila para esta semana
+      var nuevaFila = [];
+      for (var j = 0; j < headers.length; j++) {
+        if (headers[j] === 'FechaReg') {
+          nuevaFila.push(Utils.fechaHoy());
+        } else if (headers[j] === 'CodeAlum') {
+          nuevaFila.push(codeAlum);
+        } else if (headers[j] === 'FechaInicio') {
+          nuevaFila.push(fechaInicioSemana);
+        } else if (headers[j] === 'FechaFin') {
+          nuevaFila.push(fechaFinSemana);
+        } else if (headers[j] === 'Semana') {
+          nuevaFila.push(numSemana);
+        } else {
+          nuevaFila.push('');
+        }
+      }
+      
+      sheet.appendRow(nuevaFila);
+      
+      // Formatear celdas de fecha
+      var lastRow = sheet.getLastRow();
+      if (fechaInicioIdx !== -1) {
+        sheet.getRange(lastRow, fechaInicioIdx + 1).setNumberFormat('dd/mm/yyyy');
+      }
+      if (fechaFinIdx !== -1) {
+        sheet.getRange(lastRow, fechaFinIdx + 1).setNumberFormat('dd/mm/yyyy');
+      }
+      
+      semanasGeneradas++;
+      
+      Logger.log('✅ Semana ' + numSemana + ': ' + 
+                 fechaInicioSemana.toISOString().split('T')[0] + ' → ' + 
+                 fechaFinSemana.toISOString().split('T')[0]);
+      
+      // Avanzar al siguiente lunes
+      lunesActual.setDate(lunesActual.getDate() + 7);
+      numSemana++;
+    }
+    
+    Logger.log('🎉 Total semanas generadas: ' + semanasGeneradas);
+    
+    return { success: true, data: semanasGeneradas };
+  } catch(error) {
+    Logger.log('Error en Student.generarTodasSemanas(): ' + error.toString());
+    return { success: false, error: 'Error al generar semanas: ' + error.toString() };
+  }
+}
+// MOD-010-S03: FIN
+
+// MOD-010-S04: COPIAR SEMANA [INICIO]
 function copiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
-    var fechaInicioOrigen = new Date(params.fechaInicioOrigen);
-    var fechaFinOrigen = new Date(params.fechaFinOrigen);
-    var fechaInicioDestino = new Date(params.fechaInicioDestino);
+    var fechaInicioOrigen = new Date(params.fechaInicioOrigen + 'T00:00:00');
+    var fechaFinOrigen = new Date(params.fechaFinOrigen + 'T00:00:00');
+    var fechaInicioDestino = new Date(params.fechaInicioDestino + 'T00:00:00');
+    
+    // Validar fechas
+    if (isNaN(fechaInicioOrigen.getTime()) || isNaN(fechaFinOrigen.getTime()) || isNaN(fechaInicioDestino.getTime())) {
+      Logger.log('❌ copiarSemana: Fechas inválidas');
+      return { success: false, error: 'Fechas inválidas' };
+    }
+    
+    Logger.log('📋 Copiando actividades de ' + params.fechaInicioOrigen + ' a ' + params.fechaInicioDestino);
     
     var todasActividades = DB.obtenerPorAlumno('HorarioSem', codeAlum);
     
     if (!todasActividades.success) {
+      Logger.log('⚠️ No se pudieron obtener actividades');
       return { success: true, data: 0 };
     }
     
     var actividadesACopiar = [];
     
+    // Filtrar actividades dentro del rango de origen
     for (var i = 0; i < todasActividades.data.length; i++) {
       var act = todasActividades.data[i];
-      var fechaAct = new Date(act.FechaHS);
+      var fechaAct = parsearFechaDDMMAAAABackend(act.FechaHS);
       
       if (fechaAct >= fechaInicioOrigen && fechaAct <= fechaFinOrigen) {
         actividadesACopiar.push(act);
       }
     }
     
+    Logger.log('📋 Actividades a copiar: ' + actividadesACopiar.length);
+    
     var copiadas = 0;
     
+    // Copiar cada actividad ajustando la fecha
     for (var j = 0; j < actividadesACopiar.length; j++) {
       var original = actividadesACopiar[j];
-      var fechaOriginal = new Date(original.FechaHS);
+      var fechaOriginal = parsearFechaDDMMAAAABackend(original.FechaHS);
       
+      // Calcular diferencia en días desde el inicio de la semana origen
       var diffDias = Math.floor((fechaOriginal - fechaInicioOrigen) / (1000 * 60 * 60 * 24));
       
+      // Calcular nueva fecha sumando la diferencia al inicio de destino
       var nuevaFecha = new Date(fechaInicioDestino);
       nuevaFecha.setDate(nuevaFecha.getDate() + diffDias);
       
+      // Formatear fecha a DD/MM/AAAA
+      var dia = String(nuevaFecha.getDate()).padStart(2, '0');
+      var mes = String(nuevaFecha.getMonth() + 1).padStart(2, '0');
+      var anio = nuevaFecha.getFullYear();
+      var fechaFormateada = dia + '/' + mes + '/' + anio;
+      
+      // Crear nueva actividad
       var nuevaActividad = {
         FechaReg: Utils.fechaHoy(),
         CodeAlum: codeAlum,
         Actividad: original.Actividad,
         HoraInicio: original.HoraInicio,
         HoraFin: original.HoraFin,
-        FechaHS: formatearFechaISO(nuevaFecha),
+        FechaHS: fechaFormateada,
         TipoAct: original.TipoAct,
         Color: original.Color,
         Sem: original.Sem
@@ -822,22 +994,35 @@ function copiarSemana(params) {
       }
     }
     
+    Logger.log('✅ Actividades copiadas: ' + copiadas);
     return { success: true, data: copiadas };
+    
   } catch(error) {
     Logger.log('Error en Student.copiarSemana(): ' + error.toString());
     return { success: false, error: 'Error al copiar semana' };
   }
 }
+// MOD-010-S04: FIN
 
+// MOD-010-S05: LIMPIAR SEMANA [INICIO]
 function limpiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
-    var fechaInicio = new Date(params.fechaInicio);
-    var fechaFin = new Date(params.fechaFin);
+    var fechaInicio = new Date(params.fechaInicio + 'T00:00:00');
+    var fechaFin = new Date(params.fechaFin + 'T00:00:00');
+    
+    // Validar fechas
+    if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      Logger.log('❌ limpiarSemana: Fechas inválidas');
+      return { success: false, error: 'Fechas inválidas' };
+    }
+    
+    Logger.log('🗑️ Limpiando semana de ' + params.fechaInicio + ' a ' + params.fechaFin);
     
     var todasActividades = DB.obtenerPorAlumno('HorarioSem', codeAlum);
     
     if (!todasActividades.success) {
+      Logger.log('⚠️ No se pudieron obtener actividades');
       return { success: true, data: 0 };
     }
     
@@ -845,7 +1030,7 @@ function limpiarSemana(params) {
     
     for (var i = 0; i < todasActividades.data.length; i++) {
       var act = todasActividades.data[i];
-      var fechaAct = new Date(act.FechaHS);
+      var fechaAct = parsearFechaDDMMAAAABackend(act.FechaHS);
       
       if (fechaAct >= fechaInicio && fechaAct <= fechaFin) {
         var resultado = DB.eliminar('HorarioSem', act._rowNumber);
@@ -855,12 +1040,35 @@ function limpiarSemana(params) {
       }
     }
     
+    Logger.log('✅ Actividades eliminadas: ' + eliminadas);
     return { success: true, data: eliminadas };
+    
   } catch(error) {
     Logger.log('Error en Student.limpiarSemana(): ' + error.toString());
     return { success: false, error: 'Error al limpiar semana' };
   }
 }
+// MOD-010-S05: FIN
+
+// MOD-010-S06: HELPER PARSEAR FECHA [INICIO]
+function parsearFechaDDMMAAAABackend(fechaStr) {
+  if (!fechaStr) return new Date('invalid');
+  
+  var str = String(fechaStr).trim();
+  
+  // Formato DD/MM/AAAA
+  var match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    var dia = parseInt(match[1], 10);
+    var mes = parseInt(match[2], 10) - 1;
+    var anio = parseInt(match[3], 10);
+    return new Date(anio, mes, dia);
+  }
+  
+  return new Date(str);
+}
+// MOD-010-S06: FIN
+
 // MOD-010: FIN
 
 // MOD-011: GESTIÓN SEMANAS [INICIO]
