@@ -3,8 +3,8 @@
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1code.gs
-VERSIÓN: 01.28
-FECHA: 10/01/2026 18:30 (UTC-5)
+VERSIÓN: 01.29
+FECHA: 24/01/2026 20:30 (UTC-5)
 ******************************************
 */
 // MOD-001: FIN
@@ -350,9 +350,9 @@ function studentLimpiarSemana(params) {
 }
 // MOD-013: FIN
 
-// MOD-014: WRAPPERS GESTIÓN SEMANAS [INICIO]
-function studentObtenerSemanas(params) {
-  var result = Student.obtenerSemanas(params.codeAlum);
+// MOD-014: WRAPPERS GESTIÓN SEMANAS V2 [INICIO]
+function studentObtenerSemanas(codeAlum) {
+  var result = Student.obtenerSemanas(codeAlum);
   return cleanDataForSerialization(result);
 }
 
