@@ -1,0 +1,157 @@
+SKILL PROTOCOLO DE CÓDIGO OBLIGATORIO:
+
+Siempre que generes o modifiques código, debes usar el sistema CodeWorkShop:
+
+- Todo código debe estar en módulos MOD-XXX delimitados
+- Formato: MOD-[ID]: [DESCRIPCIÓN] [INICIO] ... MOD-[ID]: FIN
+- Secuencia obligatoria: MOD-001 ENCABEZADO → MOD-002 APERTURA (si aplica) → MOD-XXX funcional → MOD-YYY CIERRE → MOD-ZZZ NOTAS
+- Sintaxis: // en .GS, <!-- --> en HTML, contextual en <script> y <style>
+- NUNCA usar <!-- --> dentro de <script> o <style>
+- Al modificar, entregar SOLO el módulo cambiado
+- Fecha: Consultar tiempo real en https://www.timeanddate.com/worldclock/peru/lima
+
+Pregúntame si necesitas el manual completo.
+```
+
+---
+
+## 🎯 FRASES DE ACTIVACIÓN
+
+Una vez "inoculada", activa la skill con frases como:
+
+### Para código nuevo:
+- "Crea [descripción] usando CodeWorkShop"
+- "Genera un archivo .gs modular para [tarea]"
+- "Arma un HTML con el estándar CWS"
+
+### Para código existente:
+- "Modula este código según CodeWorkShop"
+- "Convierte esto a formato MOD-XXX"
+- "Aplica el estándar de módulos a este archivo"
+
+### Para modificaciones:
+- "Actualiza el MOD-005 para que [cambio]"
+- "Corrige el módulo de validación"
+- "Agrega funcionalidad X al MOD-003"
+
+---
+
+## 💬 EJEMPLOS DE CONVERSACIÓN
+
+### Ejemplo 1: Crear desde cero
+```
+TÚ: Crea un script .gs para buscar productos en una hoja de cálculo.
+     Usa CodeWorkShop.
+
+IA: [Genera archivo completo con todos los módulos MOD-001 a MOD-006]
+```
+
+### Ejemplo 2: Modificar existente
+```
+TÚ: [Adjuntas archivo con módulos]
+    Modifica el MOD-004 para que valide también el stock mínimo.
+
+IA: [Entrega SOLO el MOD-004 actualizado, no el archivo completo]
+```
+
+### Ejemplo 3: Modularizar código existente
+```
+TÚ: [Pegas código sin módulos]
+    Modula esto según CodeWorkShop.
+
+IA: [Convierte el código añadiendo delimitadores MOD-XXX]
+```
+
+---
+
+## 🔍 VALIDACIÓN DE QUE LA SKILL FUNCIONA
+
+La IA debe mostrar estos comportamientos:
+
+✅ **Correcto:**
+- Pregunta la fecha/hora o la busca en línea
+- Crea MOD-001 como primera línea (antes de DOCTYPE)
+- Usa `[INICIO]` y `FIN` correctamente
+- Respeta sintaxis de comentarios según lenguaje
+- En modificaciones, entrega solo el módulo afectado
+
+❌ **Incorrecto (recontra enseñar):**
+- Inventa la fecha en lugar de buscarla
+- Deja código fuera de módulos
+- Usa `<!-- -->` dentro de `<script>`
+- Al modificar, regenera todo el archivo
+- Omite `[INICIO]` o usa `[FIN]` sin ID
+
+---
+
+## 🛠️ TROUBLESHOOTING
+
+### Problema: La IA no aplica las reglas
+**Solución:** Recuérdale específicamente:
+```
+Recuerda aplicar CodeWorkShop. Verifica que:
+1. MOD-001 sea la primera línea
+2. Todo esté dentro de módulos
+3. Uses la sintaxis correcta de comentarios
+```
+
+### Problema: Genera archivo completo en lugar del módulo
+**Solución:** Sé explícito:
+```
+Solo entrega el MOD-XXX modificado, no el archivo completo.
+```
+
+### Problema: Errores de sintaxis en HTML
+**Solución:** Enfatiza:
+```
+CRÍTICO: NO uses <!-- --> dentro de <script>.
+Usa // para delimitadores y comentarios en JavaScript.
+```
+
+---
+
+## 🎁 BONUS: Template de Prompt Completo
+
+Para activación instantánea en cualquier IA:
+
+```
+Eres un asistente de programación que SIEMPRE usa el protocolo CodeWorkShop v5.0.
+
+REGLAS OBLIGATORIAS:
+1. TODO el código en módulos MOD-XXX con formato: MOD-[ID]: [DESC] [INICIO] ... MOD-[ID]: FIN
+2. Secuencia: MOD-001 (encabezado) → MOD-002 (apertura si aplica) → MOD-XXX (funcional) → MOD-YYY (cierre) → MOD-ZZZ (notas)
+3. Sintaxis .GS: // exclusivamente
+4. Sintaxis .HTML: <!-- --> en HTML, // en <script>, /* */ en <style>
+5. NUNCA <!-- --> dentro de <script> o <style>
+6. Fecha: Consultar https://www.timeanddate.com/worldclock/peru/lima en tiempo real
+7. Al modificar: Entregar SOLO el módulo cambiado
+
+Al recibir una solicitud:
+- Si es código nuevo: Genera estructura completa con todos los módulos
+- Si es modificación: Identifica el MOD-XXX y entrega solo ese
+- Si es código sin modular: Ofrece modularlo primero
+
+¿Entendido? Confirma y estaré listo para la primera tarea.
+```
+
+---
+
+## 📚 RECURSOS
+
+**Documento original completo:** 
+- Guardar como referencia para casos complejos
+
+**Skill compacta (este documento):**
+- Usar para prompts diarios
+
+**Versión ultra-resumida (50 palabras):**
+```
+Usa CodeWorkShop: Todo código en módulos MOD-XXX con [INICIO]/FIN. 
+Secuencia: 001-encabezado, 002-apertura, XXX-funcional, YYY-cierre, ZZZ-notas. 
+Sintaxis: // en .GS, contextual en HTML. 
+NO <!-- --> en <script>/<style>. 
+Fecha: buscar en tiempo real UTC-5. 
+Al modificar: solo el módulo afectado.
+```
+
+---
