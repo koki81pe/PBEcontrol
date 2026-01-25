@@ -1,0 +1,339 @@
+ARCHIVO 1code.gs
+MOD-001: Encabezado
+MOD-002: Router principal
+MOD-003: Include dinámico
+MOD-004: Autenticación
+MOD-005: Limpieza de datos
+MOD-006: Wrappers cursos
+MOD-007: Wrappers repasos
+MOD-008: Wrappers evaluaciones
+MOD-009: Wrappers tareas
+MOD-010: Wrappers lecturas
+MOD-011: Wrappers horario clases
+MOD-012: Wrappers horario semanal
+MOD-013: Wrappers config semanas
+MOD-014: Wrappers gestión semanas
+MOD-015: Wrappers notas
+MOD-016: Wrappers deberes
+MOD-017: Wrappers admin
+MOD-099: Notas
+
+ARCHIVO 1db.gs
+MOD-001: Encabezado
+MOD-002: Configuración global - spreadsheet
+MOD-003: Configuración global - hojas
+MOD-004: Módulo db - declaración
+MOD-005: Buscar registro
+MOD-006: Agregar registro
+MOD-007: Actualizar registro
+MOD-008: Eliminar registro
+MOD-009: Obtener por alumno
+MOD-010: Eliminar por alumno
+MOD-011: Exportar funciones públicas
+MOD-012: Cierre módulo db
+MOD-013: Código de cierre
+MOD-099: Notas
+
+ARCHIVO 1student.gs
+MOD-001: Encabezado
+MOD-002: Inicialización
+MOD-003: Cursos
+MOD-004: Repasos
+MOD-005: Evaluaciones
+MOD-006: Tareas
+MOD-007: Lecturas
+MOD-008: Horario clases
+MOD-009: Horario semanal
+MOD-010: Config semanas
+MOD-010-S01: Obtener config semana
+MOD-010-S02: Guardar config semana
+MOD-010-S03: Generar todas semanas
+MOD-010-S04: Copiar semana
+MOD-010-S05: Limpiar semana
+MOD-010-S06: Helper parsear fecha
+MOD-011: Gestión semanas
+MOD-012: Notas
+MOD-013: Deberes
+MOD-014: Helpers
+MOD-015: Exportación
+MOD-099: Notas
+
+ARCHIVO 1utils.gs
+MOD-001: Encabezado
+MOD-002: Módulo utils - declaración
+MOD-003: Fecha actual
+MOD-004: Validar email
+MOD-005: Exportar funciones públicas
+MOD-006: Cierre módulo utils
+MOD-007: Paleta de colores
+MOD-008: Código de cierre
+MOD-099: Notas
+
+ARCHIVO 3index.html
+MOD-001: Encabezado
+MOD-002: Apertura html
+MOD-003: Estilos
+MOD-004: Cierre head y apertura body
+MOD-005: Contenedor login
+MOD-006: Javascript
+MOD-007: Código de cierre
+MOD-099: Notas
+
+ARCHIVO 3paneladmin.html
+MOD-001: Encabezado
+MOD-002: Apertura html
+MOD-003: Estilos
+MOD-004: Cierre head y apertura body
+MOD-005: Navbar
+MOD-006: Container principal
+MOD-007: Sección crear alumno
+MOD-008: Sección buscar alumno
+MOD-009: Cierre container
+MOD-010: Modal confirmación
+MOD-011: Javascript
+MOD-012: Código de cierre
+MOD-099: Notas
+
+ARCHIVO 3panelstudent.html
+MOD-001: Encabezado
+MOD-002: Apertura html
+MOD-003: Estilos
+MOD-004: Javascript global
+MOD-005: Cierre head y apertura body
+MOD-006: Loading screen
+MOD-007: Navbar
+MOD-008: Layout principal
+MOD-009: Tabs sidebar
+MOD-010: Contenedor tabs
+MOD-011: Cierre layout
+MOD-012: Javascript
+MOD-013: Código de cierre
+MOD-099: Notas
+
+ARCHIVO 4atabcursosyrep.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor subtabs
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 4btabdeberes.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor subtabs
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 4ctabplanning.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor subtabs
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 5atabcursos.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Html container
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 5atabrepasos.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor repasos
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 6btabeval.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor principal
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 6btablecturas.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-002-S01: Reset y base
+MOD-002-S02: Contenedor principal
+MOD-002-S03: Header principal
+MOD-002-S04: Filtro
+MOD-002-S05: Botón agregar
+MOD-002-S06: Formulario base
+MOD-002-S07: Form header y cierre
+MOD-002-S08: Form layout
+MOD-002-S09: Form inputs
+MOD-002-S10: Form actions
+MOD-002-S11: Tabla contenedor
+MOD-002-S12: Tabla header
+MOD-002-S13: Tabla body
+MOD-002-S14: Badges y tags
+MOD-002-S15: Págs/día badges
+MOD-002-S16: Nota badges
+MOD-002-S17: Acciones botones
+MOD-002-S18: Estados vacío/loading
+MOD-002-S19: Responsive 768px
+MOD-003: Html estructura
+MOD-004: Javascript
+MOD-004-S01: Variables globales
+MOD-004-S02: Inicialización
+MOD-004-S03: Cargar cursos gas
+MOD-004-S04: Poblar selects
+MOD-004-S05: Cargar lecturas gas
+MOD-004-S06: Cálculo págs/día
+MOD-004-S07: Parse fecha
+MOD-004-S08: Render tabla
+MOD-004-S09: Filtro
+MOD-004-S10: Form toggle
+MOD-004-S11: Form limpiar
+MOD-004-S12: Form submit
+MOD-004-S13: Agregar lectura
+MOD-004-S14: Actualizar lectura
+MOD-004-S15: Editar lectura
+MOD-004-S16: Eliminar lectura
+MOD-004-S17: Helpers validación
+MOD-004-S18: Helpers dom
+MOD-004-S19: Ui helpers
+MOD-004-S20: Alertas
+MOD-004-S21: Api pública
+MOD-004-S22: Auto-init
+MOD-099: Notas
+
+ARCHIVO 6btabtareas.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor principal
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 6btabtodos.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor principal
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 7ctabcalendario.html
+MOD-001: Encabezado
+MOD-002: Estilos
+MOD-003: Contenedor principal
+MOD-004: Javascript
+MOD-099: Notas
+
+ARCHIVO 7ctabhorarioclase.html
+MOD-001: Encabezado
+MOD-002: Apertura
+MOD-003: Estilos css
+MOD-003-S01: Contenedor principal
+MOD-003-S02: Grid y tabla
+MOD-003-S03: Celdas de clase
+MOD-003-S04: Formulario overlay
+MOD-003-S05: Formulario campos
+MOD-003-S06: Botones
+MOD-003-S07: Modal selección
+MOD-003-S08: Loading
+MOD-003-S09: Responsive
+MOD-004: Estructura html
+MOD-005: Javascript
+MOD-005-S01: Encapsulamiento iife
+MOD-005-S02: Variables y constantes
+MOD-005-S03: Inicialización
+MOD-005-S04: Carga de cursos v2
+MOD-005-S05: Carga de horario
+MOD-005-S06: Construcción de matriz
+MOD-005-S07: Helpers de procesamiento
+MOD-005-S08: Renderizado de grid
+MOD-005-S09: Modal selección
+MOD-005-S10: Validación solapamiento
+MOD-005-S11: Formulario agregar
+MOD-005-S12: Formulario editar
+MOD-005-S13: Formulario submit
+MOD-005-S14: Formulario eliminar
+MOD-005-S15: Formulario helpers
+MOD-005-S16: Formateo
+MOD-005-S17: Exposición global y arranque
+MOD-006: Cierre
+MOD-099: Notas
+
+ARCHIVO 7ctabhorariosem.html
+MOD-001: Encabezado
+MOD-002: Css 1 estructura y navegación
+MOD-002-S01: Variables css
+MOD-002-S02: Reset y base
+MOD-002-S03: Contenedor principal
+MOD-002-S04: Header v2
+MOD-002-S05: Info semana
+MOD-002-S06: Botón config
+MOD-002-S07: Content layout
+MOD-002-S08: Sidebar
+MOD-002-S09: Botones semana
+MOD-002-S10: Main area
+MOD-002-S11: Actions toolbar
+MOD-002-S12: Botones acción
+MOD-003: Css 2 grid y modales
+MOD-003-S01: Grid container
+MOD-003-S02: Grid table
+MOD-003-S03: Celdas grid
+MOD-003-S04: Clases fijas
+MOD-003-S05: Modales base
+MOD-003-S06: Modal content
+MOD-003-S07: Formularios
+MOD-003-S08: Modal actions
+MOD-003-S09: Loading
+MOD-003-S10: Deberes grid
+MOD-003-S11: Modal deber
+MOD-003-S12: Responsive
+MOD-004: Contenedor principal v3
+MOD-005: Modales y formularios v2
+MOD-006: JavaScript
+MOD-006-S01: Encapsulamiento iife
+MOD-006-S02: Variables globales v2
+MOD-006-S03: Constantes v2
+MOD-006-S04: Inicialización
+MOD-006-S05: Carga config semana v2
+MOD-006-S06: Carga semanas v2
+MOD-006-S07: Navegación semanas
+MOD-006-S08: Render lista semanas
+MOD-006-S09: Actualizar info semana v2
+MOD-006-S10: Calcular fechas semana v2
+MOD-006-S11: Carga de cursos
+MOD-006-S12: Carga horario clases
+MOD-006-S13: Carga horario semanal
+MOD-006-S14: Construcción de matriz
+MOD-006-S15: Helpers de procesamiento
+MOD-006-S16: Renderizado de grid
+MOD-006-S17: Formateo
+MOD-006-S18: Navegación extra
+MOD-006-S19: Config semana
+MOD-006-S20: Copiar y limpiar v2
+MOD-006-S21: Formulario actividad
+MOD-006-S22: Modal confirmación
+MOD-006-S23: Notificaciones
+MOD-006-S24: Renderizar deberes v2
+MOD-006-S25: Exposición global y arranque v2
+MOD-099: Notas
+
+ARCHIVO 7ctabnotas.html
+MOD-001: Encabezado
+
+MOD-002: Estilos
+MOD-002-S01: Contenedor principal
+MOD-002-S02: Grid de cursos
+MOD-002-S03: Tarjeta de curso
+MOD-002-S04: Promedio badge
+MOD-002-S05: Estado del curso
+MOD-002-S06: Detalle del curso
+MOD-002-S07: Loading
+MOD-002-S08: Estado vacío
+MOD-003: Contenedor principal
+MOD-004: JavaScript
+MOD-004-S01: Encapsulamiento y protección
+MOD-004-S02: Inicialización
+MOD-004-S03: Carga de datos
+MOD-004-S04: Renderizado de cursos
+MOD-004-S05: Estadísticas globales
+MOD-004-S06: Estado vacío
+MOD-004-S07: Helpers de clasificación
+MOD-004-S08: Export e inicialización
+MOD-099: Notas
