@@ -1,42 +1,32 @@
----
-## 📋 ESTRUCTURA FINAL DEFINITIVA
-```
-📁 01 BACKEND (.gs)
-├── 1code.gs
-├── 1db.gs
-├── 1student.gs
-├── 1admin.gs
-└── 1utils.gs
+ESTRUCTURA DE ARCHIVOS DE PBE CONTROL
 
-📁 02 TESTS (.gs + .html)
-├── 2testback.gs
-├── 2testfront.gs
-└── 2testui.html
+1code.gs
+1db.gs
+1student.gs
+1admin.gs
+1utils.gs
 
-📁 03 FRONTEND - BASE (.html)
-├── 3index.html
-├── 3paneladmin.html
-└── 3panelstudent.html
+2testback.gs
+2testfront.gs
+2testui.html
 
-📁 04 FRONTEND - TABS PRINCIPALES (.html) - Contenedor (botones + include())
-├── 4atabcursosyrep.html      # Conectado a sub-tabs Cursos, Repasos
-├── 4btabdeberes.html         # Conectado a sub-tabs Todos, Eval, Tareas, Lecturas
-└── 4ctabplanning.html        # Conectado a sub-tabs Horario Clase, Horario Semanal, Notas y Calendario
+3index.html
+3paneladmin.html
+3panelstudent.html
 
-📁 05A FRONTEND - SUB-TABS DE CURSOS (.html)
-├── 5atabcusos.html
-└── 5atabrepasos.html
+4atabcursosyrep.html
+4btabdeberes.html
+4ctabplanning.html
 
-📁 06 FRONTEND - SUB-TABS DE DEBERES (.html)
-├── 6btabtodos.html
-├── 6btabeval.html
-├── 6btabtareas.html
-└── 6btablecturas.html
+5atabcusos.html
+5atabrepasos.html
 
-📁 07 FRONTEND - SUB-TABS DE PLANNING (.html)
-├── 7ctabhorarioclase.html
-├── 7ctabhorariosem.html
-├── 7ctabnotas.html
-└── 7ctabcalendario.html
+6btabtodos.html
+6btabeval.html
+6btabtareas.html
+6btablecturas.html
 
-TOTAL: 24 archivos
+7ctabhorarioclase.html
+7ctabhorariosem.html
+7ctabnotas.html
+7ctabcalendario.html
