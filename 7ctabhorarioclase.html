@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.26
-FECHA: 19/01/2026 00:31 (UTC-5)
+VERSIÓN: 01.27
+FECHA: 24/01/2026 14:13 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -22,7 +22,7 @@ FECHA: 19/01/2026 00:31 (UTC-5)
 <!-- MOD-003: ESTILOS CSS [INICIO] -->
 <style>
 
-// MOD-003-S01: CONTENEDOR PRINCIPAL [INICIO]
+/* MOD-003-S01: CONTENEDOR PRINCIPAL [INICIO] */
 .hc-grid-container {
   background: #fff;
   border-radius: 8px;
@@ -31,9 +31,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   position: relative;
   min-height: 400px;
 }
-// MOD-003-S01: FIN
+/* MOD-003-S01: FIN */
 
-// MOD-003-S02: GRID Y TABLA [INICIO]
+/* MOD-003-S02: GRID Y TABLA [INICIO] */
 .hc-grid {
   width: 100%;
   border-collapse: collapse;
@@ -70,9 +70,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   height: 45px;
   vertical-align: middle;
 }
-// MOD-003-S02: FIN
+/* MOD-003-S02: FIN */
 
-// MOD-003-S03: CELDAS DE CLASE [INICIO]
+/* MOD-003-S03: CELDAS DE CLASE [INICIO] */
 .hc-celda-clase {
   min-height: 35px;
   border-radius: 4px;
@@ -100,9 +100,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   font-size: 11px;
   font-weight: 700;
 }
-// MOD-003-S03: FIN
+/* MOD-003-S03: FIN */
 
-// MOD-003-S04: FORMULARIO OVERLAY [INICIO]
+/* MOD-003-S04: FORMULARIO OVERLAY [INICIO] */
 .hc-form-overlay {
   position: fixed;
   top: 0;
@@ -134,9 +134,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   color: #667eea;
   font-size: 20px;
 }
-// MOD-003-S04: FIN
+/* MOD-003-S04: FIN */
 
-// MOD-003-S05: FORMULARIO CAMPOS [INICIO]
+/* MOD-003-S05: FORMULARIO CAMPOS [INICIO] */
 .hc-form-group {
   margin-bottom: 16px;
 }
@@ -166,9 +166,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
 }
-// MOD-003-S05: FIN
+/* MOD-003-S05: FIN */
 
-// MOD-003-S06: BOTONES [INICIO]
+/* MOD-003-S06: BOTONES [INICIO] */
 .hc-form-actions {
   display: flex;
   gap: 12px;
@@ -212,9 +212,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
 .hc-btn-danger:hover {
   background: #c82333;
 }
-// MOD-003-S06: FIN
+/* MOD-003-S06: FIN */
 
-// MOD-003-S07: MODAL SELECCIÓN [INICIO]
+/* MOD-003-S07: MODAL SELECCIÓN [INICIO] */
 .hc-modal-seleccion {
   position: fixed;
   top: 0;
@@ -285,9 +285,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
   justify-content: flex-end;
   margin-top: 16px;
 }
-// MOD-003-S07: FIN
+/* MOD-003-S07: FIN */
 
-// MOD-003-S08: LOADING [INICIO]
+/* MOD-003-S08: LOADING [INICIO] */
 .hc-loading {
   text-align: center;
   padding: 40px;
@@ -307,9 +307,9 @@ FECHA: 19/01/2026 00:31 (UTC-5)
 @keyframes hc-spin {
   to { transform: rotate(360deg); }
 }
-// MOD-003-S08: FIN
+/* MOD-003-S08: FIN */
 
-// MOD-003-S09: RESPONSIVE [INICIO]
+/* MOD-003-S09: RESPONSIVE [INICIO] */
 @media (max-width: 768px) {
   .hc-grid {
     font-size: 11px;
@@ -329,7 +329,7 @@ FECHA: 19/01/2026 00:31 (UTC-5)
     padding: 20px;
   }
 }
-// MOD-003-S09: FIN
+/* MOD-003-S09: FIN */
 
 </style>
 <!-- MOD-003: FIN -->
@@ -448,7 +448,7 @@ function init() {
 }
 // MOD-005-S03: FIN
 
-// MOD-005-S04: CARGA DE CURSOS [INICIO]
+// MOD-005-S04: CARGA DE CURSOS V2 [INICIO]
 function cargarCursos() {
   console.log('🕐 Cargando cursos...');
   
@@ -477,8 +477,8 @@ function poblarDropdownCursos() {
   const select = document.getElementById('claseCurso');
   if (!select) return;
   
-  const primerOption = select.options[0].outerHTML;
-  select.innerHTML = primerOption;
+  // Limpiar select manteniendo la opción por defecto
+  select.innerHTML = '<option value="">Seleccionar...</option>';
 
   cursosData.forEach(c => {
     const opt = document.createElement('option');
