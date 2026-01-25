@@ -18,6 +18,11 @@ MOD-016: Wrappers deberes
 MOD-017: Wrappers admin
 MOD-099: Notas
 
+ARCHIVO 2testback.gs (ignorar)
+ARCHIVO 2testfront.gs (ignorar)
+ARCHIVO 2testui.html (ignorar)
+
+
 ARCHIVO 1db.gs
 MOD-001: Encabezado
 MOD-002: Configuración global - spreadsheet
