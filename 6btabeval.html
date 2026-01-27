@@ -3,22 +3,24 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabeval.html
-VERSIÓN: 01.20
-FECHA: 18/01/2026 15:39 (UTC-5)
+VERSIÓN: 01.30
+FECHA: 27/01/2026 07:11 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* CONTENEDOR PRINCIPAL */
+/* MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO] */
 .eval-container {
   background: white;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+/* MOD-002-S01: FIN */
 
+/* MOD-002-S02: HEADER PRINCIPAL [INICIO] */
 .eval-header {
   display: flex;
   justify-content: space-between;
@@ -39,8 +41,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   gap: 12px;
   flex-wrap: wrap;
 }
+/* MOD-002-S02: FIN */
 
-/* FILTROS */
+/* MOD-002-S03: FILTROS LABEL [INICIO] */
 .filtro-container {
   display: flex;
   align-items: center;
@@ -52,7 +55,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   font-weight: 600;
   color: #666;
 }
+/* MOD-002-S03: FIN */
 
+/* MOD-002-S04: FILTRO SELECT [INICIO] */
 .filtro-container select {
   padding: 8px 12px;
   border: 2px solid #ddd;
@@ -67,8 +72,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   outline: none;
   border-color: #667eea;
 }
+/* MOD-002-S04: FIN */
 
-/* BOTONES */
+/* MOD-002-S05: BOTÓN AGREGAR [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -86,7 +92,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
+/* MOD-002-S05: FIN */
 
+/* MOD-002-S06: BOTONES BASE [INICIO] */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -97,7 +105,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   transition: all 0.3s;
   font-family: inherit;
 }
+/* MOD-002-S06: FIN */
 
+/* MOD-002-S07: BOTONES PRIMARIOS [INICIO] */
 .btn-primary {
   background: #667eea;
   color: white;
@@ -106,7 +116,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 .btn-primary:hover {
   background: #5568d3;
 }
+/* MOD-002-S07: FIN */
 
+/* MOD-002-S08: BOTONES SECUNDARIOS [INICIO] */
 .btn-secondary {
   background: #6c757d;
   color: white;
@@ -115,7 +127,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 .btn-secondary:hover {
   background: #5a6268;
 }
+/* MOD-002-S08: FIN */
 
+/* MOD-002-S09: BOTONES ICONO [INICIO] */
 .btn-icon {
   background: transparent;
   border: none;
@@ -133,8 +147,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 .btn-icon.delete {
   color: #dc3545;
 }
+/* MOD-002-S09: FIN */
 
-/* FORMULARIO */
+/* MOD-002-S10: FORMULARIO BASE [INICIO] */
 .form-eval {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
@@ -148,7 +163,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   display: block;
   animation: slideDown 0.3s ease-out;
 }
+/* MOD-002-S10: FIN */
 
+/* MOD-002-S11: FORM ANIMACIÓN [INICIO] */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -159,7 +176,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     transform: translateY(0);
   }
 }
+/* MOD-002-S11: FIN */
 
+/* MOD-002-S12: FORM LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -170,7 +189,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 .form-group {
   margin-bottom: 0;
 }
+/* MOD-002-S12: FIN */
 
+/* MOD-002-S13: FORM LABELS [INICIO] */
 .form-group label {
   display: block;
   font-size: 13px;
@@ -178,11 +199,15 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   color: #333;
   margin-bottom: 6px;
 }
+/* MOD-002-S13: FIN */
 
+/* MOD-002-S14: FORM REQUIRED [INICIO] */
 .form-group label .required {
   color: #dc3545;
 }
+/* MOD-002-S14: FIN */
 
+/* MOD-002-S15: FORM INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   width: 100%;
@@ -193,28 +218,35 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   transition: all 0.3s;
   font-family: inherit;
 }
+/* MOD-002-S15: FIN */
 
+/* MOD-002-S16: FORM FOCUS [INICIO] */
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
+/* MOD-002-S16: FIN */
 
+/* MOD-002-S17: FORM SMALL TEXT [INICIO] */
 .form-group small {
   display: block;
   margin-top: 4px;
   font-size: 12px;
   color: #666;
 }
+/* MOD-002-S17: FIN */
 
+/* MOD-002-S18: FORM ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
 }
+/* MOD-002-S18: FIN */
 
-/* TABLA DE EVALUACIONES */
+/* MOD-002-S19: TABLA CONTAINER [INICIO] */
 .eval-table-container {
   overflow-x: auto;
 }
@@ -224,7 +256,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   border-collapse: collapse;
   font-size: 14px;
 }
+/* MOD-002-S19: FIN */
 
+/* MOD-002-S20: TABLA HEADER [INICIO] */
 .eval-table thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -236,7 +270,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   font-weight: 600;
   font-size: 13px;
 }
+/* MOD-002-S20: FIN */
 
+/* MOD-002-S21: TABLA BODY [INICIO] */
 .eval-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -250,8 +286,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   padding: 12px;
   color: #333;
 }
+/* MOD-002-S21: FIN */
 
-/* CURSO TAG */
+/* MOD-002-S22: CURSO TAG [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -261,8 +298,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
+/* MOD-002-S22: FIN */
 
-/* COLORES DINÁMICOS EN NOTA */
+/* MOD-002-S23: NOTA CELLS [INICIO] */
 .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -286,7 +324,6 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   font-style: italic;
 }
 
-/* PESO Y SEMANA */
 .peso-cell {
   text-align: center;
   color: #666;
@@ -297,8 +334,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   color: #666;
   font-size: 13px;
 }
+/* MOD-002-S23: FIN */
 
-/* ESTADO VACÍO */
+/* MOD-002-S24: ESTADOS + RESPONSIVE [INICIO] */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -315,7 +353,6 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   font-size: 15px;
 }
 
-/* LOADING */
 .loading-container {
   text-align: center;
   padding: 40px;
@@ -336,7 +373,6 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   to { transform: rotate(360deg); }
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .eval-container {
     padding: 16px;
@@ -390,34 +426,39 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     display: none;
   }
 }
+/* MOD-002-S24: FIN */
 </style>
 <!-- MOD-002: FIN -->
 
 <!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="eval-container">
 
+<!-- MOD-003-S01: HEADER Y FILTROS V2 [INICIO] -->
   <div class="eval-header">
     <h2>📝 Mis Evaluaciones</h2>
     <div class="header-actions">
       <div class="filtro-container">
-        <label>Filtrar:</label>
-        <select id="filtroCurso" onchange="aplicarFiltro()">
+        <label for="filtroCursoEval">Filtrar:</label>
+        <select id="filtroCursoEval" onchange="EvalModule.aplicarFiltro()">
           <option value="">Todos los cursos</option>
         </select>
       </div>
-      <button class="btn-agregar" onclick="toggleFormAgregar()">
+      <button class="btn-agregar" onclick="EvalModule.toggleFormAgregar()">
         + Agregar Evaluación
       </button>
     </div>
   </div>
+  <!-- MOD-003-S01: FIN -->
 
+<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR V2 [INICIO] -->
   <div id="formEval" class="form-eval">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Evaluación</h3>
 
-    <form id="evalForm" onsubmit="handleSubmitEval(event)">
+    <form id="evalForm" onsubmit="EvalModule.handleSubmitEval(event)">
       <input type="hidden" id="evalRowNumber" value="">
       <input type="hidden" id="evalModoEdicion" value="false">
 
+      <!-- MOD-003-S02-A: FILA 1 - CURSO, NOMBRE, FECHA -->
       <div class="form-row">
         <div class="form-group">
           <label>Curso <span class="required">*</span></label>
@@ -448,6 +489,7 @@ FECHA: 18/01/2026 15:39 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-B: FILA 2 - NOTA, PESO, SEMANA -->
       <div class="form-row">
         <div class="form-group">
           <label>Nota (Opcional)</label>
@@ -488,40 +530,45 @@ FECHA: 18/01/2026 15:39 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-C: BOTONES ACCIÓN -->
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" id="btnSubmit">
           Guardar Evaluación
         </button>
-        <button type="button" class="btn btn-secondary" onclick="cancelarFormEval()">
+        <button type="button" class="btn btn-secondary" onclick="EvalModule.cancelarFormEval()">
           Cancelar
         </button>
       </div>
     </form>
   </div>
+  <!-- MOD-003-S02: FIN -->
 
+<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
   <div id="evalTableContainer" class="eval-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando evaluaciones...</p>
     </div>
   </div>
+  <!-- MOD-003-S03: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
 
-<!-- MOD-004: JAVASCRIPT [INICIO] -->
+<!-- MOD-004: JAVASCRIPT V3 [INICIO] -->
 <script>
-(function PBE_EVAL_MODULE() {
-  'use strict';
 
-  // VARIABLES LOCALES (ENCAPSULADAS)
+// MOD-004-S01: ENCAPSULAMIENTO IIFE Y VARIABLES [INICIO]
+(function PBE_EVAL_MODULE() {
+  // QUITAMOS 'use strict' TEMPORALMENTE
+
   let evaluacionesData = [];
   let cursosData = [];
   let evaluacionesFiltradas = [];
-
-  // INICIALIZACIÓN (SAFE PARA LAZY-LOAD)
   let _initDone = false;
+// MOD-004-S01: FIN
 
+// MOD-004-S02: INICIALIZACIÓN V5 [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -533,15 +580,28 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     _initDone = true;
     cargarCursos();
     cargarEvaluaciones();
+    
+    setTimeout(function() {
+      const btnAgregar = document.querySelector('.eval-container .btn-agregar');
+      if (btnAgregar) {
+        btnAgregar.addEventListener('click', function() {
+          console.log('🔴 BOTÓN +AGREGAR EVALUACIÓN PRESIONADO (evento directo)');
+        });
+        console.log('✅ Listener de EVALUACIONES agregado a:', btnAgregar);
+      } else {
+        console.log('❌ Botón .eval-container .btn-agregar NO encontrado');
+      }
+    }, 500);
   }
 
   window.addEventListener('load', init);
 
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
+// MOD-004-S02: FIN
 
-  // CARGAR CURSOS (para dropdown)
+// MOD-004-S03: CARGA DE CURSOS V2 [INICIO]
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -552,7 +612,7 @@ FECHA: 18/01/2026 15:39 (UTC-5)
   function handleCursosLoaded(response) {
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
-      showAlert('error', 'Error al cargar cursos: ' + msg);
+      showAlert('error', msg);
       return;
     }
 
@@ -562,97 +622,104 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 
   function poblarDropdownCursos() {
     const selectCurso = document.getElementById('evalCurso');
-    const selectFiltro = document.getElementById('filtroCurso');
+    const selectFiltro = document.getElementById('filtroCursoEval');
+    
+    if (!selectCurso || !selectFiltro) return;
 
-    selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
-    selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
+    const primerOption = selectCurso.options[0] ? selectCurso.options[0].outerHTML : '<option value="">Seleccionar curso...</option>';
+    const primerOptionFiltro = selectFiltro.options[0] ? selectFiltro.options[0].outerHTML : '<option value="">Todos los cursos</option>';
+
+    selectCurso.innerHTML = primerOption;
+    selectFiltro.innerHTML = primerOptionFiltro;
 
     cursosData.forEach(function(curso) {
-      const option1 = document.createElement('option');
-      option1.value = curso.Curso;
-      option1.textContent = curso.Curso + ' - ' + curso.Completo;
-      selectCurso.appendChild(option1);
+      const opt1 = document.createElement('option');
+      opt1.value = curso.Curso;
+      opt1.textContent = curso.Curso + ' - ' + curso.Completo;
+      selectCurso.appendChild(opt1);
 
-      const option2 = document.createElement('option');
-      option2.value = curso.Curso;
-      option2.textContent = curso.Curso + ' - ' + curso.Completo;
-      selectFiltro.appendChild(option2);
+      const opt2 = document.createElement('option');
+      opt2.value = curso.Curso;
+      opt2.textContent = curso.Curso;
+      selectFiltro.appendChild(opt2);
     });
   }
+// MOD-004-S03: FIN
 
-  // CARGAR EVALUACIONES
+// MOD-004-S04: CARGA DE EVALUACIONES [INICIO]
   function cargarEvaluaciones() {
     google.script.run
       .withSuccessHandler(handleEvaluacionesLoaded)
-      .withFailureHandler(handleEvaluacionesError)
+      .withFailureHandler(handleEvalError)
       .studentObtenerEvaluaciones({ codeAlum: currentUser.codeAlum });
   }
 
   function handleEvaluacionesLoaded(response) {
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar las evaluaciones.';
-      showAlert('error', 'Error al cargar evaluaciones: ' + msg);
-      renderEmptyState();
+      showAlert('error', msg);
       return;
     }
 
     evaluacionesData = response.data || [];
-    evaluacionesFiltradas = evaluacionesData;
-
-    if (typeof updateDeberesBadge === 'function') {
-      updateDeberesBadge('eval', evaluacionesData.length);
-    }
-
-    renderEvalTable();
+    aplicarFiltro();
   }
 
-  function handleEvaluacionesError(error) {
-    console.error('Error al cargar evaluaciones:', error);
-    showAlert('error', 'Error de conexión al cargar evaluaciones');
-    renderEmptyState();
+  function handleEvalError(error) {
+    console.error('Error:', error);
+    showAlert('error', 'Error de conexión');
   }
+// MOD-004-S04: FIN
 
-  // APLICAR FILTRO
+// MOD-004-S05: FILTRADO Y RENDERIZADO V2 [INICIO]
   function aplicarFiltro() {
-    const cursoSeleccionado = document.getElementById('filtroCurso').value;
+    const selectFiltro = document.getElementById('filtroCursoEval');
+    const cursoSeleccionado = selectFiltro ? selectFiltro.value : '';
 
-    if (cursoSeleccionado === '') {
-      evaluacionesFiltradas = evaluacionesData;
-    } else {
+    if (cursoSeleccionado) {
       evaluacionesFiltradas = evaluacionesData.filter(function(ev) {
         return ev.Curso === cursoSeleccionado;
       });
+    } else {
+      evaluacionesFiltradas = evaluacionesData.slice();
     }
-
-    renderEvalTable();
-  }
-
-  // RENDERIZAR TABLA
-  function renderEvalTable() {
-    const container = document.getElementById('evalTableContainer');
 
     if (evaluacionesFiltradas.length === 0) {
       renderEmptyState();
-      return;
+    } else {
+      renderTable();
     }
+  }
 
-    let html = '<table class="eval-table"><thead><tr><th>Curso</th><th>Evaluación</th><th>Fecha</th><th>Nota</th><th>Peso</th><th class="col-sem">Semana</th><th>Acciones</th></tr></thead><tbody>';
+  function renderTable() {
+    const container = document.getElementById('evalTableContainer');
+    if (!container) return;
+
+    let html = '<table class="eval-table"><thead><tr>';
+    html += '<th>Curso</th>';
+    html += '<th>Evaluación</th>';
+    html += '<th>Fecha</th>';
+    html += '<th>Nota</th>';
+    html += '<th>Peso</th>';
+    html += '<th class="col-sem">Semana</th>';
+    html += '<th>Acciones</th>';
+    html += '</tr></thead><tbody>';
 
     evaluacionesFiltradas.forEach(function(ev) {
-      const claseNota = obtenerClaseNota(ev.Nota);
-
+      const nomEvalSafe = String(ev.NomEval || '').replace(/'/g, "\\'");
+      
       html += '<tr>';
-      html += '<td><span class="curso-tag">' + ev.Curso + '</span></td>';
-      html += '<td><strong>' + ev.NomEval + '</strong></td>';
-      html += '<td>' + ev.FechaEval + '</td>';
-      html += '<td class="nota-cell ' + claseNota + '">';
-      html += ev.Nota ? ev.Nota : '<span class="nota-pendiente">Pendiente</span>';
+      html += '<td class="curso-cell"><strong>' + ev.Curso + '</strong></td>';
+      html += '<td class="eval-cell">' + ev.NomEval + '</td>';
+      html += '<td class="fecha-cell">' + (ev.FechaEval || '-') + '</td>';
+      html += '<td class="nota-cell">';
+      html += ev.Nota ? '<span class="' + obtenerClaseNota(ev.Nota) + '">' + ev.Nota + '</span>' : '<span class="nota-pendiente">Pendiente</span>';
       html += '</td>';
       html += '<td class="peso-cell">' + (ev.Peso ? ev.Peso + '%' : '-') + '</td>';
       html += '<td class="sem-cell col-sem">' + (ev.Sem || '-') + '</td>';
       html += '<td>';
-      html += '<button class="btn-icon" onclick="editarEval(' + ev._rowNumber + ')" title="Editar">✏️</button>';
-      html += '<button class="btn-icon delete" onclick="confirmarEliminarEval(' + ev._rowNumber + ', \'' + ev.NomEval + '\')" title="Eliminar">🗑️</button>';
+      html += '<button class="btn-icon" onclick="EvalModule.editarEval(' + ev._rowNumber + ')" title="Editar">✏️</button>';
+      html += '<button class="btn-icon delete" onclick="EvalModule.confirmarEliminarEval(' + ev._rowNumber + ', \'' + nomEvalSafe + '\')" title="Eliminar">🗑️</button>';
       html += '</td>';
       html += '</tr>';
     });
@@ -663,7 +730,8 @@ FECHA: 18/01/2026 15:39 (UTC-5)
 
   function renderEmptyState() {
     const container = document.getElementById('evalTableContainer');
-    const filtroActivo = document.getElementById('filtroCurso').value !== '';
+    const selectFiltro = document.getElementById('filtroCursoEval');
+    const filtroActivo = selectFiltro ? (selectFiltro.value !== '') : false;
 
     if (filtroActivo) {
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No hay evaluaciones para el curso seleccionado.</div></div>';
@@ -671,8 +739,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No tienes evaluaciones registradas aún.<br>Haz clic en "+ Agregar Evaluación" para comenzar.</div></div>';
     }
   }
+// MOD-004-S05: FIN
 
-  // TOGGLE FORMULARIO
+// MOD-004-S06: FORMULARIO TOGGLE Y SUBMIT V2 [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formEval');
     const isActive = form.classList.contains('active');
@@ -687,7 +756,11 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     }
   }
 
-  // SUBMIT FORMULARIO
+  function validarFecha(fecha) {
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    return regex.test(fecha);
+  }
+
   function handleSubmitEval(event) {
     event.preventDefault();
 
@@ -706,23 +779,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     }
 
     if (!validarFecha(fechaEval)) {
-      showAlert('error', 'Formato de fecha inválido. Use DD/MM/AAAA');
+      showAlert('error', 'Formato de fecha inválido. Usa DD/MM/AAAA');
       return;
     }
-
-    if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
-      showAlert('error', 'La nota debe estar entre 0 y 20');
-      return;
-    }
-
-    if (peso && (parseFloat(peso) < 0 || parseFloat(peso) > 100)) {
-      showAlert('error', 'El peso debe estar entre 0 y 100%');
-      return;
-    }
-
-    const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
 
     const params = {
       codeAlum: currentUser.codeAlum,
@@ -735,83 +794,70 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     };
 
     if (esEdicion) {
-      params.rowNumber = parseInt(rowNumber, 10);
-
+      params.rowNumber = rowNumber;
       google.script.run
-        .withSuccessHandler(handleEvalUpdated)
+        .withSuccessHandler(handleEvalSaved)
         .withFailureHandler(handleEvalError)
         .studentActualizarEvaluacion(params);
     } else {
       google.script.run
-        .withSuccessHandler(handleEvalAdded)
+        .withSuccessHandler(handleEvalSaved)
         .withFailureHandler(handleEvalError)
         .studentAgregarEvaluacion(params);
     }
   }
 
-  function handleEvalAdded(response) {
-    const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Evaluación';
-
+  function handleEvalSaved(response) {
     if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo agregar la evaluación.';
+      const msg = response && response.error ? response.error : 'No se pudo guardar la evaluación.';
       showAlert('error', msg);
       return;
     }
 
-    showAlert('success', '✓ Evaluación agregada exitosamente');
-    cancelarFormEval();
+    showAlert('success', '✓ Evaluación guardada exitosamente');
+    document.getElementById('formEval').classList.remove('active');
+    resetFormEval();
     cargarEvaluaciones();
   }
 
-  function handleEvalUpdated(response) {
-    const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Evaluación';
-
-    if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo actualizar la evaluación.';
-      showAlert('error', msg);
-      return;
-    }
-
-    showAlert('success', '✓ Evaluación actualizada exitosamente');
-    cancelarFormEval();
-    cargarEvaluaciones();
+  function resetFormEval() {
+    document.getElementById('evalForm').reset();
+    document.getElementById('evalRowNumber').value = '';
+    document.getElementById('evalModoEdicion').value = 'false';
   }
 
-  function handleEvalError(error) {
-    console.error('Error:', error);
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
-
-    const btnSubmit = document.getElementById('btnSubmit');
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = 'Guardar Evaluación';
+  function cancelarFormEval() {
+    document.getElementById('formEval').classList.remove('active');
+    resetFormEval();
   }
+// MOD-004-S06: FIN
 
-  // EDITAR EVALUACIÓN
+// MOD-004-S07: EDICIÓN Y ELIMINACIÓN [INICIO]
   function editarEval(rowNumber) {
-    const ev = evaluacionesData.find(e => e._rowNumber === rowNumber);
-    if (!ev) return;
+    const evaluacion = evaluacionesData.find(function(e) {
+      return e._rowNumber === rowNumber;
+    });
+
+    if (!evaluacion) {
+      showAlert('error', 'No se encontró la evaluación');
+      return;
+    }
 
     document.getElementById('formTitle').textContent = 'Editar Evaluación';
+    document.getElementById('evalCurso').value = evaluacion.Curso || '';
+    document.getElementById('evalNomEval').value = evaluacion.NomEval || '';
+    document.getElementById('evalFechaEval').value = evaluacion.FechaEval || '';
+    document.getElementById('evalNota').value = evaluacion.Nota || '';
+    document.getElementById('evalPeso').value = evaluacion.Peso || '';
+    document.getElementById('evalSem').value = evaluacion.Sem || '';
     document.getElementById('evalRowNumber').value = rowNumber;
     document.getElementById('evalModoEdicion').value = 'true';
-    document.getElementById('evalCurso').value = ev.Curso;
-    document.getElementById('evalNomEval').value = ev.NomEval;
-    document.getElementById('evalFechaEval').value = ev.FechaEval;
-    document.getElementById('evalNota').value = ev.Nota || '';
-    document.getElementById('evalPeso').value = ev.Peso || '';
-    document.getElementById('evalSem').value = ev.Sem || '';
-
+    
     document.getElementById('formEval').classList.add('active');
-    document.getElementById('evalNomEval').focus();
   }
 
-  // ELIMINAR EVALUACIÓN
-  function confirmarEliminarEval(rowNumber, nomEval) {
-    if (confirm('¿Eliminar la evaluación "' + nomEval + '"?\n\nEsta acción no se puede deshacer.')) {
+  function confirmarEliminarEval(rowNumber, nombre) {
+    if (confirm('¿Eliminar la evaluación "' + nombre + '"?')) {
       eliminarEval(rowNumber);
     }
   }
@@ -833,20 +879,9 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     showAlert('success', '✓ Evaluación eliminada exitosamente');
     cargarEvaluaciones();
   }
+// MOD-004-S07: FIN
 
-  // RESET Y CANCELAR FORMULARIO
-  function resetFormEval() {
-    document.getElementById('evalForm').reset();
-    document.getElementById('evalRowNumber').value = '';
-    document.getElementById('evalModoEdicion').value = 'false';
-  }
-
-  function cancelarFormEval() {
-    document.getElementById('formEval').classList.remove('active');
-    resetFormEval();
-  }
-
-  // FUNCIÓN AUXILIAR: CLASE DE NOTA
+// MOD-004-S08: HELPERS Y EXPORTACIÓN V3 [INICIO]
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
@@ -857,106 +892,47 @@ FECHA: 18/01/2026 15:39 (UTC-5)
     return 'nota-baja';
   }
 
-  // UTILIDADES
   function handleError(error) {
     console.error('Error:', error);
     showAlert('error', 'Error de conexión');
   }
 
-  console.log('%c📝 Sub-tab Evaluaciones V01.20 cargado', 'font-size: 11px; color: #667eea;');
-
-  // EXPORTS A WINDOW (solo lo necesario)
-  window.aplicarFiltro = aplicarFiltro;
-  window.toggleFormAgregar = toggleFormAgregar;
-  window.handleSubmitEval = handleSubmitEval;
-  window.editarEval = editarEval;
-  window.confirmarEliminarEval = confirmarEliminarEval;
-  window.cancelarFormEval = cancelarFormEval;
-
   window.EvalModule = {
-    init: init
+    init: init,
+    aplicarFiltro: aplicarFiltro,
+    toggleFormAgregar: toggleFormAgregar,
+    handleSubmitEval: handleSubmitEval,
+    editarEval: editarEval,
+    confirmarEliminarEval: confirmarEliminarEval,
+    cancelarFormEval: cancelarFormEval
   };
+
+  console.log('%c📝 Sub-tab Evaluaciones V01.30 cargado', 'font-size: 11px; color: #667eea;');
+// MOD-004-S08: FIN
+
 })();
+
 </script>
 <!-- MOD-004: FIN -->
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN:
-Sub-tab de Evaluaciones con CRUD completo
-Lista de evaluaciones con opciones para agregar, editar y eliminar
+6btabeval.html V01.30 - Sub-tab Evaluaciones CRUD
 
-FUNCIONALIDAD:
-Cargar evaluaciones del estudiante al iniciar
-Agregar nueva evaluación con validación
-Editar evaluación existente
-Eliminar evaluación con confirmación
-Filtrar por curso mediante dropdown
-Validación de campos obligatorios y rangos
+ESTRUCTURA: MOD-002 CSS (24 submódulos) | MOD-003 HTML (3 submódulos) | MOD-004 JS (8 submódulos)
 
-CAMPOS DEL FORMULARIO:
-Curso (select) - obligatorio
-Nombre de Evaluación - obligatorio
-Fecha (DD/MM/AAAA) - obligatorio
-Nota (0-20) - opcional
-Peso (0-100%) - opcional
-Semana (número) - opcional
+FUNCIONALIDAD: CRUD completo, filtrado por curso, validación fechas DD/MM/AAAA
 
-CARACTERÍSTICAS TÉCNICAS:
-IIFE encapsulado para evitar colisión de variables globales
-NULL-GUARD en todos los handlers de respuesta
-Init safe para lazy-load (si window.load ya ocurrió)
-Validación de formato de fecha DD/MM/AAAA
-Validación de rangos numéricos
+BACKEND: studentObtenerCursos/Evaluaciones, studentAgregar/Actualizar/EliminarEvaluacion
 
-COLORES DINÁMICOS:
-Verde: Nota ≥ 14
-Amarillo: Nota 11-13
-Rojo: Nota < 11
-Gris: Pendiente (sin nota)
+COLORES NOTA: Verde ≥14 | Amarillo 11-13 | Rojo <11
 
-CONEXIÓN BACKEND:
-studentObtenerEvaluaciones({ codeAlum }): Lista de evaluaciones
-studentObtenerCursos({ codeAlum }): Para poblar dropdowns
-studentAgregarEvaluacion({ codeAlum, curso, nomEval, fechaEval, nota, peso, sem }): Crear
-studentActualizarEvaluacion({ ...params, rowNumber }): Actualizar
-studentEliminarEvaluacion({ rowNumber }): Eliminar
+PATRÓN EXPORTS: Todas las funciones encapsuladas en window.EvalModule (evita colisión global)
 
-DEPENDENCIAS:
-currentUser.codeAlum: Identificador del estudiante
-showAlert(type, message): Función global de alertas
-validarFecha(fechaStr): Función global de validación de fechas
-updateDeberesBadge(tab, count): Función del contenedor padre (opcional)
-
-TABLA:
-Columnas: Curso, Evaluación, Fecha, Nota, Peso, Semana, Acciones
-Botones: Editar (✏️), Eliminar (🗑️)
-Responsive: Oculta columna Semana en móvil
-
-FORMULARIO:
-Desplegable con animación slideDown
-Modo Agregar: Campos vacíos
-Modo Editar: Campos prellenados
-Validación: HTML5 + JavaScript custom
-
-ESTADOS UI:
-Loading: Spinner mientras carga
-Vacío: Mensaje con instrucciones
-Filtrado Vacío: Mensaje específico
-Tabla: Grid con evaluaciones y acciones
-
-INTEGRACIÓN:
-Parent: 4btabdeberes.html (contenedor con lazy-load)
-Backend: Wrappers student* en code.gs
-Módulo: Student.gs (lógica de negocio)
-
-CAMBIOS V01.19 → V01.20:
-Remodulación Estándar CodeWorkShop v4.0
-CSS en MOD-002
-HTML en MOD-003
-JavaScript (IIFE) en MOD-004
-Comentarios aligerados
-Notas consolidadas en MOD-099
-Mantiene lógica funcional sin cambios
+V01.29→V01.30: FIX crítico colisión funciones globales
+- HTML onclick/onchange → EvalModule.X() (4 lugares en MOD-003)
+- JS getElementById('filtroCurso') → getElementById('filtroCursoEval')
+- Eliminados exports globales directos (window.aplicarFiltro, etc.)
+- Expandido window.EvalModule con todas las funciones públicas
 -->
 <!-- MOD-099: FIN -->
