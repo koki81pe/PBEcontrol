@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabrepasos.html
-VERSIÓN: 01.20
-FECHA: 18/01/2026 13:05 (UTC-5)
+VERSIÓN: 01.21
+FECHA: 26/01/2026 12:31 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -380,12 +380,13 @@ FECHA: 18/01/2026 13:05 (UTC-5)
 <!-- MOD-003: CONTENEDOR REPASOS [INICIO] -->
 <div class="repasos-container">
 
+<!-- MOD-003-S01: HEADER Y FILTROS [INICIO] -->
   <div class="repasos-header">
     <h2>🔄 Mis Repasos</h2>
     <div class="header-actions">
       <div class="filtro-container">
-        <label>Filtrar:</label>
-        <select id="filtroCurso" onchange="RepasosModule.aplicarFiltro()">
+        <label for="filtroCursoRepaso">Filtrar:</label>
+        <select id="filtroCursoRepaso" onchange="RepasosModule.aplicarFiltro()">
           <option value="">Todos los cursos</option>
         </select>
       </div>
@@ -394,7 +395,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       </button>
     </div>
   </div>
+  <!-- MOD-003-S01: FIN -->
 
+<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR [INICIO] -->
   <div id="formRepaso" class="form-repaso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
 
@@ -402,6 +405,7 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       <input type="hidden" id="repasoRowNumber" value="">
       <input type="hidden" id="repasoModoEdicion" value="false">
 
+      <!-- MOD-003-S02-A: FILA 1 - CURSO, TEMA, ESTADO -->
       <div class="form-row">
         <div class="form-group">
           <label>Curso <span class="required">*</span></label>
@@ -430,6 +434,7 @@ FECHA: 18/01/2026 13:05 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-B: FILA 2 - FECHAS -->
       <div class="form-row">
         <div class="form-group">
           <label>Fecha de Clase <span class="required">*</span></label>
@@ -454,6 +459,7 @@ FECHA: 18/01/2026 13:05 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-C: FILA 3 - DETALLE -->
       <div class="form-row">
         <div class="form-group">
           <label>Detalle (Opcional)</label>
@@ -464,6 +470,7 @@ FECHA: 18/01/2026 13:05 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-D: CHECKBOX EVALUADO -->
       <div class="form-group-checkbox">
         <input
           type="checkbox"
@@ -475,6 +482,7 @@ FECHA: 18/01/2026 13:05 (UTC-5)
         </label>
       </div>
 
+      <!-- MOD-003-S02-E: BOTONES ACCIÓN -->
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" id="btnSubmit">
           Guardar Repaso
@@ -485,13 +493,16 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       </div>
     </form>
   </div>
+  <!-- MOD-003-S02: FIN -->
 
+<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
   <div id="repasosTableContainer" class="repasos-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando repasos...</p>
     </div>
   </div>
+  <!-- MOD-003-S03: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
@@ -501,11 +512,14 @@ FECHA: 18/01/2026 13:05 (UTC-5)
 (function PBE_REPASOS_MODULE() {
   'use strict';
 
+// MOD-004-S01: VARIABLES GLOBALES [INICIO]
   let repasosData = [];
   let cursosListaData = [];
   let repasosFiltrados = [];
   let _initDone = false;
+// MOD-004-S01: FIN
 
+// MOD-004-S02: HELPERS SEGURIDAD [INICIO]
   function escHtml(value) {
     const s = String(value == null ? '' : value);
     return s
@@ -533,6 +547,13 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     return Number.isFinite(n) && n > 0 ? n : null;
   }
 
+  function validarFecha(fecha) {
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    return regex.test(String(fecha || '').trim());
+  }
+// MOD-004-S02: FIN
+
+// MOD-004-S03: INICIALIZACIÓN [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -551,7 +572,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
+// MOD-004-S03: FIN
 
+// MOD-004-S04: CARGAR CURSOS [INICIO]
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -568,10 +591,12 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     cursosListaData = response.data || [];
     poblarDropdownCursos();
   }
+// MOD-004-S04: FIN
 
+// MOD-004-S05: POBLAR DROPDOWNS [INICIO]
   function poblarDropdownCursos() {
     const selectCurso = document.getElementById('repasoCurso');
-    const selectFiltro = document.getElementById('filtroCurso');
+    const selectFiltro = document.getElementById('filtroCursoRepaso');
 
     if (!selectCurso || !selectFiltro) return;
 
@@ -593,7 +618,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       selectFiltro.appendChild(option2);
     });
   }
+// MOD-004-S05: FIN
 
+// MOD-004-S06: CARGAR REPASOS [INICIO]
   function cargarRepasos() {
     google.script.run
       .withSuccessHandler(handleRepasosLoaded)
@@ -624,9 +651,11 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     mostrarError('Error de conexión al cargar repasos');
     renderEmptyState();
   }
+// MOD-004-S06: FIN
 
+// MOD-004-S07: FILTRADO [INICIO]
   function aplicarFiltro() {
-    const el = document.getElementById('filtroCurso');
+    const el = document.getElementById('filtroCursoRepaso');
     const cursoSeleccionado = el ? el.value : '';
 
     if (!cursoSeleccionado) {
@@ -639,7 +668,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
 
     renderRepasosTable();
   }
+// MOD-004-S07: FIN
 
+// MOD-004-S08: RENDER TABLA [INICIO]
   function renderRepasosTable() {
     const container = document.getElementById('repasosTableContainer');
     if (!container) return;
@@ -676,12 +707,14 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     html += '</tbody></table>';
     container.innerHTML = html;
   }
+// MOD-004-S08: FIN
 
+// MOD-004-S09: ESTADO VACÍO [INICIO]
   function renderEmptyState() {
     const container = document.getElementById('repasosTableContainer');
     if (!container) return;
 
-    const filtroEl = document.getElementById('filtroCurso');
+    const filtroEl = document.getElementById('filtroCursoRepaso');
     const filtroActivo = filtroEl ? (filtroEl.value !== '') : false;
 
     if (filtroActivo) {
@@ -690,7 +723,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><div class="empty-state-text">No tienes repasos registrados aún.<br>Haz clic en "+ Agregar Repaso" para comenzar.</div></div>';
     }
   }
+// MOD-004-S09: FIN
 
+// MOD-004-S10: TOGGLE FORMULARIO [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formRepaso');
     if (!form) return;
@@ -708,7 +743,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       form.classList.add('active');
     }
   }
+// MOD-004-S10: FIN
 
+// MOD-004-S11: SUBMIT FORMULARIO [INICIO]
   function handleSubmitRepaso(event) {
     event.preventDefault();
 
@@ -778,7 +815,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
         .studentAgregarRepaso(params);
     }
   }
+// MOD-004-S11: FIN
 
+// MOD-004-S12: HANDLERS CRUD [INICIO]
   function handleRepasoAdded(response) {
     const btnSubmit = document.getElementById('btnSubmit');
     if (btnSubmit) {
@@ -826,6 +865,24 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     }
   }
 
+  function handleRepasoDeleted(response) {
+    if (!response || response.success !== true) {
+      const msg = response && response.error ? response.error : 'No se pudo eliminar el repaso.';
+      mostrarError(msg);
+      return;
+    }
+
+    mostrarExito('✓ Repaso eliminado exitosamente');
+    cargarRepasos();
+  }
+
+  function handleError(error) {
+    console.error('Error:', error);
+    mostrarError('Error de conexión');
+  }
+// MOD-004-S12: FIN
+
+// MOD-004-S13: EDITAR REPASO [INICIO]
   function editarRepaso(rowNumber) {
     const rn = toSafeRowNumber(rowNumber);
     if (rn == null) {
@@ -855,7 +912,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     const temaEl = document.getElementById('repasoTema');
     if (temaEl) temaEl.focus();
   }
+// MOD-004-S13: FIN
 
+// MOD-004-S14: ELIMINAR REPASO [INICIO]
   function confirmarEliminarRepaso(rowNumber, tema) {
     const rn = toSafeRowNumber(rowNumber);
     if (rn == null) {
@@ -881,18 +940,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       .withFailureHandler(handleRepasoError)
       .studentEliminarRepaso({ rowNumber: rn });
   }
+// MOD-004-S14: FIN
 
-  function handleRepasoDeleted(response) {
-    if (!response || response.success !== true) {
-      const msg = response && response.error ? response.error : 'No se pudo eliminar el repaso.';
-      mostrarError(msg);
-      return;
-    }
-
-    mostrarExito('✓ Repaso eliminado exitosamente');
-    cargarRepasos();
-  }
-
+// MOD-004-S15: RESET Y CANCELAR FORM [INICIO]
   function resetFormRepaso() {
     const form = document.getElementById('repasoForm');
     if (form) form.reset();
@@ -912,17 +962,9 @@ FECHA: 18/01/2026 13:05 (UTC-5)
     if (form) form.classList.remove('active');
     resetFormRepaso();
   }
+// MOD-004-S15: FIN
 
-  function handleError(error) {
-    console.error('Error:', error);
-    mostrarError('Error de conexión');
-  }
-
-  function validarFecha(fecha) {
-    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-    return regex.test(String(fecha || '').trim());
-  }
-
+// MOD-004-S16: ALERTAS [INICIO]
   function mostrarExito(mensaje) {
     if (typeof showAlert === 'function') {
       showAlert('success', mensaje);
@@ -938,68 +980,40 @@ FECHA: 18/01/2026 13:05 (UTC-5)
       console.error('✗ ' + mensaje);
     }
   }
+// MOD-004-S16: FIN
 
+// MOD-004-S17: API PÚBLICA [INICIO]
   window.RepasosModule = {
+    init: init,
     aplicarFiltro: aplicarFiltro,
     toggleFormAgregar: toggleFormAgregar,
     handleSubmitRepaso: handleSubmitRepaso,
     editarRepaso: editarRepaso,
     confirmarEliminarRepaso: confirmarEliminarRepaso,
-    cancelarFormRepaso: cancelarFormRepaso,
-    init: init
+    cancelarFormRepaso: cancelarFormRepaso
   };
 
-  console.log('%c🔄 Sub-tab Repasos V01.20 Cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c🔄 Sub-tab Repasos V01.21 Cargado', 'font-size: 11px; color: #667eea;');
+// MOD-004-S17: FIN
+
 })();
 </script>
 <!-- MOD-004: FIN -->
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN:
-Sub-tab de Repasos con CRUD completo
-Hardening de seguridad y validaciones robustas
+5atabrepasos.html V01.21 - Sub-tab Repasos CRUD
 
-FUNCIONALIDAD:
-Crear, editar, eliminar repasos
-Filtro por curso
-Marcar repasos como "Evaluados" (fondo rosado)
-Estados: OK / Falta
+ESTRUCTURA: MOD-002 CSS | MOD-003 HTML (3 submódulos) | MOD-004 JS (17 submódulos)
 
-HARDENING DE SEGURIDAD:
-escHtml: Escape de HTML para prevenir XSS
-escOnclickSingleQuote: Escape seguro para onclick
-sanitizeEstado: Normalización de estados
-toSafeRowNumber: Validación de rowNumber
-NULL-GUARD: Validación response.success
+CAMPOS: Curso*, Tema*, FechaClase*, FechaRep*, Estado* (OK/Falta), Detalle, Evaluado
 
-FORMULARIO:
-Curso (dropdown) - obligatorio
-Tema (texto) - obligatorio
-Fecha Clase (DD/MM/AAAA) - obligatorio
-Fecha Repaso (DD/MM/AAAA) - obligatorio
-Estado (OK/Falta) - obligatorio
-Detalle (textarea) - opcional
-Checkbox Evaluado - opcional
+BACKEND: studentObtenerCursos, studentObtenerRepasos, studentAgregarRepaso, studentActualizarRepaso, studentEliminarRepaso
 
-CONEXIÓN BACKEND:
-studentObtenerCursos: Carga cursos activos
-studentObtenerRepasos: Carga repasos del alumno
-studentAgregarRepaso: Crea nuevo repaso
-studentActualizarRepaso: Actualiza repaso existente
-studentEliminarRepaso: Elimina repaso por rowNumber
+DEPENDENCIAS: currentUser.codeAlum, showAlert(), updateDeberesBadge()
 
-DEPENDENCIAS:
-currentUser.codeAlum: ID del estudiante
-showAlert: Función global de alertas
-updateDeberesBadge: Actualiza contador en parent
+SEGURIDAD: escHtml (XSS), escOnclickSingleQuote, sanitizeEstado, toSafeRowNumber, NULL-GUARD
 
-PATCH V01.19 → V01.20:
-Remodulación Estándar CodeWorkShop v4.0
-CSS en MOD-002
-HTML en MOD-003
-JavaScript (IIFE) en MOD-004
-Comentarios consolidados en MOD-099
-Mantiene hardening completo
+V01.20→V01.21: FIX ID filtroCurso→filtroCursoRepaso (evita colisión DOM), submodulación completa
 -->
 <!-- MOD-099: FIN -->
