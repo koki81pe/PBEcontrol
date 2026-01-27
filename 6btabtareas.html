@@ -3,15 +3,16 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtareas.html
-VERSIÓN: 01.19
-FECHA: 18/01/2026 15:53 (UTC-5)
+VERSIÓN: 01.22
+FECHA: 26/01/2026 13:03 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
-<!-- MOD-002: ESTILOS [INICIO] -->
+<!-- MOD-002: ESTILOS V2 [INICIO] -->
 <style>
-/* CONTENEDOR PRINCIPAL */
+
+/* MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO] */
 .tareas-container {
   background: white;
   border-radius: 12px;
@@ -39,8 +40,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   gap: 12px;
   flex-wrap: wrap;
 }
+/* MOD-002-S01: FIN */
 
-/* FILTROS */
+/* MOD-002-S02: FILTROS [INICIO] */
 .filtro-container {
   display: flex;
   align-items: center;
@@ -67,8 +69,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   outline: none;
   border-color: #667eea;
 }
+/* MOD-002-S02: FIN */
 
-/* BOTONES */
+/* MOD-002-S03: BOTONES BASE [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -115,7 +118,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
 .btn-secondary:hover {
   background: #5a6268;
 }
+/* MOD-002-S03: FIN */
 
+/* MOD-002-S04: BOTONES ICONOS [INICIO] */
 .btn-icon {
   background: transparent;
   border: none;
@@ -133,8 +138,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
 .btn-icon.delete {
   color: #dc3545;
 }
+/* MOD-002-S04: FIN */
 
-/* FORMULARIO */
+/* MOD-002-S05: FORMULARIO BASE [INICIO] */
 .form-tarea {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
@@ -159,7 +165,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     transform: translateY(0);
   }
 }
+/* MOD-002-S05: FIN */
 
+/* MOD-002-S06: FORMULARIO LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -182,7 +190,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
 .form-group label .required {
   color: #dc3545;
 }
+/* MOD-002-S06: FIN */
 
+/* MOD-002-S07: FORMULARIO INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   width: 100%;
@@ -207,14 +217,17 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   font-size: 12px;
   color: #666;
 }
+/* MOD-002-S07: FIN */
 
+/* MOD-002-S08: FORMULARIO ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
 }
+/* MOD-002-S08: FIN */
 
-/* TABLA DE TAREAS */
+/* MOD-002-S09: TABLA BASE [INICIO] */
 .tareas-table-container {
   overflow-x: auto;
 }
@@ -250,8 +263,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   padding: 12px;
   color: #333;
 }
+/* MOD-002-S09: FIN */
 
-/* CURSO TAG */
+/* MOD-002-S10: CURSO TAG [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -261,8 +275,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
+/* MOD-002-S10: FIN */
 
-/* COLORES DINÁMICOS EN NOTA */
+/* MOD-002-S11: COLORES NOTA [INICIO] */
 .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -285,8 +300,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   color: #999;
   font-style: italic;
 }
+/* MOD-002-S11: FIN */
 
-/* FECHA, PESO Y SEMANA */
+/* MOD-002-S12: CELDAS AUXILIARES [INICIO] */
 .fecha-cell {
   white-space: nowrap;
 }
@@ -301,8 +317,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   color: #666;
   font-size: 13px;
 }
+/* MOD-002-S12: FIN */
 
-/* ESTADO VACÍO */
+/* MOD-002-S13: ESTADO VACÍO [INICIO] */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -318,8 +335,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
 .empty-state-text {
   font-size: 15px;
 }
+/* MOD-002-S13: FIN */
 
-/* LOADING */
+/* MOD-002-S14: LOADING [INICIO] */
 .loading-container {
   text-align: center;
   padding: 40px;
@@ -339,8 +357,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* MOD-002-S14: FIN */
 
-/* RESPONSIVE */
+/* MOD-002-S15: RESPONSIVE [INICIO] */
 @media (max-width: 768px) {
   .tareas-container {
     padding: 16px;
@@ -394,18 +413,21 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     display: none;
   }
 }
+/* MOD-002-S15: FIN */
+
 </style>
 <!-- MOD-002: FIN -->
 
 <!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="tareas-container">
 
+<!-- MOD-003-S01: HEADER Y FILTROS [INICIO] -->
   <div class="tareas-header">
     <h2>✏️ Mis Tareas</h2>
     <div class="header-actions">
       <div class="filtro-container">
-        <label>Filtrar:</label>
-        <select id="filtroCurso" onchange="aplicarFiltro()">
+        <label for="filtroCursoTarea">Filtrar:</label>
+        <select id="filtroCursoTarea" onchange="aplicarFiltro()">
           <option value="">Todos los cursos</option>
         </select>
       </div>
@@ -414,7 +436,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
       </button>
     </div>
   </div>
+  <!-- MOD-003-S01: FIN -->
 
+<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR [INICIO] -->
   <div id="formTarea" class="form-tarea">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Tarea</h3>
 
@@ -422,6 +446,7 @@ FECHA: 18/01/2026 15:53 (UTC-5)
       <input type="hidden" id="tareaRowNumber" value="">
       <input type="hidden" id="tareaModoEdicion" value="false">
 
+      <!-- MOD-003-S02-A: FILA 1 - CURSO, NOMBRE, FECHA ENTREGA -->
       <div class="form-row">
         <div class="form-group">
           <label>Curso <span class="required">*</span></label>
@@ -453,6 +478,7 @@ FECHA: 18/01/2026 15:53 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-B: FILA 2 - FECHA ACCIÓN, NOTA, PESO, SEMANA -->
       <div class="form-row">
         <div class="form-group">
           <label>Fecha de Realización (Opcional)</label>
@@ -503,6 +529,7 @@ FECHA: 18/01/2026 15:53 (UTC-5)
         </div>
       </div>
 
+      <!-- MOD-003-S02-C: BOTONES ACCIÓN -->
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" id="btnSubmit">
           Guardar Tarea
@@ -513,29 +540,34 @@ FECHA: 18/01/2026 15:53 (UTC-5)
       </div>
     </form>
   </div>
+  <!-- MOD-003-S02: FIN -->
 
+<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
   <div id="tareasTableContainer" class="tareas-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando tareas...</p>
     </div>
   </div>
+  <!-- MOD-003-S03: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
 
-<!-- MOD-004: JAVASCRIPT [INICIO] -->
+<!-- MOD-004: JAVASCRIPT V2 [INICIO] -->
 <script>
+
+// MOD-004-S01: VARIABLES ENCAPSULADAS [INICIO]
 (function PBE_TAREAS_MODULE() {
   'use strict';
 
-  // VARIABLES LOCALES (ENCAPSULADAS)
   let tareasData = [];
   let cursosData = [];
   let tareasFiltradas = [];
   let _initDone = false;
+// MOD-004-S01: FIN
 
-  // INICIALIZACIÓN (IDEMPOTENTE)
+// MOD-004-S02: INICIALIZACIÓN IDEMPOTENTE [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -554,9 +586,11 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
+// MOD-004-S02: FIN
 
-  // CARGAR CURSOS (para dropdown)
+// MOD-004-S03: CARGA DE CURSOS V2 [INICIO]
   function cargarCursos() {
+    console.log('🔵 [TAREAS] Solicitando cursos al backend...');
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
       .withFailureHandler(handleError)
@@ -564,39 +598,53 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   }
 
   function handleCursosLoaded(response) {
+    console.log('🟢 [TAREAS] Respuesta recibida del backend:', response);
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudieron cargar los cursos.';
+      console.error('🔴 [TAREAS] Error al cargar cursos:', msg);
       showAlert('error', 'Error al cargar cursos: ' + msg);
       return;
     }
-
     cursosData = response.data || [];
+    console.log('📊 [TAREAS] Total de cursos cargados:', cursosData.length);
+    console.log('📋 [TAREAS] Datos de cursos:', cursosData);
     poblarDropdownCursos();
   }
 
   function poblarDropdownCursos() {
     const selectCurso = document.getElementById('tareaCurso');
-    const selectFiltro = document.getElementById('filtroCurso');
-
+    const selectFiltro = document.getElementById('filtroCursoTarea');
+    console.log('🎯 [TAREAS] Poblando dropdowns...');
+    console.log('   - SELECT FORM encontrado:', !!selectCurso, selectCurso ? selectCurso.id : 'null');
+    console.log('   - SELECT FILTRO encontrado:', !!selectFiltro, selectFiltro ? selectFiltro.id : 'null');
+    if (!selectCurso || !selectFiltro) {
+      console.error('🔴 [TAREAS] ERROR: No se encontraron los elementos select');
+      return;
+    }
     selectCurso.innerHTML = '<option value="">Seleccionar curso...</option>';
     selectFiltro.innerHTML = '<option value="">Todos los cursos</option>';
-
+    let contadorOpciones = 0;
     cursosData.forEach(function(curso) {
-      const label = (curso.Curso || '') + ' - ' + (curso.Completo || '');
-
-      const option1 = document.createElement('option');
-      option1.value = curso.Curso;
-      option1.textContent = label;
-      selectCurso.appendChild(option1);
-
-      const option2 = document.createElement('option');
-      option2.value = curso.Curso;
-      option2.textContent = label;
-      selectFiltro.appendChild(option2);
+      const nombreCurso = String(curso.Curso || '').trim();
+      if (!nombreCurso) return;
+      const label = nombreCurso + ' - ' + (curso.Completo || '');
+      const opt1 = document.createElement('option');
+      opt1.value = nombreCurso;
+      opt1.textContent = label;
+      selectCurso.appendChild(opt1);
+      const opt2 = document.createElement('option');
+      opt2.value = nombreCurso;
+      opt2.textContent = nombreCurso;
+      selectFiltro.appendChild(opt2);
+      contadorOpciones++;
     });
+    console.log('✅ [TAREAS] Dropdowns poblados con', contadorOpciones, 'opciones');
+    console.log('   - SELECT FORM opciones:', selectCurso.options.length);
+    console.log('   - SELECT FILTRO opciones:', selectFiltro.options.length);
   }
+// MOD-004-S03: FIN
 
-  // CARGAR TAREAS
+// MOD-004-S04: CARGA DE TAREAS [INICIO]
   function cargarTareas() {
     google.script.run
       .withSuccessHandler(handleTareasLoaded)
@@ -627,11 +675,16 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     showAlert('error', 'Error de conexión al cargar tareas');
     renderEmptyState();
   }
+// MOD-004-S04: FIN
 
-  // APLICAR FILTRO
+// MOD-004-S05: FILTRADO Y RENDERIZADO V2 [INICIO]
   function aplicarFiltro() {
-    const cursoSeleccionado = document.getElementById('filtroCurso').value;
-
+    const selectFiltro = document.getElementById('filtroCursoTarea');
+    const cursoSeleccionado = selectFiltro ? selectFiltro.value : '';
+    console.log('🔍 [TAREAS] Aplicando filtro...');
+    console.log('   - SELECT FILTRO:', selectFiltro);
+    console.log('   - Curso seleccionado:', cursoSeleccionado || '(Todos)');
+    console.log('   - Total tareas antes de filtrar:', tareasData.length);
     if (cursoSeleccionado === '') {
       tareasFiltradas = tareasData;
     } else {
@@ -639,25 +692,20 @@ FECHA: 18/01/2026 15:53 (UTC-5)
         return t.Curso === cursoSeleccionado;
       });
     }
-
+    console.log('   - Total tareas después de filtrar:', tareasFiltradas.length);
     renderTareasTable();
   }
 
-  // RENDERIZAR TABLA
   function renderTareasTable() {
     const container = document.getElementById('tareasTableContainer');
-
     if (!tareasFiltradas || tareasFiltradas.length === 0) {
       renderEmptyState();
       return;
     }
-
     let html = '<table class="tareas-table"><thead><tr><th>Curso</th><th>Tarea</th><th>Entrega</th><th>Acción</th><th>Nota</th><th>Peso</th><th class="col-sem">Semana</th><th>Acciones</th></tr></thead><tbody>';
-
     tareasFiltradas.forEach(function(t) {
       const claseNota = obtenerClaseNota(t.Nota);
       const tareaSafe = String(t.Tarea || '').replace(/'/g, "\\'");
-
       html += '<tr>';
       html += '<td><span class="curso-tag">' + t.Curso + '</span></td>';
       html += '<td><strong>' + t.Tarea + '</strong></td>';
@@ -674,23 +722,22 @@ FECHA: 18/01/2026 15:53 (UTC-5)
       html += '</td>';
       html += '</tr>';
     });
-
     html += '</tbody></table>';
     container.innerHTML = html;
   }
 
   function renderEmptyState() {
     const container = document.getElementById('tareasTableContainer');
-    const filtroActivo = document.getElementById('filtroCurso').value !== '';
-
+    const filtroActivo = document.getElementById('filtroCursoTarea').value !== '';
     if (filtroActivo) {
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No hay tareas para el curso seleccionado.</div></div>';
     } else {
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✏️</div><div class="empty-state-text">No tienes tareas registradas aún.<br>Haz clic en "+ Agregar Tarea" para comenzar.</div></div>';
     }
   }
+// MOD-004-S05: FIN
 
-  // TOGGLE FORMULARIO
+// MOD-004-S06: FORMULARIO TOGGLE Y SUBMIT [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formTarea');
     const isActive = form.classList.contains('active');
@@ -705,7 +752,6 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     }
   }
 
-  // SUBMIT FORMULARIO
   function handleSubmitTarea(event) {
     event.preventDefault();
 
@@ -815,7 +861,19 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     btnSubmit.textContent = 'Guardar Tarea';
   }
 
-  // EDITAR TAREA
+  function resetFormTarea() {
+    document.getElementById('tareaForm').reset();
+    document.getElementById('tareaRowNumber').value = '';
+    document.getElementById('tareaModoEdicion').value = 'false';
+  }
+
+  function cancelarFormTarea() {
+    document.getElementById('formTarea').classList.remove('active');
+    resetFormTarea();
+  }
+// MOD-004-S06: FIN
+
+// MOD-004-S07: EDICIÓN Y ELIMINACIÓN [INICIO]
   function editarTarea(rowNumber) {
     const t = tareasData.find(x => x._rowNumber === rowNumber);
     if (!t) return;
@@ -835,7 +893,6 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     document.getElementById('tareaTarea').focus();
   }
 
-  // ELIMINAR TAREA
   function confirmarEliminarTarea(rowNumber, nombreTarea) {
     if (confirm('¿Eliminar la tarea "' + nombreTarea + '"?\n\nEsta acción no se puede deshacer.')) {
       eliminarTarea(rowNumber);
@@ -859,20 +916,9 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     showAlert('success', '✓ Tarea eliminada exitosamente');
     cargarTareas();
   }
+// MOD-004-S07: FIN
 
-  // RESET Y CANCELAR FORMULARIO
-  function resetFormTarea() {
-    document.getElementById('tareaForm').reset();
-    document.getElementById('tareaRowNumber').value = '';
-    document.getElementById('tareaModoEdicion').value = 'false';
-  }
-
-  function cancelarFormTarea() {
-    document.getElementById('formTarea').classList.remove('active');
-    resetFormTarea();
-  }
-
-  // FUNCIÓN AUXILIAR: CLASE DE NOTA
+// MOD-004-S08: HELPERS Y EXPORTACIÓN [INICIO]
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
@@ -883,15 +929,13 @@ FECHA: 18/01/2026 15:53 (UTC-5)
     return 'nota-baja';
   }
 
-  // UTILIDADES
   function handleError(error) {
     console.error('Error:', error);
     showAlert('error', 'Error de conexión');
   }
 
-  console.log('%c✏️ Sub-tab Tareas V01.19 cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c✏️ Sub-tab Tareas V01.20 cargado', 'font-size: 11px; color: #667eea;');
 
-  // EXPORTS A WINDOW (solo lo necesario)
   window.aplicarFiltro = aplicarFiltro;
   window.toggleFormAgregar = toggleFormAgregar;
   window.handleSubmitTarea = handleSubmitTarea;
@@ -902,97 +946,38 @@ FECHA: 18/01/2026 15:53 (UTC-5)
   window.TareasModule = {
     init: init
   };
+// MOD-004-S08: FIN
+
 })();
+
 </script>
 <!-- MOD-004: FIN -->
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN:
-Sub-tab de Tareas con CRUD completo
-Lista de tareas con opciones para agregar, editar y eliminar
+PROYECTO: PBE Control - Sub-tab Tareas V01.21
+DESCRIPCIÓN: CRUD completo de tareas con filtrado por curso y validaciones
 
-FUNCIONALIDAD:
-Cargar tareas del estudiante al iniciar
-Agregar nueva tarea con validación
-Editar tarea existente
-Eliminar tarea con confirmación
-Filtrar por curso mediante dropdown
-Validación de campos obligatorios y rangos
+ESTRUCTURA MODULAR (CodeWorkShop v5.0):
+├─ MOD-002: CSS (15 submódulos) → Estilos responsivos
+├─ MOD-003: HTML → Formulario + Tabla
+└─ MOD-004: JS (8 submódulos) → IIFE encapsulado, init idempotente
 
-CAMPOS DEL FORMULARIO:
-Curso (select) - obligatorio
-Nombre de Tarea - obligatorio
-Fecha de Entrega (DD/MM/AAAA) - obligatorio
-Fecha de Realización (DD/MM/AAAA) - opcional
-Nota (0-20) - opcional
-Peso (0-100%) - opcional
-Semana (número) - opcional
+CAMPOS OBLIGATORIOS: Curso, Nombre Tarea, Fecha Entrega (DD/MM/AAAA)
+CAMPOS OPCIONALES: Fecha Realización, Nota (0-20), Peso (0-100%), Semana
 
-CARACTERÍSTICAS TÉCNICAS:
-IIFE encapsulado para evitar colisión de variables globales
-NULL-GUARD en todos los handlers de respuesta
-Init idempotente compatible con lazy-load
-Validación de formato de fechas DD/MM/AAAA
-Validación de rangos numéricos
-Escape de caracteres especiales en onclick
+BACKEND (Google Apps Script):
+- studentObtenerTareas/Cursos({ codeAlum })
+- studentAgregar/Actualizar/EliminarTarea(params)
 
-COLORES DINÁMICOS:
-Verde: Nota ≥ 14
-Amarillo: Nota 11-13
-Rojo: Nota < 11
-Gris: Pendiente (sin nota)
+CARACTERÍSTICAS CRÍTICAS:
+- IDs únicos: filtroCursoTarea (evita colisión con Evaluaciones)
+- Colores nota: Verde ≥14 | Amarillo 11-13 | Rojo <11
+- Escape ' en onclick para nombres con comillas
 
-CONEXIÓN BACKEND:
-studentObtenerTareas({ codeAlum }): Lista de tareas
-studentObtenerCursos({ codeAlum }): Para poblar dropdowns
-studentAgregarTarea({ codeAlum, curso, tarea, fechaEntrega, fechaAccion, nota, peso, sem }): Crear
-studentActualizarTarea({ ...params, rowNumber }): Actualizar
-studentEliminarTarea({ rowNumber }): Eliminar
-
-DEPENDENCIAS:
-currentUser.codeAlum: Identificador del estudiante
-showAlert(type, message): Función global de alertas
-validarFecha(fechaStr): Función global de validación de fechas
-updateDeberesBadge(tab, count): Función del contenedor padre (opcional)
-
-TABLA:
-Columnas: Curso, Tarea, Entrega, Acción, Nota, Peso, Semana, Acciones
-Fecha Entrega: Fecha límite para completar
-Fecha Acción: Fecha en que se realizó/completó
-Botones: Editar (✏️), Eliminar (🗑️)
-Responsive: Oculta columna Semana en móvil
-
-FORMULARIO:
-Desplegable con animación slideDown
-Modo Agregar: Campos vacíos
-Modo Editar: Campos prellenados
-Validación: HTML5 + JavaScript custom
-Focus automático en campo Tarea al editar
-
-ESTADOS UI:
-Loading: Spinner mientras carga
-Vacío: Mensaje con instrucciones
-Filtrado Vacío: Mensaje específico
-Tabla: Grid con tareas y acciones
-
-INTEGRACIÓN:
-Parent: 4btabdeberes.html (contenedor con lazy-load)
-Backend: Wrappers student* en code.gs
-Módulo: Student.gs (lógica de negocio)
-
-PATCH V01.18.1:
-Escape robusto para nombres de tarea en onclick
-Maneja \, ', saltos de línea para evitar romper atributos HTML
-
-CAMBIOS V01.18.1 → V01.19:
-Remodulación Estándar CodeWorkShop v4.0
-CSS en MOD-002
-HTML en MOD-003
-JavaScript (IIFE) en MOD-004
-Comentarios aligerados
-Notas consolidadas en MOD-099
-Mantiene lógica funcional sin cambios
-Mantiene escape de caracteres especiales
+CAMBIOS V01.19 → V01.21:
+- Submodulación completa MOD-002 (15 submódulos CSS)
+- Submodulación completa MOD-004 (8 submódulos JS)
+- FIX: ID filtroCurso → filtroCursoTarea (3 ubicaciones)
 -->
 <!-- MOD-099: FIN -->
