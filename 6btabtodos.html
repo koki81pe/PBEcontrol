@@ -3,15 +3,16 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtodos.html
-VERSIÓN: 01.22
-FECHA: 18/01/2026 13:20 (UTC-5)
+VERSIÓN: 01.23
+FECHA: 26/01/2026 13:11 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* SCOPE: evitar colisiones globales */
+
+/* MOD-002-S01: RESET Y CONTENEDOR [INICIO] */
 .todos-container, .todos-container * {
   box-sizing: border-box;
   margin: 0;
@@ -23,8 +24,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   margin: 0 auto;
   padding: 20px;
 }
+/* MOD-002-S01: FIN */
 
-/* Header */
+/* MOD-002-S02: HEADER [INICIO] */
 .todos-container .todos-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -43,8 +45,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   font-size: 14px;
   opacity: 0.9;
 }
+/* MOD-002-S02: FIN */
 
-/* Filtros */
+/* MOD-002-S03: BARRA FILTROS [INICIO] */
 .todos-container .filtros-bar {
   background: white;
   padding: 16px 20px;
@@ -76,7 +79,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
+/* MOD-002-S03: FIN */
 
+/* MOD-002-S04: BOTÓN REFRESH [INICIO] */
 .todos-container .btn-refresh {
   padding: 8px 16px;
   background: #667eea;
@@ -97,8 +102,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 .todos-container .btn-refresh:active {
   transform: scale(0.98);
 }
+/* MOD-002-S04: FIN */
 
-/* Tabla */
+/* MOD-002-S05: TABLA CONTENEDOR [INICIO] */
 .todos-container .tabla-deberes-container {
   background: white;
   border-radius: 0 0 12px 12px;
@@ -110,7 +116,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   width: 100%;
   border-collapse: collapse;
 }
+/* MOD-002-S05: FIN */
 
+/* MOD-002-S06: TABLA HEADER [INICIO] */
 .todos-container .tabla-deberes thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -124,7 +132,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+/* MOD-002-S06: FIN */
 
+/* MOD-002-S07: TABLA BODY [INICIO] */
 .todos-container .tabla-deberes tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -143,8 +153,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   font-size: 14px;
   color: #333;
 }
+/* MOD-002-S07: FIN */
 
-/* Badges de Tipo */
+/* MOD-002-S08: BADGES TIPO [INICIO] */
 .todos-container .badge-tipo {
   display: inline-block;
   padding: 4px 12px;
@@ -155,11 +166,7 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   letter-spacing: 0.5px;
 }
 
-.todos-container .badge-evaluacion {
-  background: #fee;
-  color: #dc3545;
-}
-
+.todos-container .badge-evaluacion,
 .todos-container .badge-evaluación {
   background: #fee;
   color: #dc3545;
@@ -174,8 +181,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   background: #d1ecf1;
   color: #0c5460;
 }
+/* MOD-002-S08: FIN */
 
-/* Curso Tag */
+/* MOD-002-S09: CURSO TAG [INICIO] */
 .todos-container .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -185,8 +193,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
+/* MOD-002-S09: FIN */
 
-/* Fecha */
+/* MOD-002-S10: COLORES FECHA [INICIO] */
 .todos-container .fecha-cell {
   white-space: nowrap;
 }
@@ -204,8 +213,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 .todos-container .fecha-normal {
   color: #28a745;
 }
+/* MOD-002-S10: FIN */
 
-/* Nota y Peso */
+/* MOD-002-S11: COLORES NOTA Y PESO [INICIO] */
 .todos-container .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -219,8 +229,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   text-align: center;
   color: #666;
 }
+/* MOD-002-S11: FIN */
 
-/* Progreso (solo Lecturas) */
+/* MOD-002-S12: BARRA PROGRESO [INICIO] */
 .todos-container .progreso-container {
   display: flex;
   align-items: center;
@@ -249,8 +260,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   min-width: 40px;
   text-align: right;
 }
+/* MOD-002-S12: FIN */
 
-/* Loading y Estado Vacío */
+/* MOD-002-S13: LOADING Y ESTADO VACÍO [INICIO] */
 .todos-container .loading-container {
   text-align: center;
   padding: 60px 20px;
@@ -297,8 +309,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   font-size: 14px;
   color: #bbb;
 }
+/* MOD-002-S13: FIN */
 
-/* Responsive */
+/* MOD-002-S14: RESPONSIVE [INICIO] */
 @media (max-width: 1024px) {
   .todos-container {
     padding: 12px;
@@ -338,6 +351,8 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     font-size: 13px;
   }
 }
+/* MOD-002-S14: FIN */
+
 </style>
 <!-- MOD-002: FIN -->
 
@@ -358,8 +373,8 @@ FECHA: 18/01/2026 13:20 (UTC-5)
       <option value="Lectura">Lecturas</option>
     </select>
 
-    <label for="filtroCurso">Curso:</label>
-    <select id="filtroCurso" onchange="TodosModule.aplicarFiltros()">
+    <label for="filtroCursoTodos">Curso:</label>
+    <select id="filtroCursoTodos" onchange="TodosModule.aplicarFiltros()">
       <option value="todos">Todos los cursos</option>
     </select>
 
@@ -415,6 +430,7 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 (function() {
   'use strict';
 
+// MOD-004-S01: FALLBACK SHOWALERT [INICIO]
   if (typeof window.showAlert === 'undefined') {
     window.showAlert = function(type, message) {
       const alertBox = document.createElement('div');
@@ -434,7 +450,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     style.textContent = '@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
     document.head.appendChild(style);
   }
+// MOD-004-S01: FIN
 
+// MOD-004-S02: VARIABLES DE ESTADO [INICIO]
   const state = {
     todosLosDeberes: [],
     deberesFiltrados: [],
@@ -443,7 +461,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
   };
 
   const MAX_RETRIES = 5;
+// MOD-004-S02: FIN
 
+// MOD-004-S03: INICIALIZACIÓN [INICIO]
   function inicializar() {
     console.log('📋 TodosModule.inicializar() llamado (intento ' + (state._retryCount + 1) + ')');
 
@@ -476,7 +496,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 
     cargarDeberes();
   }
+// MOD-004-S03: FIN
 
+// MOD-004-S04: ESTADO ERROR [INICIO]
   function setEstadoError(titulo, subtitulo) {
     const loading = document.getElementById('loadingDeberes');
     const estadoVacio = document.getElementById('estadoVacio');
@@ -495,7 +517,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
       if (icon) icon.textContent = '⚠️';
     }
   }
+// MOD-004-S04: FIN
 
+// MOD-004-S05: HELPERS FECHA [INICIO]
   function parsearFecha(fechaStr) {
     if (typeof window.parseFechaDD_MM_AAAA === 'function') {
       return window.parseFechaDD_MM_AAAA(fechaStr);
@@ -544,7 +568,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     if (diffDias <= 7) return 'fecha-pronto';
     return 'fecha-normal';
   }
+// MOD-004-S05: FIN
 
+// MOD-004-S06: HELPER NOTA [INICIO]
   function obtenerClaseNota(nota) {
     if (nota === null || nota === undefined || nota === '') return '';
     const notaNum = parseFloat(nota);
@@ -554,9 +580,11 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     if (notaNum >= 11) return 'nota-media';
     return 'nota-baja';
   }
+// MOD-004-S06: FIN
 
+// MOD-004-S07: POBLAR DROPDOWN CURSOS [INICIO]
   function cargarCursosEnFiltro() {
-    const selectCurso = document.getElementById('filtroCurso');
+    const selectCurso = document.getElementById('filtroCursoTodos');
     if (!selectCurso) return;
 
     const primerOption = selectCurso.options[0] ? selectCurso.options[0].outerHTML : '<option value="todos">Todos los cursos</option>';
@@ -574,7 +602,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 
     console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos:', cursosUnicos);
   }
+// MOD-004-S07: FIN
 
+// MOD-004-S08: RENDER TABLA [INICIO]
   function renderizarTabla() {
     const tbody = document.getElementById('deberesBody');
     const tabla = document.getElementById('tablaDeberes');
@@ -647,10 +677,12 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     tbody.innerHTML = html;
     console.log('📋 Tabla renderizada con', state.deberesFiltrados.length, 'deberes');
   }
+// MOD-004-S08: FIN
 
+// MOD-004-S09: APLICAR FILTROS [INICIO]
   function aplicarFiltros() {
     const filtroTipoEl = document.getElementById('filtroTipo');
-    const filtroCursoEl = document.getElementById('filtroCurso');
+    const filtroCursoEl = document.getElementById('filtroCursoTodos');
     const filtroFechaEl = document.getElementById('filtroFecha');
 
     const filtroTipo = filtroTipoEl ? filtroTipoEl.value : 'todos';
@@ -681,8 +713,6 @@ FECHA: 18/01/2026 13:20 (UTC-5)
           limite.setDate(limite.getDate() + 7);
           limite.setHours(23, 59, 59, 999);
           
-          console.log('📋 Próximos 7 días - Comparando:', deber.fecha, 'fechaDeber:', fechaDeber.toISOString(), 'hoy:', hoy.toISOString(), 'limite:', limite.toISOString());
-          
           if (fechaDeber < hoy || fechaDeber > limite) return false;
           
         } else if (filtroFecha === 'proximos30') {
@@ -703,7 +733,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     console.log('📋 Filtrados:', state.deberesFiltrados.length, 'de', state.todosLosDeberes.length);
     renderizarTabla();
   }
+// MOD-004-S09: FIN
 
+// MOD-004-S10: CARGAR DEBERES [INICIO]
   function cargarDeberes() {
     console.log('📋 Cargando deberes para:', currentUser.codeAlum);
 
@@ -777,7 +809,9 @@ FECHA: 18/01/2026 13:20 (UTC-5)
       })
       .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
   }
+// MOD-004-S10: FIN
 
+// MOD-004-S11: API PÚBLICA Y AUTO-INIT [INICIO]
   window.TodosModule = {
     inicializar: inicializar,
     cargarDeberes: cargarDeberes,
@@ -795,7 +829,8 @@ FECHA: 18/01/2026 13:20 (UTC-5)
     }
   }, 150);
 
-  console.log('%c📋 TodosModule V01.22 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+  console.log('%c📋 TodosModule V01.23 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+// MOD-004-S11: FIN
 
 })();
 </script>
@@ -803,82 +838,20 @@ FECHA: 18/01/2026 13:20 (UTC-5)
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-DESCRIPCIÓN:
-Vista unificada "Todos" que consolida Evaluaciones + Tareas + Lecturas
-Ordenado por fecha con filtros avanzados
+6btabtodos.html V01.23 - Vista unificada Evaluaciones + Tareas + Lecturas
 
-FUNCIONALIDAD:
-Carga deberes unificados desde backend
-Filtros: Tipo, Curso, Período (próximos 7/30, pasados)
-Ordenamiento automático por fecha (más próxima primero)
-Badges de tipo con colores
-Colores por proximidad de fecha (rojo/amarillo/verde)
-Colores dinámicos por nota (verde/amarillo/rojo)
-Barra de progreso para lecturas
-Formato de fecha mejorado: "Mié 07/01"
+ESTRUCTURA: MOD-002 CSS (14 submódulos) | MOD-003 HTML | MOD-004 JS (11 submódulos)
 
-CARACTERÍSTICAS TÉCNICAS:
-Retry logic robusto (5 intentos, 200ms)
-Init tracking con _initDone
-Auto-init con setTimeout(150ms)
-Fallbacks para showAlert y parseFechaDD_MM_AAAA
-Logs exhaustivos con prefijo 📋
+FILTROS: Tipo (Eval/Tarea/Lectura), Curso (dinámico), Período (7/30 días/pasados)
 
-FILTROS:
-Tipo: Todos/Evaluación/Tarea/Lectura
-Curso: Dinámico desde datos cargados
-Período: Todos/Próximos 7/Próximos 30/Pasados
+BACKEND: studentObtenerTodosDeberes({ codeAlum }) → { tipo, curso, nombre, fecha, peso, nota, progreso }
 
-FORMATO DE FECHA:
-Backend: DD/MM/AAAA
-Display: "Mié 07/01" (día de semana + fecha corta)
-Comparaciones: Normalizadas a medianoche
+DEPENDENCIAS: currentUser.codeAlum, showAlert() [fallback], parseFechaDD_MM_AAAA() [fallback]
 
-COLORES DE FECHA:
-Rojo: ≤ 3 días
-Amarillo: 4-7 días
-Verde: > 7 días
+COLORES: Fecha (≤3d rojo, 4-7d amarillo, >7d verde) | Nota (≥14 verde, 11-13 amarillo, <11 rojo)
 
-COLORES DE NOTA:
-Verde: ≥ 14
-Amarillo: 11-13
-Rojo: < 11
+TÉCNICO: Retry 5x/200ms, auto-init 150ms, ordenamiento por fecha, progreso solo Lecturas
 
-PROGRESO DE LECTURAS:
-Solo para tipo "Lectura"
-Barra visual + porcentaje
-Validación de rango 0-100%
-
-CONEXIÓN BACKEND:
-studentObtenerTodosDeberes({ codeAlum })
-Retorna array de objetos: { tipo, curso, nombre, fecha, peso, nota, progreso }
-
-DEPENDENCIAS:
-currentUser.codeAlum: ID del estudiante (obligatorio)
-showAlert: Función global de alertas (fallback incluido)
-parseFechaDD_MM_AAAA: Función de parseo (fallback incluido)
-
-ESTADOS UI:
-Loading: Spinner mientras carga
-Vacío: Mensaje amigable si no hay deberes
-Tabla: Display con todos los deberes filtrados
-Error: Mensaje de error con instrucciones
-
-FIX CRÍTICO V01.21:
-Normalización de horas en comparación de fechas
-Filtros de fecha ahora funcionan correctamente
-Logs adicionales para debugging
-
-FIX CRÍTICO V01.20:
-Filtro acepta '', 'todos', o null como "mostrar todo"
-Resuelve "0 de 9 filtrados"
-
-PATCH V01.21 → V01.22:
-Remodulación Estándar CodeWorkShop v4.0
-CSS en MOD-002
-HTML en MOD-003
-JavaScript (IIFE) en MOD-004
-Comentarios consolidados en MOD-099
-Mantiene lógica de filtros y retry
+V01.22→V01.23: FIX ID filtroCurso→filtroCursoTodos (evita colisión DOM), submodulación completa
 -->
 <!-- MOD-099: FIN -->
