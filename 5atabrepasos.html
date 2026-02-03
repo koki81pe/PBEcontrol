@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabrepasos.html
-VERSIÓN: 01.21
-FECHA: 26/01/2026 12:31 (UTC-5)
+VERSIÓN: 01.25
+FECHA: 02/03/2026 14:04 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -448,12 +448,11 @@ FECHA: 26/01/2026 12:31 (UTC-5)
         </div>
 
         <div class="form-group">
-          <label>Fecha de Repaso <span class="required">*</span></label>
+          <label>Fecha de Repaso</label>
           <input
             type="text"
             id="repasoFechaRep"
             placeholder="DD/MM/AAAA"
-            required
           >
           <small style="color: #666; font-size: 12px;">Fecha en que se repasó</small>
         </div>
@@ -764,12 +763,12 @@ FECHA: 26/01/2026 12:31 (UTC-5)
     const fechaRep = String(fechaRepRaw || '').trim();
     const detalle = String(detalleRaw || '').trim();
 
-    if (!curso || !tema || !fechaClase || !fechaRep || !estadoRep) {
+    if (!curso || !tema || !fechaClase || !estadoRep) {
       mostrarError('Completa todos los campos obligatorios');
       return;
     }
 
-    if (!validarFecha(fechaClase) || !validarFecha(fechaRep)) {
+    if (!validarFecha(fechaClase) || (fechaRep !== '' && !validarFecha(fechaRep))) {
       mostrarError('Formato de fecha inválido. Use DD/MM/AAAA');
       return;
     }
