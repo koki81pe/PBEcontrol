@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.26
-FECHA: 24/01/2026 21:22 (UTC-5)
+VERSIÓN: 01.27
+FECHA: 03/02/2026 08:50 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -182,6 +182,39 @@ function agregarRepaso(params) {
 
 function actualizarRepaso(params) {
   try {
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Repasos');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: Repasos' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var repaso = {};
+      for (var i = 0; i < headers.length; i++) {
+        repaso[headers[i]] = data[rowIndex][i];
+      }
+      repaso._rowNumber = params.rowNumber;
+      
+      repaso.Curso = params.curso || repaso.Curso;
+      repaso.Tema = params.tema || repaso.Tema;
+      repaso.FechaClase = params.fechaClase || repaso.FechaClase;
+      repaso.FechaRep = params.fechaRep || repaso.FechaRep;
+      repaso.EstadoRep = params.estadoRep || repaso.EstadoRep;
+      repaso.Detalle = params.detalle || repaso.Detalle;
+      repaso.Evaluado = params.evaluado || repaso.Evaluado;
+      
+      return DB.actualizar('Repasos', repaso);
+    }
+    
     var result = DB.buscar('Repasos', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Repaso no encontrado' };
@@ -259,6 +292,38 @@ function agregarEvaluacion(params) {
 
 function actualizarEvaluacion(params) {
   try {
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Eval');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: Eval' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var evaluacion = {};
+      for (var i = 0; i < headers.length; i++) {
+        evaluacion[headers[i]] = data[rowIndex][i];
+      }
+      evaluacion._rowNumber = params.rowNumber;
+      
+      evaluacion.Curso = params.curso || evaluacion.Curso;
+      evaluacion.NomEval = params.nomEval || evaluacion.NomEval;
+      evaluacion.FechaEval = params.fechaEval || evaluacion.FechaEval;
+      evaluacion.Nota = params.nota || evaluacion.Nota;
+      evaluacion.Peso = params.peso || evaluacion.Peso;
+      evaluacion.Sem = params.sem || evaluacion.Sem;
+      
+      return DB.actualizar('Eval', evaluacion);
+    }
+    
     var result = DB.buscar('Eval', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Evaluación no encontrada' };
@@ -336,6 +401,39 @@ function agregarTarea(params) {
 
 function actualizarTarea(params) {
   try {
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Tareas');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: Tareas' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var tarea = {};
+      for (var i = 0; i < headers.length; i++) {
+        tarea[headers[i]] = data[rowIndex][i];
+      }
+      tarea._rowNumber = params.rowNumber;
+      
+      tarea.Curso = params.curso || tarea.Curso;
+      tarea.Tarea = params.tarea || tarea.Tarea;
+      tarea.FechaEntrega = params.fechaEntrega || tarea.FechaEntrega;
+      tarea.FechaAccion = params.fechaAccion || tarea.FechaAccion;
+      tarea.Nota = params.nota || tarea.Nota;
+      tarea.Peso = params.peso || tarea.Peso;
+      tarea.Sem = params.sem || tarea.Sem;
+      
+      return DB.actualizar('Tareas', tarea);
+    }
+    
     var result = DB.buscar('Tareas', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Tarea no encontrada' };
@@ -417,6 +515,42 @@ function agregarLectura(params) {
 
 function actualizarLectura(params) {
   try {
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Lecturas');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: Lecturas' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var lectura = {};
+      for (var i = 0; i < headers.length; i++) {
+        lectura[headers[i]] = data[rowIndex][i];
+      }
+      lectura._rowNumber = params.rowNumber;
+      
+      lectura.Curso = params.curso || lectura.Curso;
+      lectura.Lectura = params.lectura || lectura.Lectura;
+      lectura.CantPag = params.cantPag || lectura.CantPag;
+      lectura.PagActual = params.pagActual || lectura.PagActual;
+      lectura.FechaInicio = params.fechaInicio || lectura.FechaInicio;
+      lectura.FechaFin = params.fechaFin || lectura.FechaFin;
+      lectura.FechaEval = params.fechaEval || lectura.FechaEval;
+      lectura.Nota = params.nota || lectura.Nota;
+      lectura.Peso = params.peso || lectura.Peso;
+      lectura.Sem = params.sem || lectura.Sem;
+      
+      return DB.actualizar('Lecturas', lectura);
+    }
+    
     var result = DB.buscar('Lecturas', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Lectura no encontrada' };
@@ -609,6 +743,49 @@ function agregarHorarioSem(params) {
 
 function actualizarHorarioSem(params) {
   try {
+    if (params.rowNumber) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('HorarioSem');
+      
+      if (!sheet) {
+        return { success: false, error: 'Hoja no encontrada: HorarioSem' };
+      }
+      
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      
+      var rowIndex = params.rowNumber - 1;
+      if (rowIndex < 1 || rowIndex >= data.length) {
+        return { success: false, error: 'Número de fila inválido' };
+      }
+      
+      var actividad = {};
+      for (var i = 0; i < headers.length; i++) {
+        actividad[headers[i]] = data[rowIndex][i];
+      }
+      actividad._rowNumber = params.rowNumber;
+      
+      actividad.Actividad = params.actividad || actividad.Actividad;
+      actividad.HoraInicio = params.horaInicio || actividad.HoraInicio;
+      actividad.HoraFin = params.horaFin || actividad.HoraFin;
+      
+      if (params.fechaHS) {
+        if (params.fechaHS.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          actividad.FechaHS = convertirISOaDDMMAAAA(params.fechaHS);
+        } else if (params.fechaHS.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          actividad.FechaHS = params.fechaHS;
+        } else {
+          Logger.log('⚠️ Formato de fecha no reconocido: ' + params.fechaHS);
+        }
+      }
+      
+      actividad.TipoAct = params.tipoAct || actividad.TipoAct;
+      actividad.Color = params.color || actividad.Color;
+      actividad.Sem = params.sem || actividad.Sem;
+      
+      return DB.actualizar('HorarioSem', actividad);
+    }
+    
     var result = DB.buscar('HorarioSem', 'CodeAlum', params.codeAlum);
     if (!result.success) {
       return { success: false, error: 'Actividad no encontrada' };
