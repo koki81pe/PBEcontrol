@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.21
-FECHA: 18/01/2026 15:00 (UTC-5)
+VERSIÓN: 01.24
+FECHA: 02/02/2026 11:32 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -20,7 +20,8 @@ FECHA: 18/01/2026 15:00 (UTC-5)
 
 <!-- MOD-003: ESTILOS [INICIO] -->
 <style>
-/* Reset y Base */
+
+/* MOD-003-S01: RESET Y BASE [INICIO] */
 * {
   margin: 0;
   padding: 0;
@@ -32,8 +33,9 @@ body {
   background: #f5f7fa;
   min-height: 100vh;
 }
+/* MOD-003-S01: FIN */
 
-/* Navbar */
+/* MOD-003-S02: NAVBAR [INICIO] */
 .navbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -87,8 +89,9 @@ body {
 .btn-logout:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+/* MOD-003-S02: FIN */
 
-/* Layout Principal con Tabs Verticales */
+/* MOD-003-S03: LAYOUT PRINCIPAL [INICIO] */
 .main-layout {
   max-width: 1400px;
   margin: 30px auto;
@@ -96,37 +99,48 @@ body {
   display: flex;
   gap: 20px;
 }
+/* MOD-003-S03: FIN */
 
-/* Tabs Verticales (Izquierda) */
+/* MOD-003-S04: TABS SIDEBAR [INICIO] */
 .tabs-sidebar {
-  width: 260px;
+  width: fit-content;
   flex-shrink: 0;
+  flex-grow: 0;
+  max-width: 280px;
+  cursor: pointer;
+  transition: width 0.3s ease;
+}
+
+.tabs-sidebar.collapsed {
+  width: fit-content;
 }
 
 .tabs-nav {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   position: sticky;
   top: 100px;
 }
 
 .tab-btn {
-  padding: 20px 25px;
+  padding: 8px 12px;
   font-size: 15px;
   font-weight: 600;
   color: #666;
   background: #f5f5f5;
   border: none;
   border-left: 4px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
   font-family: inherit;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  width: fit-content;
+  min-width: 0;
 }
 
 .tab-btn:hover {
@@ -141,7 +155,42 @@ body {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-/* Contenedor de Contenido (Derecha) */
+.tab-btn .tab-text {
+  transition: opacity 0.3s, width 0.3s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tabs-sidebar.collapsed .tab-btn .tab-text {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+}
+
+.tabs-sidebar.collapsed .tab-btn {
+  padding: 8px 10px;
+  justify-content: center;
+}
+
+.collapse-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0;
+  color: #999;
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+.tabs-sidebar.collapsed .collapse-indicator {
+  transform: rotate(180deg);
+}
+
+.tab-btn[title] {
+  position: relative;
+}
+/* MOD-003-S04: FIN */
+
+/* MOD-003-S05: CONTENT CONTAINER [INICIO] */
 .content-container {
   flex: 1;
   min-width: 0;
@@ -166,8 +215,9 @@ body {
     transform: translateY(0);
   }
 }
+/* MOD-003-S05: FIN */
 
-/* Alertas Globales */
+/* MOD-003-S06: ALERTAS [INICIO] */
 .alert {
   position: fixed;
   top: 20px;
@@ -216,8 +266,9 @@ body {
   color: #0c5460;
   border-left: 4px solid #17a2b8;
 }
+/* MOD-003-S06: FIN */
 
-/* Loading Screen */
+/* MOD-003-S07: LOADING SCREEN [INICIO] */
 .loading-screen {
   display: none;
   position: fixed;
@@ -255,8 +306,9 @@ body {
   color: #667eea;
   font-weight: 600;
 }
+/* MOD-003-S07: FIN */
 
-/* Responsive - Mobile */
+/* MOD-003-S08: RESPONSIVE MOBILE [INICIO] */
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
@@ -295,7 +347,7 @@ body {
   }
 
   .tab-btn {
-    padding: 14px 20px;
+    padding: 10px 14px;
     border-left: none;
     border-bottom: 3px solid transparent;
     min-width: max-content;
@@ -318,6 +370,8 @@ body {
     max-width: none;
   }
 }
+/* MOD-003-S08: FIN */
+
 </style>
 <!-- MOD-003: FIN -->
 
@@ -408,16 +462,20 @@ console.log('%c✓ currentUser inicializado ANTES de cargar tabs',
 <!-- MOD-008: FIN -->
 
 <!-- MOD-009: TABS SIDEBAR [INICIO] -->
-<aside class="tabs-sidebar">
+<aside class="tabs-sidebar" id="tabsSidebar" onclick="handleSidebarClick(event)">
+  <div class="collapse-indicator" id="collapseIndicator">« Colapsar</div>
   <div class="tabs-nav">
-    <button class="tab-btn active" id="btn-cursosyrep" onclick="switchTab('cursosyrep')">
-      📚 Cursos y Repasos
+    <button class="tab-btn active" id="btn-cursosyrep" onclick="switchTab('cursosyrep')" title="Cursos y Repasos">
+      <span class="tab-icon">📚</span>
+      <span class="tab-text">Cursos y Repasos</span>
     </button>
-    <button class="tab-btn" id="btn-deberes" onclick="switchTab('deberes')">
-      📝 Deberes
+    <button class="tab-btn" id="btn-deberes" onclick="switchTab('deberes')" title="Deberes">
+      <span class="tab-icon">📝</span>
+      <span class="tab-text">Deberes</span>
     </button>
-    <button class="tab-btn" id="btn-planning" onclick="switchTab('planning')">
-      📅 Planning
+    <button class="tab-btn" id="btn-planning" onclick="switchTab('planning')" title="Planning">
+      <span class="tab-icon">📅</span>
+      <span class="tab-text">Planning</span>
     </button>
   </div>
 </aside>
@@ -447,7 +505,8 @@ console.log('%c✓ currentUser inicializado ANTES de cargar tabs',
 
 <!-- MOD-012: JAVASCRIPT - FUNCIONES GLOBALES [INICIO] -->
 <script>
-// Actualizar UI cuando el DOM esté listo
+
+// MOD-012-S01: INICIALIZACIÓN UI [INICIO]
 window.onload = function() {
   if (currentUser.nombre) {
     document.getElementById('userName').textContent = currentUser.nombre;
@@ -455,11 +514,12 @@ window.onload = function() {
   
   console.log('%cVariable global currentUser:', 
               'font-size: 12px; color: #666;', currentUser);
-  console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab', 
+  console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab, toggleSidebar', 
               'font-size: 12px; color: #666;');
 };
+// MOD-012-S01: FIN
 
-// Navegación entre Tabs
+// MOD-012-S02: NAVEGACIÓN TABS [INICIO]
 function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(function(tab) {
     tab.classList.remove('active');
@@ -474,8 +534,33 @@ function switchTab(tabName) {
 
   console.log('Tab cambiado a:', tabName);
 }
+// MOD-012-S02: FIN
 
-// Sistema de Alertas Global
+// MOD-012-S03: COLAPSADOR SIDEBAR [INICIO]
+function handleSidebarClick(event) {
+  if (event.target.closest('.tab-btn')) {
+    return;
+  }
+  toggleSidebar();
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('tabsSidebar');
+  const indicator = document.getElementById('collapseIndicator');
+  
+  if (!sidebar) return;
+  
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+  
+  if (indicator) {
+    indicator.textContent = isCollapsed ? '»' : '« Colapsar';
+  }
+  
+  console.log('Sidebar:', isCollapsed ? 'colapsado' : 'expandido');
+}
+// MOD-012-S03: FIN
+
+// MOD-012-S04: SISTEMA ALERTAS [INICIO]
 function showAlert(type, message) {
   const existingAlerts = document.querySelectorAll('.alert');
   existingAlerts.forEach(function(alert) {
@@ -492,8 +577,9 @@ function showAlert(type, message) {
     alertBox.remove();
   }, 4000);
 }
+// MOD-012-S04: FIN
 
-// Loading Screen
+// MOD-012-S05: LOADING SCREEN [INICIO]
 function showLoading() {
   document.getElementById('loadingScreen').classList.add('active');
 }
@@ -501,16 +587,18 @@ function showLoading() {
 function hideLoading() {
   document.getElementById('loadingScreen').classList.remove('active');
 }
+// MOD-012-S05: FIN
 
-// Logout
+// MOD-012-S06: LOGOUT [INICIO]
 function logout() {
   if (confirm('¿Deseas cerrar sesión?')) {
     sessionStorage.clear();
     window.top.location.href = '<?!= scriptUrl ?>';
   }
 }
+// MOD-012-S06: FIN
 
-// Utilidades Globales
+// MOD-012-S07: UTILIDADES FECHA [INICIO]
 function formatFecha(fecha) {
   if (!fecha) return '-';
   
@@ -563,6 +651,8 @@ function validarFecha(fecha) {
   
   return true;
 }
+// MOD-012-S07: FIN
+
 </script>
 <!-- MOD-012: FIN -->
 
