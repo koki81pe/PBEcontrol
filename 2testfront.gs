@@ -1,1 +1,1 @@
-Código no requerido de revisión.
+Código no requiere revisión.
