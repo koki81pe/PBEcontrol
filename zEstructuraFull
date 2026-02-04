@@ -16,12 +16,7 @@ MOD-014: Wrappers gestión semanas
 MOD-015: Wrappers notas
 MOD-016: Wrappers deberes
 MOD-017: Wrappers admin
-MOD-099: Notas
-
-ARCHIVO 2testback.gs (ignorar)
-ARCHIVO 2testfront.gs (ignorar)
-ARCHIVO 2testui.html (ignorar)
-
+MOD-018: Notas de versión y funciones
 
 ARCHIVO 1db.gs
 MOD-001: Encabezado
@@ -37,7 +32,7 @@ MOD-010: Eliminar por alumno
 MOD-011: Exportar funciones públicas
 MOD-012: Cierre módulo db
 MOD-013: Código de cierre
-MOD-099: Notas
+MOD-099: Notas y principios
 
 ARCHIVO 1student.gs
 MOD-001: Encabezado
@@ -49,18 +44,25 @@ MOD-006: Tareas
 MOD-007: Lecturas
 MOD-008: Horario clases
 MOD-009: Horario semanal
-MOD-010: Config semanas
+MOD-010: Gestión Semanas V5
 MOD-010-S01: Obtener config semana
-MOD-010-S02: Guardar config semana
+MOD-010-S02: Guardar config semana (Conversión Date)
 MOD-010-S03: Generar todas semanas
-MOD-010-S04: Copiar semana
-MOD-010-S05: Limpiar semana
-MOD-010-S06: Helper parsear fecha
-MOD-011: Gestión semanas
-MOD-012: Notas
-MOD-013: Deberes
-MOD-014: Helpers
-MOD-015: Exportación
+MOD-011: Notas
+MOD-012: Deberes
+MOD-013: Helpers
+MOD-014: Exportación
+MOD-099: Notas
+
+ARCHIVO 1admin.gs
+MOD-001: Encabezado
+MOD-002: Inicialización
+MOD-003: Crear alumno
+MOD-004: Buscar alumno
+MOD-005: Eliminar alumno
+MOD-006: Helpers admin
+MOD-007: Exportación
+MOD-008: Cierre
 MOD-099: Notas
 
 ARCHIVO 1utils.gs
@@ -73,6 +75,10 @@ MOD-006: Cierre módulo utils
 MOD-007: Paleta de colores
 MOD-008: Código de cierre
 MOD-099: Notas
+
+ARCHIVO 2testback.gs (ignorar)
+ARCHIVO 2testfront.gs (ignorar)
+ARCHIVO 2testui.html (ignorar)
 
 ARCHIVO 3index.html
 MOD-001: Encabezado
@@ -273,9 +279,9 @@ MOD-002-S06: Botón config
 MOD-002-S07: Content layout
 MOD-002-S08: Sidebar
 MOD-002-S09: Botones semana
-MOD-002-S10: Main area
-MOD-002-S11: Actions toolbar
-MOD-002-S12: Botones acción
+MOD-010: Main area
+MOD-011: Actions toolbar
+MOD-012: Botones acción
 MOD-003: Css 2 grid y modales
 MOD-003-S01: Grid container
 MOD-003-S02: Grid table
@@ -301,27 +307,26 @@ MOD-006-S06: Carga semanas v2
 MOD-006-S07: Navegación semanas
 MOD-006-S08: Render lista semanas
 MOD-006-S09: Actualizar info semana v2
-MOD-006-S10: Calcular fechas semana v2
-MOD-006-S11: Carga de cursos
-MOD-006-S12: Carga horario clases
-MOD-006-S13: Carga horario semanal
-MOD-006-S14: Construcción de matriz
-MOD-006-S15: Helpers de procesamiento
-MOD-006-S16: Renderizado de grid
-MOD-006-S17: Formateo
-MOD-006-S18: Navegación extra
-MOD-006-S19: Config semana
-MOD-006-S20: Copiar y limpiar v2
-MOD-006-S21: Formulario actividad
-MOD-006-S22: Modal confirmación
-MOD-006-S23: Notificaciones
-MOD-006-S24: Renderizar deberes v2
-MOD-006-S25: Exposición global y arranque v2
+MOD-010: Calcular fechas semana v2
+MOD-011: Carga de cursos
+MOD-012: Carga horario clases
+MOD-013: Carga horario semanal
+MOD-014: Construcción de matriz
+MOD-015: Helpers de procesamiento
+MOD-016: Renderizado de grid
+MOD-017: Formateo
+MOD-018: Navegación extra
+MOD-019: Config semana
+MOD-020: Copiar y limpiar v2
+MOD-021: Formulario actividad
+MOD-022: Modal confirmación
+MOD-023: Notificaciones
+MOD-024: Renderizar deberes v2
+MOD-025: Exposición global y arranque v2
 MOD-099: Notas
 
 ARCHIVO 7ctabnotas.html
 MOD-001: Encabezado
-
 MOD-002: Estilos
 MOD-002-S01: Contenedor principal
 MOD-002-S02: Grid de cursos
