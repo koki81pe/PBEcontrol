@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtodos.html
-VERSIÓN: 01.23
-FECHA: 26/01/2026 13:11 (UTC-5)
+VERSIÓN: 01.24
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -12,7 +12,7 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
 
-/* MOD-002-S01: RESET Y CONTENEDOR [INICIO] */
+/* MOD-002-001: RESET Y CONTENEDOR [INICIO] */
 .todos-container, .todos-container * {
   box-sizing: border-box;
   margin: 0;
@@ -24,9 +24,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   margin: 0 auto;
   padding: 20px;
 }
-/* MOD-002-S01: FIN */
+/* MOD-002-001: FIN */
 
-/* MOD-002-S02: HEADER [INICIO] */
+/* MOD-002-002: HEADER [INICIO] */
 .todos-container .todos-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -45,9 +45,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   font-size: 14px;
   opacity: 0.9;
 }
-/* MOD-002-S02: FIN */
+/* MOD-002-002: FIN */
 
-/* MOD-002-S03: BARRA FILTROS [INICIO] */
+/* MOD-002-003: BARRA FILTROS [INICIO] */
 .todos-container .filtros-bar {
   background: white;
   padding: 16px 20px;
@@ -79,9 +79,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-/* MOD-002-S03: FIN */
+/* MOD-002-003: FIN */
 
-/* MOD-002-S04: BOTÓN REFRESH [INICIO] */
+/* MOD-002-004: BOTÓN REFRESH [INICIO] */
 .todos-container .btn-refresh {
   padding: 8px 16px;
   background: #667eea;
@@ -102,9 +102,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 .todos-container .btn-refresh:active {
   transform: scale(0.98);
 }
-/* MOD-002-S04: FIN */
+/* MOD-002-004: FIN */
 
-/* MOD-002-S05: TABLA CONTENEDOR [INICIO] */
+/* MOD-002-005: TABLA CONTENEDOR [INICIO] */
 .todos-container .tabla-deberes-container {
   background: white;
   border-radius: 0 0 12px 12px;
@@ -116,9 +116,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   width: 100%;
   border-collapse: collapse;
 }
-/* MOD-002-S05: FIN */
+/* MOD-002-005: FIN */
 
-/* MOD-002-S06: TABLA HEADER [INICIO] */
+/* MOD-002-006: TABLA HEADER [INICIO] */
 .todos-container .tabla-deberes thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -132,9 +132,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-/* MOD-002-S06: FIN */
+/* MOD-002-006: FIN */
 
-/* MOD-002-S07: TABLA BODY [INICIO] */
+/* MOD-002-007: TABLA BODY [INICIO] */
 .todos-container .tabla-deberes tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -153,9 +153,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   font-size: 14px;
   color: #333;
 }
-/* MOD-002-S07: FIN */
+/* MOD-002-007: FIN */
 
-/* MOD-002-S08: BADGES TIPO [INICIO] */
+/* MOD-002-008: BADGES TIPO [INICIO] */
 .todos-container .badge-tipo {
   display: inline-block;
   padding: 4px 12px;
@@ -181,9 +181,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   background: #d1ecf1;
   color: #0c5460;
 }
-/* MOD-002-S08: FIN */
+/* MOD-002-008: FIN */
 
-/* MOD-002-S09: CURSO TAG [INICIO] */
+/* MOD-002-009: CURSO TAG [INICIO] */
 .todos-container .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -193,9 +193,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
-/* MOD-002-S09: FIN */
+/* MOD-002-009: FIN */
 
-/* MOD-002-S10: COLORES FECHA [INICIO] */
+/* MOD-002-010: COLORES FECHA [INICIO] */
 .todos-container .fecha-cell {
   white-space: nowrap;
 }
@@ -213,9 +213,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 .todos-container .fecha-normal {
   color: #28a745;
 }
-/* MOD-002-S10: FIN */
+/* MOD-002-010: FIN */
 
-/* MOD-002-S11: COLORES NOTA Y PESO [INICIO] */
+/* MOD-002-011: COLORES NOTA Y PESO [INICIO] */
 .todos-container .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -229,9 +229,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   text-align: center;
   color: #666;
 }
-/* MOD-002-S11: FIN */
+/* MOD-002-011: FIN */
 
-/* MOD-002-S12: BARRA PROGRESO [INICIO] */
+/* MOD-002-012: BARRA PROGRESO [INICIO] */
 .todos-container .progreso-container {
   display: flex;
   align-items: center;
@@ -260,9 +260,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   min-width: 40px;
   text-align: right;
 }
-/* MOD-002-S12: FIN */
+/* MOD-002-012: FIN */
 
-/* MOD-002-S13: LOADING Y ESTADO VACÍO [INICIO] */
+/* MOD-002-013: LOADING Y ESTADO VACÍO [INICIO] */
 .todos-container .loading-container {
   text-align: center;
   padding: 60px 20px;
@@ -309,9 +309,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   font-size: 14px;
   color: #bbb;
 }
-/* MOD-002-S13: FIN */
+/* MOD-002-013: FIN */
 
-/* MOD-002-S14: RESPONSIVE [INICIO] */
+/* MOD-002-014: RESPONSIVE [INICIO] */
 @media (max-width: 1024px) {
   .todos-container {
     padding: 12px;
@@ -351,7 +351,7 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     font-size: 13px;
   }
 }
-/* MOD-002-S14: FIN */
+/* MOD-002-014: FIN */
 
 </style>
 <!-- MOD-002: FIN -->
@@ -430,7 +430,7 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 (function() {
   'use strict';
 
-// MOD-004-S01: FALLBACK SHOWALERT [INICIO]
+// MOD-004-001: FALLBACK SHOWALERT [INICIO]
   if (typeof window.showAlert === 'undefined') {
     window.showAlert = function(type, message) {
       const alertBox = document.createElement('div');
@@ -450,9 +450,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     style.textContent = '@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
     document.head.appendChild(style);
   }
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: VARIABLES DE ESTADO [INICIO]
+// MOD-004-002: VARIABLES DE ESTADO [INICIO]
   const state = {
     todosLosDeberes: [],
     deberesFiltrados: [],
@@ -461,9 +461,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   };
 
   const MAX_RETRIES = 5;
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: INICIALIZACIÓN [INICIO]
+// MOD-004-003: INICIALIZACIÓN [INICIO]
   function inicializar() {
     console.log('📋 TodosModule.inicializar() llamado (intento ' + (state._retryCount + 1) + ')');
 
@@ -496,9 +496,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 
     cargarDeberes();
   }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: ESTADO ERROR [INICIO]
+// MOD-004-004: ESTADO ERROR [INICIO]
   function setEstadoError(titulo, subtitulo) {
     const loading = document.getElementById('loadingDeberes');
     const estadoVacio = document.getElementById('estadoVacio');
@@ -517,9 +517,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
       if (icon) icon.textContent = '⚠️';
     }
   }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: HELPERS FECHA [INICIO]
+// MOD-004-005: HELPERS FECHA [INICIO]
   function parsearFecha(fechaStr) {
     if (typeof window.parseFechaDD_MM_AAAA === 'function') {
       return window.parseFechaDD_MM_AAAA(fechaStr);
@@ -568,9 +568,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     if (diffDias <= 7) return 'fecha-pronto';
     return 'fecha-normal';
   }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: HELPER NOTA [INICIO]
+// MOD-004-006: HELPER NOTA [INICIO]
   function obtenerClaseNota(nota) {
     if (nota === null || nota === undefined || nota === '') return '';
     const notaNum = parseFloat(nota);
@@ -580,9 +580,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     if (notaNum >= 11) return 'nota-media';
     return 'nota-baja';
   }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: POBLAR DROPDOWN CURSOS [INICIO]
+// MOD-004-007: POBLAR DROPDOWN CURSOS [INICIO]
   function cargarCursosEnFiltro() {
     const selectCurso = document.getElementById('filtroCursoTodos');
     if (!selectCurso) return;
@@ -602,9 +602,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
 
     console.log('📋 Dropdown de cursos poblado con', cursosUnicos.length, 'cursos:', cursosUnicos);
   }
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: RENDER TABLA [INICIO]
+// MOD-004-008: RENDER TABLA [INICIO]
   function renderizarTabla() {
     const tbody = document.getElementById('deberesBody');
     const tabla = document.getElementById('tablaDeberes');
@@ -677,9 +677,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     tbody.innerHTML = html;
     console.log('📋 Tabla renderizada con', state.deberesFiltrados.length, 'deberes');
   }
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
-// MOD-004-S09: APLICAR FILTROS [INICIO]
+// MOD-004-009: APLICAR FILTROS [INICIO]
   function aplicarFiltros() {
     const filtroTipoEl = document.getElementById('filtroTipo');
     const filtroCursoEl = document.getElementById('filtroCursoTodos');
@@ -733,9 +733,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
     console.log('📋 Filtrados:', state.deberesFiltrados.length, 'de', state.todosLosDeberes.length);
     renderizarTabla();
   }
-// MOD-004-S09: FIN
+// MOD-004-009: FIN
 
-// MOD-004-S10: CARGAR DEBERES [INICIO]
+// MOD-004-010: CARGAR DEBERES [INICIO]
   function cargarDeberes() {
     console.log('📋 Cargando deberes para:', currentUser.codeAlum);
 
@@ -809,9 +809,9 @@ FECHA: 26/01/2026 13:11 (UTC-5)
       })
       .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
   }
-// MOD-004-S10: FIN
+// MOD-004-010: FIN
 
-// MOD-004-S11: API PÚBLICA Y AUTO-INIT [INICIO]
+// MOD-004-011: API PÚBLICA Y AUTO-INIT [INICIO]
   window.TodosModule = {
     inicializar: inicializar,
     cargarDeberes: cargarDeberes,
@@ -830,7 +830,7 @@ FECHA: 26/01/2026 13:11 (UTC-5)
   }, 150);
 
   console.log('%c📋 TodosModule V01.23 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
-// MOD-004-S11: FIN
+// MOD-004-011: FIN
 
 })();
 </script>
