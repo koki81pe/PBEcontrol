@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabnotas.html
-VERSIÓN: 01.20
-FECHA: 19/01/2026 00:06 (UTC-5)
+VERSIÓN: 01.21
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -12,7 +12,7 @@ FECHA: 19/01/2026 00:06 (UTC-5)
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
 
-// MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO]
+// MOD-002-001: CONTENEDOR PRINCIPAL [INICIO]
 /* CONTENEDOR PRINCIPAL */
 .notas-container {
   background: #fff;
@@ -46,18 +46,18 @@ FECHA: 19/01/2026 00:06 (UTC-5)
 .stat-item strong {
   color: #333;
 }
-// MOD-002-S01: FIN
+// MOD-002-001: FIN
 
-// MOD-002-S02: GRID DE CURSOS [INICIO]
+// MOD-002-002: GRID DE CURSOS [INICIO]
 /* GRID DE CURSOS */
 .notas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
-// MOD-002-S02: FIN
+// MOD-002-002: FIN
 
-// MOD-002-S03: TARJETA DE CURSO [INICIO]
+// MOD-002-003: TARJETA DE CURSO [INICIO]
 /* TARJETA DE CURSO */
 .curso-card {
   background: #fff;
@@ -107,9 +107,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
   padding: 3px 10px;
   border-radius: 6px;
 }
-// MOD-002-S03: FIN
+// MOD-002-003: FIN
 
-// MOD-002-S04: PROMEDIO BADGE [INICIO]
+// MOD-002-004: PROMEDIO BADGE [INICIO]
 /* PROMEDIO BADGE */
 .promedio-badge {
   font-size: 28px;
@@ -138,9 +138,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
   color: #999;
   text-transform: uppercase;
 }
-// MOD-002-S04: FIN
+// MOD-002-004: FIN
 
-// MOD-002-S05: ESTADO DEL CURSO [INICIO]
+// MOD-002-005: ESTADO DEL CURSO [INICIO]
 /* ESTADO DEL CURSO */
 .curso-estado {
   margin-top: 12px;
@@ -169,9 +169,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
   background: #e9ecef;
   color: #6c757d;
 }
-// MOD-002-S05: FIN
+// MOD-002-005: FIN
 
-// MOD-002-S06: DETALLE DEL CURSO [INICIO]
+// MOD-002-006: DETALLE DEL CURSO [INICIO]
 /* DETALLE DEL CURSO */
 .curso-detalle {
   display: flex;
@@ -196,9 +196,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
   font-size: 11px;
   color: #999;
 }
-// MOD-002-S06: FIN
+// MOD-002-006: FIN
 
-// MOD-002-S07: LOADING [INICIO]
+// MOD-002-007: LOADING [INICIO]
 /* LOADING */
 .loading-container {
   text-align: center;
@@ -219,16 +219,16 @@ FECHA: 19/01/2026 00:06 (UTC-5)
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-// MOD-002-S07: FIN
+// MOD-002-007: FIN
 
-// MOD-002-S08: ESTADO VACÍO [INICIO]
+// MOD-002-008: ESTADO VACÍO [INICIO]
 /* ESTADO VACÍO */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: #999;
 }
-// MOD-002-S08: FIN
+// MOD-002-008: FIN
 
 </style>
 <!-- MOD-002: FIN -->
@@ -256,7 +256,7 @@ FECHA: 19/01/2026 00:06 (UTC-5)
 <!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
 
-// MOD-004-S01: ENCAPSULAMIENTO Y PROTECCIÓN [INICIO]
+// MOD-004-001: ENCAPSULAMIENTO Y PROTECCIÓN [INICIO]
 (function PBE_NOTAS_MODULE() {
   'use strict';
 
@@ -265,9 +265,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
   const NotasModule = {
     data: []
   };
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: INICIALIZACIÓN [INICIO]
+// MOD-004-002: INICIALIZACIÓN [INICIO]
   NotasModule.init = function() {
     if (!window.currentUser?.codeAlum) {
       showAlert('error', 'No se pudo identificar al usuario');
@@ -275,9 +275,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
     }
     this.cargar();
   };
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: CARGA DE DATOS [INICIO]
+// MOD-004-003: CARGA DE DATOS [INICIO]
   NotasModule.cargar = function() {
     google.script.run
       .withSuccessHandler(r => {
@@ -292,9 +292,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
       .withFailureHandler(() => this.empty())
       .studentObtenerResumenNotas({ codeAlum: currentUser.codeAlum });
   };
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: RENDERIZADO DE CURSOS [INICIO]
+// MOD-004-004: RENDERIZADO DE CURSOS [INICIO]
   NotasModule.render = function() {
     const cont = document.getElementById('notasGrid');
     if (!this.data.length) return this.empty();
@@ -335,9 +335,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
         </div>`;
     }).join('');
   };
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: ESTADÍSTICAS GLOBALES [INICIO]
+// MOD-004-005: ESTADÍSTICAS GLOBALES [INICIO]
   NotasModule.stats = function() {
     let notas = 0;
     let sum = 0;
@@ -356,9 +356,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
     document.getElementById('statNotas').textContent = notas;
     document.getElementById('statProm').textContent = con ? (sum / con).toFixed(2) : '--';
   };
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: ESTADO VACÍO [INICIO]
+// MOD-004-006: ESTADO VACÍO [INICIO]
   NotasModule.empty = function() {
     document.getElementById('notasGrid').innerHTML = `
       <div class="empty-state">
@@ -366,9 +366,9 @@ FECHA: 19/01/2026 00:06 (UTC-5)
         Sin calificaciones aún
       </div>`;
   };
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: HELPERS DE CLASIFICACIÓN [INICIO]
+// MOD-004-007: HELPERS DE CLASIFICACIÓN [INICIO]
   NotasModule.cls = p =>
     p === 0 ? 'sin-notas' :
     p >= 14 ? 'aprobado-excelente' :
@@ -386,14 +386,14 @@ FECHA: 19/01/2026 00:06 (UTC-5)
     p >= 14 ? '🎉 Excelente' :
     p >= 11 ? '✅ Aprobado' :
     '⚠️ Necesita mejorar';
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: EXPORT E INICIALIZACIÓN [INICIO]
+// MOD-004-008: EXPORT E INICIALIZACIÓN [INICIO]
   console.log('%c📊 Sub-tab Notas V01.19 cargado', 'font-size: 11px; color: #667eea;');
 
   window.NotasModule = NotasModule;
   NotasModule.init();
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
 })();
 
