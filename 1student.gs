@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.27
-FECHA: 03/02/2026 08:50 (UTC-5)
+VERSIÓN: 01.28
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -829,7 +829,7 @@ function eliminarHorarioSem(params) {
 
 // MOD-010: CONFIG SEMANAS V5 [INICIO]
 
-// MOD-010-S01: OBTENER CONFIG SEMANA [INICIO]
+// MOD-010-001: OBTENER CONFIG SEMANA [INICIO]
 function obtenerConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -875,9 +875,9 @@ function obtenerConfigSemana(params) {
     return { success: false, error: 'Error al obtener configuración de semana' };
   }
 }
-// MOD-010-S01: FIN
+// MOD-010-001: FIN
 
-// MOD-010-S02: GUARDAR CONFIG SEMANA [INICIO]
+// MOD-010-002: GUARDAR CONFIG SEMANA [INICIO]
 function guardarConfigSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -984,9 +984,9 @@ function guardarConfigSemana(params) {
     return { success: false, error: 'Error al guardar configuración: ' + error.toString() };
   }
 }
-// MOD-010-S02: FIN
+// MOD-010-002: FIN
 
-// MOD-010-S03: GENERAR TODAS SEMANAS [INICIO]
+// MOD-010-003: GENERAR TODAS SEMANAS [INICIO]
 function generarTodasSemanas(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1093,9 +1093,9 @@ function generarTodasSemanas(params) {
     return { success: false, error: 'Error al generar semanas: ' + error.toString() };
   }
 }
-// MOD-010-S03: FIN
+// MOD-010-003: FIN
 
-// MOD-010-S04: COPIAR SEMANA [INICIO]
+// MOD-010-004: COPIAR SEMANA [INICIO]
 function copiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1179,9 +1179,9 @@ function copiarSemana(params) {
     return { success: false, error: 'Error al copiar semana' };
   }
 }
-// MOD-010-S04: FIN
+// MOD-010-004: FIN
 
-// MOD-010-S05: LIMPIAR SEMANA [INICIO]
+// MOD-010-005: LIMPIAR SEMANA [INICIO]
 function limpiarSemana(params) {
   try {
     var codeAlum = params.codeAlum;
@@ -1225,9 +1225,9 @@ function limpiarSemana(params) {
     return { success: false, error: 'Error al limpiar semana' };
   }
 }
-// MOD-010-S05: FIN
+// MOD-010-005: FIN
 
-// MOD-010-S06: HELPER PARSEAR FECHA [INICIO]
+// MOD-010-006: HELPER PARSEAR FECHA [INICIO]
 function parsearFechaDDMMAAAABackend(fechaStr) {
   if (!fechaStr) return new Date('invalid');
   
@@ -1244,7 +1244,7 @@ function parsearFechaDDMMAAAABackend(fechaStr) {
   
   return new Date(str);
 }
-// MOD-010-S06: FIN
+// MOD-010-006: FIN
 
 // MOD-010: FIN
 
@@ -1647,7 +1647,7 @@ return {
 
 })();
 
-// MOD-016: NOTAS [INICIO]
+// MOD-099: NOTAS [INICIO]
 /*
 CAMBIOS V01.23:
 - Fix: actualizarCurso() usa rowNumber para actualizar fila correcta
@@ -1682,4 +1682,4 @@ HOJA HORARIO SEMANAL:
 FechaReg | CodeAlum | Actividad | HoraInicio | HoraFin | FechaHS | TipoAct | Color | Sem
 Formato FechaHS: DD/MM/AAAA (guardado) → ISO (lectura)
 */
-// MOD-016: FIN
+// MOD-099: FIN
