@@ -3,31 +3,31 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btablecturas.html
-VERSIÓN: 01.24
-FECHA: 20/01/2026 18:03 (UTC-5)
+VERSIÓN: 01.25
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* MOD-002-S01: RESET Y BASE [INICIO] */
+/* MOD-002-001: RESET Y BASE [INICIO] */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-/* MOD-002-S01: FIN */
+/* MOD-002-001: FIN */
 
-/* MOD-002-S02: CONTENEDOR PRINCIPAL [INICIO] */
+/* MOD-002-002: CONTENEDOR PRINCIPAL [INICIO] */
 .lecturas-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
-/* MOD-002-S02: FIN */
+/* MOD-002-002: FIN */
 
-/* MOD-002-S03: HEADER PRINCIPAL [INICIO] */
+/* MOD-002-003: HEADER PRINCIPAL [INICIO] */
 .lecturas-header {
   display: flex;
   justify-content: space-between;
@@ -52,9 +52,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   align-items: center;
   flex-wrap: wrap;
 }
-/* MOD-002-S03: FIN */
+/* MOD-002-003: FIN */
 
-/* MOD-002-S04: FILTRO [INICIO] */
+/* MOD-002-004: FILTRO [INICIO] */
 .filtro-container {
   display: flex;
   gap: 8px;
@@ -82,9 +82,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-/* MOD-002-S04: FIN */
+/* MOD-002-004: FIN */
 
-/* MOD-002-S05: BOTÓN AGREGAR [INICIO] */
+/* MOD-002-005: BOTÓN AGREGAR [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -109,9 +109,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
 .btn-agregar:active {
   transform: translateY(0);
 }
-/* MOD-002-S05: FIN */
+/* MOD-002-005: FIN */
 
-/* MOD-002-S06: FORMULARIO BASE [INICIO] */
+/* MOD-002-006: FORMULARIO BASE [INICIO] */
 .form-lectura {
   background: white;
   border-radius: 12px;
@@ -136,9 +136,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     transform: translateY(0);
   }
 }
-/* MOD-002-S06: FIN */
+/* MOD-002-006: FIN */
 
-/* MOD-002-S07: FORM HEADER Y CIERRE [INICIO] */
+/* MOD-002-007: FORM HEADER Y CIERRE [INICIO] */
 .form-header {
   display: flex;
   justify-content: space-between;
@@ -174,9 +174,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   background: #f0f0f0;
   color: #333;
 }
-/* MOD-002-S07: FIN */
+/* MOD-002-007: FIN */
 
-/* MOD-002-S08: FORM LAYOUT [INICIO] */
+/* MOD-002-008: FORM LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -204,9 +204,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   color: #dc3545;
   margin-left: 4px;
 }
-/* MOD-002-S08: FIN */
+/* MOD-002-008: FIN */
 
-/* MOD-002-S09: FORM INPUTS [INICIO] */
+/* MOD-002-009: FORM INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   padding: 10px 12px;
@@ -233,9 +233,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   color: #666;
   font-style: italic;
 }
-/* MOD-002-S09: FIN */
+/* MOD-002-009: FIN */
 
-/* MOD-002-S10: FORM ACTIONS [INICIO] */
+/* MOD-002-010: FORM ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
@@ -277,9 +277,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
 .btn-cancelar:hover {
   background: #e8e8e8;
 }
-/* MOD-002-S10: FIN */
+/* MOD-002-010: FIN */
 
-/* MOD-002-S11: TABLA CONTENEDOR [INICIO] */
+/* MOD-002-011: TABLA CONTENEDOR [INICIO] */
 .lecturas-table-container {
   background: white;
   border-radius: 12px;
@@ -291,9 +291,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   width: 100%;
   border-collapse: collapse;
 }
-/* MOD-002-S11: FIN */
+/* MOD-002-011: FIN */
 
-/* MOD-002-S12: TABLA HEADER [INICIO] */
+/* MOD-002-012: TABLA HEADER [INICIO] */
 .lecturas-table thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -307,9 +307,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-/* MOD-002-S12: FIN */
+/* MOD-002-012: FIN */
 
-/* MOD-002-S13: TABLA BODY [INICIO] */
+/* MOD-002-013: TABLA BODY [INICIO] */
 .lecturas-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -328,9 +328,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   font-size: 14px;
   color: #333;
 }
-/* MOD-002-S13: FIN */
+/* MOD-002-013: FIN */
 
-/* MOD-002-S14: BADGES Y TAGS [INICIO] */
+/* MOD-002-014: BADGES Y TAGS [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -345,9 +345,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   font-weight: 600;
   color: #333;
 }
-/* MOD-002-S14: FIN */
+/* MOD-002-014: FIN */
 
-/* MOD-002-S15: PÁGS/DÍA BADGES [INICIO] */
+/* MOD-002-015: PÁGS/DÍA BADGES [INICIO] */
 .pags-dia {
   font-weight: 700;
   font-size: 15px;
@@ -370,9 +370,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   color: #dc3545;
   background: #f8d7da;
 }
-/* MOD-002-S15: FIN */
+/* MOD-002-015: FIN */
 
-/* MOD-002-S16: NOTA BADGES [INICIO] */
+/* MOD-002-016: NOTA BADGES [INICIO] */
 .nota-badge {
   display: inline-block;
   padding: 6px 12px;
@@ -400,9 +400,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   background: #e9ecef;
   color: #6c757d;
 }
-/* MOD-002-S16: FIN */
+/* MOD-002-016: FIN */
 
-/* MOD-002-S17: ACCIONES BOTONES [INICIO] */
+/* MOD-002-017: ACCIONES BOTONES [INICIO] */
 .acciones-container {
   display: flex;
   gap: 8px;
@@ -431,9 +431,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   border-color: #dc3545;
   background: #fff5f5;
 }
-/* MOD-002-S17: FIN */
+/* MOD-002-017: FIN */
 
-/* MOD-002-S18: ESTADOS VACÍO/LOADING [INICIO] */
+/* MOD-002-018: ESTADOS VACÍO/LOADING [INICIO] */
 .estado-vacio,
 .loading-lecturas {
   text-align: center;
@@ -457,9 +457,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
   font-size: 14px;
   color: #999;
 }
-/* MOD-002-S18: FIN */
+/* MOD-002-018: FIN */
 
-/* MOD-002-S19: RESPONSIVE 768PX [INICIO] */
+/* MOD-002-019: RESPONSIVE 768PX [INICIO] */
 @media (max-width: 768px) {
   .lecturas-header {
     flex-direction: column;
@@ -484,7 +484,7 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     padding: 10px 8px;
   }
 }
-/* MOD-002-S19: FIN */
+/* MOD-002-019: FIN */
 </style>
 <!-- MOD-002: FIN -->
 
@@ -650,15 +650,15 @@ FECHA: 20/01/2026 18:03 (UTC-5)
 <script>
 (function() {
   'use strict';
-// MOD-004-S01: VARIABLES GLOBALES [INICIO]
+// MOD-004-001: VARIABLES GLOBALES [INICIO]
   let lecturasData = [];
   let cursosData = [];
   let filtroActual = '';
   let modoEdicion = false;
   let _initDone = false;
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: INICIALIZACIÓN [INICIO]
+// MOD-004-002: INICIALIZACIÓN [INICIO]
   function inicializar() {
     if (_initDone) {
       console.log('📖 Ya inicializado, saltando...');
@@ -678,9 +678,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     cargarCursos();
     cargarLecturas();
   }
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: CARGAR CURSOS GAS [INICIO]
+// MOD-004-003: CARGAR CURSOS GAS [INICIO]
   function cargarCursos() {
     if (typeof google === 'undefined' || !google.script || !google.script.run) {
       console.warn('📖 Google Apps Script no disponible');
@@ -703,9 +703,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       })
       .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
   }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: POBLAR SELECTS [INICIO]
+// MOD-004-004: POBLAR SELECTS [INICIO]
   function poblarSelectCursos() {
     const selectCurso = document.getElementById('lectura_curso');
     const selectFiltro = document.getElementById('filtroCursoLectura');
@@ -730,9 +730,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       selectFiltro.appendChild(optFiltro);
     });
   }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: CARGAR LECTURAS GAS [INICIO]
+// MOD-004-005: CARGAR LECTURAS GAS [INICIO]
   function cargarLecturas() {
     mostrarLoading();
 
@@ -765,9 +765,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       })
       .studentObtenerLecturas({ codeAlum: currentUser.codeAlum });
   }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: CÁLCULO PÁGS/DÍA [INICIO]
+// MOD-004-006: CÁLCULO PÁGS/DÍA [INICIO]
   function calcularPagsDia(lectura) {
     const hoy = new Date(2026, 0, 20);
     const fInicio = parseFecha(lectura.FechaInicio);
@@ -787,9 +787,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     
     return lectura;
   }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: PARSE FECHA [INICIO]
+// MOD-004-007: PARSE FECHA [INICIO]
   function parseFecha(fechaStr) {
     if (!fechaStr || typeof fechaStr !== 'string') return new Date();
     
@@ -810,9 +810,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     
     return fecha;
   }
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: RENDER TABLA [INICIO]
+// MOD-004-008: RENDER TABLA [INICIO]
   function renderizarTabla() {
     const tabla = document.getElementById('tablaLecturas');
     const tbody = document.getElementById('tbodyLecturas');
@@ -881,9 +881,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       `;
     }).join('');
   }
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
-// MOD-004-S09: FILTRO [INICIO]
+// MOD-004-009: FILTRO [INICIO]
   function aplicarFiltro() {
     const select = document.getElementById('filtroCursoLectura');
     if (!select) return;
@@ -894,9 +894,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     console.log('📖 Aplicando filtro:', filtroActual || 'TODOS');
     renderizarTabla();
   }
-// MOD-004-S09: FIN
+// MOD-004-009: FIN
 
-// MOD-004-S10: FORM TOGGLE [INICIO]
+// MOD-004-010: FORM TOGGLE [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formLectura');
     const titulo = document.getElementById('formTitulo');
@@ -923,9 +923,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     if (form) form.classList.remove('active');
     limpiarFormulario();
   }
-// MOD-004-S10: FIN
+// MOD-004-010: FIN
 
-// MOD-004-S11: FORM LIMPIAR [INICIO]
+// MOD-004-011: FORM LIMPIAR [INICIO]
   function limpiarFormulario() {
     setValue('lectura_rowNumber', '');
     setValue('lectura_curso', '');
@@ -938,9 +938,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     setValue('lectura_nota', '');
     setValue('lectura_peso', '');
   }
-// MOD-004-S11: FIN
+// MOD-004-011: FIN
 
-// MOD-004-S12: FORM SUBMIT [INICIO]
+// MOD-004-012: FORM SUBMIT [INICIO]
   function handleSubmitLectura(event) {
     if (event && typeof event.preventDefault === 'function') {
       event.preventDefault();
@@ -1011,9 +1011,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       agregarLectura(params);
     }
   }
-// MOD-004-S12: FIN
+// MOD-004-012: FIN
 
-// MOD-004-S13: AGREGAR LECTURA [INICIO]
+// MOD-004-013: AGREGAR LECTURA [INICIO]
   function agregarLectura(params) {
     google.script.run
       .withSuccessHandler(function(response) {
@@ -1033,9 +1033,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       })
       .studentAgregarLectura(params);
   }
-// MOD-004-S13: FIN
+// MOD-004-013: FIN
 
-// MOD-004-S14: ACTUALIZAR LECTURA [INICIO]
+// MOD-004-014: ACTUALIZAR LECTURA [INICIO]
   function actualizarLectura(params) {
     google.script.run
       .withSuccessHandler(function(response) {
@@ -1055,9 +1055,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       })
       .studentActualizarLectura(params);
   }
-// MOD-004-S14: FIN
+// MOD-004-014: FIN
 
-// MOD-004-S15: EDITAR LECTURA [INICIO]
+// MOD-004-015: EDITAR LECTURA [INICIO]
   function editarLectura(rowNumber) {
     const rn = safeInt(rowNumber, 0);
     if (!Number.isFinite(rn) || rn <= 0) {
@@ -1099,9 +1099,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       formWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
-// MOD-004-S15: FIN
+// MOD-004-015: FIN
 
-// MOD-004-S16: ELIMINAR LECTURA [INICIO]
+// MOD-004-016: ELIMINAR LECTURA [INICIO]
   function eliminarLectura(rowNumber) {
     const rn = safeInt(rowNumber, 0);
     if (!Number.isFinite(rn) || rn <= 0) {
@@ -1133,9 +1133,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       })
       .studentEliminarLectura({ rowNumber: rn });
   }
-// MOD-004-S16: FIN
+// MOD-004-016: FIN
 
-// MOD-004-S17: HELPERS VALIDACIÓN [INICIO]
+// MOD-004-017: HELPERS VALIDACIÓN [INICIO]
   function obtenerClaseNota(nota) {
     if (nota == null || String(nota).trim() === '' || nota === '-') return 'nota-pendiente';
     const n = safeFloat(nota, NaN);
@@ -1163,9 +1163,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
 
     return true;
   }
-// MOD-004-S17: FIN
+// MOD-004-017: FIN
 
-// MOD-004-S18: HELPERS DOM [INICIO]
+// MOD-004-018: HELPERS DOM [INICIO]
   function getValueTrim(id) {
     const el = document.getElementById(id);
     return el && el.value != null ? String(el.value).trim() : '';
@@ -1196,9 +1196,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
-// MOD-004-S18: FIN
+// MOD-004-018: FIN
 
-// MOD-004-S19: UI HELPERS [INICIO]
+// MOD-004-019: UI HELPERS [INICIO]
   function mostrarLoading() {
     const loading = document.getElementById('loadingLecturas');
     const tabla = document.getElementById('tablaLecturas');
@@ -1233,9 +1233,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     if (text) text.textContent = 'Error';
     if (sub) sub.textContent = mensaje;
   }
-// MOD-004-S19: FIN
+// MOD-004-019: FIN
 
-// MOD-004-S20: ALERTAS [INICIO]
+// MOD-004-020: ALERTAS [INICIO]
   function showAlertSafe(type, message) {
     if (typeof showAlert === 'function') {
       showAlert(type, message);
@@ -1281,9 +1281,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     `;
     document.head.appendChild(style);
   }
-// MOD-004-S20: FIN
+// MOD-004-020: FIN
 
-// MOD-004-S21: API PÚBLICA [INICIO]
+// MOD-004-021: API PÚBLICA [INICIO]
   console.log('%c📖 LecturasModule V01.22 FIXED cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
   window.LecturasModule = {
@@ -1296,9 +1296,9 @@ FECHA: 20/01/2026 18:03 (UTC-5)
     cancelarFormulario: cancelarFormulario,
     recargar: cargarLecturas
   };
-// MOD-004-S21: FIN
+// MOD-004-021: FIN
 
-// MOD-004-S22: AUTO-INIT [INICIO]
+// MOD-004-022: AUTO-INIT [INICIO]
   setTimeout(function() {
     if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
       console.log('📖 currentUser detectado, auto-inicializando...');
@@ -1308,7 +1308,7 @@ FECHA: 20/01/2026 18:03 (UTC-5)
       inicializar();
     }
   }, 150);
-// MOD-004-S22: FIN
+// MOD-004-022: FIN
 })();
 </script>
 <!-- MOD-004: FIN -->
