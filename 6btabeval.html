@@ -3,24 +3,24 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabeval.html
-VERSIÓN: 01.30
-FECHA: 27/01/2026 07:11 (UTC-5)
+VERSIÓN: 01.31
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO] */
+/* MOD-002-001: CONTENEDOR PRINCIPAL [INICIO] */
 .eval-container {
   background: white;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-/* MOD-002-S01: FIN */
+/* MOD-002-001: FIN */
 
-/* MOD-002-S02: HEADER PRINCIPAL [INICIO] */
+/* MOD-002-002: HEADER PRINCIPAL [INICIO] */
 .eval-header {
   display: flex;
   justify-content: space-between;
@@ -41,9 +41,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   gap: 12px;
   flex-wrap: wrap;
 }
-/* MOD-002-S02: FIN */
+/* MOD-002-002: FIN */
 
-/* MOD-002-S03: FILTROS LABEL [INICIO] */
+/* MOD-002-003: FILTROS LABEL [INICIO] */
 .filtro-container {
   display: flex;
   align-items: center;
@@ -55,9 +55,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   font-weight: 600;
   color: #666;
 }
-/* MOD-002-S03: FIN */
+/* MOD-002-003: FIN */
 
-/* MOD-002-S04: FILTRO SELECT [INICIO] */
+/* MOD-002-004: FILTRO SELECT [INICIO] */
 .filtro-container select {
   padding: 8px 12px;
   border: 2px solid #ddd;
@@ -72,9 +72,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   outline: none;
   border-color: #667eea;
 }
-/* MOD-002-S04: FIN */
+/* MOD-002-004: FIN */
 
-/* MOD-002-S05: BOTÓN AGREGAR [INICIO] */
+/* MOD-002-005: BOTÓN AGREGAR [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -92,9 +92,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
-/* MOD-002-S05: FIN */
+/* MOD-002-005: FIN */
 
-/* MOD-002-S06: BOTONES BASE [INICIO] */
+/* MOD-002-006: BOTONES BASE [INICIO] */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -105,9 +105,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   transition: all 0.3s;
   font-family: inherit;
 }
-/* MOD-002-S06: FIN */
+/* MOD-002-006: FIN */
 
-/* MOD-002-S07: BOTONES PRIMARIOS [INICIO] */
+/* MOD-002-007: BOTONES PRIMARIOS [INICIO] */
 .btn-primary {
   background: #667eea;
   color: white;
@@ -116,9 +116,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
 .btn-primary:hover {
   background: #5568d3;
 }
-/* MOD-002-S07: FIN */
+/* MOD-002-007: FIN */
 
-/* MOD-002-S08: BOTONES SECUNDARIOS [INICIO] */
+/* MOD-002-008: BOTONES SECUNDARIOS [INICIO] */
 .btn-secondary {
   background: #6c757d;
   color: white;
@@ -127,9 +127,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
 .btn-secondary:hover {
   background: #5a6268;
 }
-/* MOD-002-S08: FIN */
+/* MOD-002-008: FIN */
 
-/* MOD-002-S09: BOTONES ICONO [INICIO] */
+/* MOD-002-009: BOTONES ICONO [INICIO] */
 .btn-icon {
   background: transparent;
   border: none;
@@ -147,9 +147,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
 .btn-icon.delete {
   color: #dc3545;
 }
-/* MOD-002-S09: FIN */
+/* MOD-002-009: FIN */
 
-/* MOD-002-S10: FORMULARIO BASE [INICIO] */
+/* MOD-002-010: FORMULARIO BASE [INICIO] */
 .form-eval {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
@@ -163,9 +163,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   display: block;
   animation: slideDown 0.3s ease-out;
 }
-/* MOD-002-S10: FIN */
+/* MOD-002-010: FIN */
 
-/* MOD-002-S11: FORM ANIMACIÓN [INICIO] */
+/* MOD-002-011: FORM ANIMACIÓN [INICIO] */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -176,9 +176,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
     transform: translateY(0);
   }
 }
-/* MOD-002-S11: FIN */
+/* MOD-002-011: FIN */
 
-/* MOD-002-S12: FORM LAYOUT [INICIO] */
+/* MOD-002-012: FORM LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -189,9 +189,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
 .form-group {
   margin-bottom: 0;
 }
-/* MOD-002-S12: FIN */
+/* MOD-002-012: FIN */
 
-/* MOD-002-S13: FORM LABELS [INICIO] */
+/* MOD-002-013: FORM LABELS [INICIO] */
 .form-group label {
   display: block;
   font-size: 13px;
@@ -199,15 +199,15 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   color: #333;
   margin-bottom: 6px;
 }
-/* MOD-002-S13: FIN */
+/* MOD-002-013: FIN */
 
-/* MOD-002-S14: FORM REQUIRED [INICIO] */
+/* MOD-002-014: FORM REQUIRED [INICIO] */
 .form-group label .required {
   color: #dc3545;
 }
-/* MOD-002-S14: FIN */
+/* MOD-002-014: FIN */
 
-/* MOD-002-S15: FORM INPUTS [INICIO] */
+/* MOD-002-015: FORM INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   width: 100%;
@@ -218,35 +218,35 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   transition: all 0.3s;
   font-family: inherit;
 }
-/* MOD-002-S15: FIN */
+/* MOD-002-015: FIN */
 
-/* MOD-002-S16: FORM FOCUS [INICIO] */
+/* MOD-002-016: FORM FOCUS [INICIO] */
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-/* MOD-002-S16: FIN */
+/* MOD-002-016: FIN */
 
-/* MOD-002-S17: FORM SMALL TEXT [INICIO] */
+/* MOD-002-017: FORM SMALL TEXT [INICIO] */
 .form-group small {
   display: block;
   margin-top: 4px;
   font-size: 12px;
   color: #666;
 }
-/* MOD-002-S17: FIN */
+/* MOD-002-017: FIN */
 
-/* MOD-002-S18: FORM ACTIONS [INICIO] */
+/* MOD-002-018: FORM ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
 }
-/* MOD-002-S18: FIN */
+/* MOD-002-018: FIN */
 
-/* MOD-002-S19: TABLA CONTAINER [INICIO] */
+/* MOD-002-019: TABLA CONTAINER [INICIO] */
 .eval-table-container {
   overflow-x: auto;
 }
@@ -256,9 +256,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   border-collapse: collapse;
   font-size: 14px;
 }
-/* MOD-002-S19: FIN */
+/* MOD-002-019: FIN */
 
-/* MOD-002-S20: TABLA HEADER [INICIO] */
+/* MOD-002-020: TABLA HEADER [INICIO] */
 .eval-table thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -270,9 +270,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   font-weight: 600;
   font-size: 13px;
 }
-/* MOD-002-S20: FIN */
+/* MOD-002-020: FIN */
 
-/* MOD-002-S21: TABLA BODY [INICIO] */
+/* MOD-002-021: TABLA BODY [INICIO] */
 .eval-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -286,9 +286,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   padding: 12px;
   color: #333;
 }
-/* MOD-002-S21: FIN */
+/* MOD-002-021: FIN */
 
-/* MOD-002-S22: CURSO TAG [INICIO] */
+/* MOD-002-022: CURSO TAG [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -298,9 +298,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
-/* MOD-002-S22: FIN */
+/* MOD-002-022: FIN */
 
-/* MOD-002-S23: NOTA CELLS [INICIO] */
+/* MOD-002-023: NOTA CELLS [INICIO] */
 .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -334,9 +334,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   color: #666;
   font-size: 13px;
 }
-/* MOD-002-S23: FIN */
+/* MOD-002-023: FIN */
 
-/* MOD-002-S24: ESTADOS + RESPONSIVE [INICIO] */
+/* MOD-002-024: ESTADOS + RESPONSIVE [INICIO] */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -426,14 +426,14 @@ FECHA: 27/01/2026 07:11 (UTC-5)
     display: none;
   }
 }
-/* MOD-002-S24: FIN */
+/* MOD-002-024: FIN */
 </style>
 <!-- MOD-002: FIN -->
 
 <!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="eval-container">
 
-<!-- MOD-003-S01: HEADER Y FILTROS V2 [INICIO] -->
+<!-- MOD-003-001: HEADER Y FILTROS V2 [INICIO] -->
   <div class="eval-header">
     <h2>📝 Mis Evaluaciones</h2>
     <div class="header-actions">
@@ -448,9 +448,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
       </button>
     </div>
   </div>
-  <!-- MOD-003-S01: FIN -->
+  <!-- MOD-003-001: FIN -->
 
-<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR V2 [INICIO] -->
+<!-- MOD-003-002: FORMULARIO AGREGAR/EDITAR V2 [INICIO] -->
   <div id="formEval" class="form-eval">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Evaluación</h3>
 
@@ -541,16 +541,16 @@ FECHA: 27/01/2026 07:11 (UTC-5)
       </div>
     </form>
   </div>
-  <!-- MOD-003-S02: FIN -->
+  <!-- MOD-003-002: FIN -->
 
-<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
+<!-- MOD-003-003: CONTENEDOR TABLA [INICIO] -->
   <div id="evalTableContainer" class="eval-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando evaluaciones...</p>
     </div>
   </div>
-  <!-- MOD-003-S03: FIN -->
+  <!-- MOD-003-003: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
@@ -558,7 +558,7 @@ FECHA: 27/01/2026 07:11 (UTC-5)
 <!-- MOD-004: JAVASCRIPT V3 [INICIO] -->
 <script>
 
-// MOD-004-S01: ENCAPSULAMIENTO IIFE Y VARIABLES [INICIO]
+// MOD-004-001: ENCAPSULAMIENTO IIFE Y VARIABLES [INICIO]
 (function PBE_EVAL_MODULE() {
   // QUITAMOS 'use strict' TEMPORALMENTE
 
@@ -566,9 +566,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   let cursosData = [];
   let evaluacionesFiltradas = [];
   let _initDone = false;
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: INICIALIZACIÓN V5 [INICIO]
+// MOD-004-002: INICIALIZACIÓN V5 [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -599,9 +599,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: CARGA DE CURSOS V2 [INICIO]
+// MOD-004-003: CARGA DE CURSOS V2 [INICIO]
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -644,9 +644,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
       selectFiltro.appendChild(opt2);
     });
   }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: CARGA DE EVALUACIONES [INICIO]
+// MOD-004-004: CARGA DE EVALUACIONES [INICIO]
   function cargarEvaluaciones() {
     google.script.run
       .withSuccessHandler(handleEvaluacionesLoaded)
@@ -669,9 +669,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
     console.error('Error:', error);
     showAlert('error', 'Error de conexión');
   }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: FILTRADO Y RENDERIZADO V2 [INICIO]
+// MOD-004-005: FILTRADO Y RENDERIZADO V2 [INICIO]
   function aplicarFiltro() {
     const selectFiltro = document.getElementById('filtroCursoEval');
     const cursoSeleccionado = selectFiltro ? selectFiltro.value : '';
@@ -739,9 +739,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No tienes evaluaciones registradas aún.<br>Haz clic en "+ Agregar Evaluación" para comenzar.</div></div>';
     }
   }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: FORMULARIO TOGGLE Y SUBMIT V2 [INICIO]
+// MOD-004-006: FORMULARIO TOGGLE Y SUBMIT V2 [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formEval');
     const isActive = form.classList.contains('active');
@@ -830,9 +830,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
     document.getElementById('formEval').classList.remove('active');
     resetFormEval();
   }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: EDICIÓN Y ELIMINACIÓN [INICIO]
+// MOD-004-007: EDICIÓN Y ELIMINACIÓN [INICIO]
   function editarEval(rowNumber) {
     const evaluacion = evaluacionesData.find(function(e) {
       return e._rowNumber === rowNumber;
@@ -879,9 +879,9 @@ FECHA: 27/01/2026 07:11 (UTC-5)
     showAlert('success', '✓ Evaluación eliminada exitosamente');
     cargarEvaluaciones();
   }
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: HELPERS Y EXPORTACIÓN V3 [INICIO]
+// MOD-004-008: HELPERS Y EXPORTACIÓN V3 [INICIO]
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
@@ -908,7 +908,7 @@ FECHA: 27/01/2026 07:11 (UTC-5)
   };
 
   console.log('%c📝 Sub-tab Evaluaciones V01.30 cargado', 'font-size: 11px; color: #667eea;');
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
 })();
 
