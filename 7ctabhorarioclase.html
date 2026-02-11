@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.27
-FECHA: 24/01/2026 14:13 (UTC-5)
+VERSIÓN: 01.28
+FECHA: 11/02/2026 14:41 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -22,7 +22,7 @@ FECHA: 24/01/2026 14:13 (UTC-5)
 <!-- MOD-003: ESTILOS CSS [INICIO] -->
 <style>
 
-/* MOD-003-S01: CONTENEDOR PRINCIPAL [INICIO] */
+/* MOD-003-001: CONTENEDOR PRINCIPAL [INICIO] */
 .hc-grid-container {
   background: #fff;
   border-radius: 8px;
@@ -31,9 +31,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   position: relative;
   min-height: 400px;
 }
-/* MOD-003-S01: FIN */
+/* MOD-003-001: FIN */
 
-/* MOD-003-S02: GRID Y TABLA [INICIO] */
+/* MOD-003-002: GRID Y TABLA [INICIO] */
 .hc-grid {
   width: 100%;
   border-collapse: collapse;
@@ -70,9 +70,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   height: 45px;
   vertical-align: middle;
 }
-/* MOD-003-S02: FIN */
+/* MOD-003-002: FIN */
 
-/* MOD-003-S03: CELDAS DE CLASE [INICIO] */
+/* MOD-003-003: CELDAS DE CLASE [INICIO] */
 .hc-celda-clase {
   min-height: 35px;
   border-radius: 4px;
@@ -100,9 +100,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   font-size: 11px;
   font-weight: 700;
 }
-/* MOD-003-S03: FIN */
+/* MOD-003-003: FIN */
 
-/* MOD-003-S04: FORMULARIO OVERLAY [INICIO] */
+/* MOD-003-004: FORMULARIO OVERLAY [INICIO] */
 .hc-form-overlay {
   position: fixed;
   top: 0;
@@ -134,9 +134,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   color: #667eea;
   font-size: 20px;
 }
-/* MOD-003-S04: FIN */
+/* MOD-003-004: FIN */
 
-/* MOD-003-S05: FORMULARIO CAMPOS [INICIO] */
+/* MOD-003-005: FORMULARIO CAMPOS [INICIO] */
 .hc-form-group {
   margin-bottom: 16px;
 }
@@ -166,9 +166,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
 }
-/* MOD-003-S05: FIN */
+/* MOD-003-005: FIN */
 
-/* MOD-003-S06: BOTONES [INICIO] */
+/* MOD-003-006: BOTONES [INICIO] */
 .hc-form-actions {
   display: flex;
   gap: 12px;
@@ -212,9 +212,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
 .hc-btn-danger:hover {
   background: #c82333;
 }
-/* MOD-003-S06: FIN */
+/* MOD-003-006: FIN */
 
-/* MOD-003-S07: MODAL SELECCIÓN [INICIO] */
+/* MOD-003-007: MODAL SELECCIÓN [INICIO] */
 .hc-modal-seleccion {
   position: fixed;
   top: 0;
@@ -285,9 +285,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
   justify-content: flex-end;
   margin-top: 16px;
 }
-/* MOD-003-S07: FIN */
+/* MOD-003-007: FIN */
 
-/* MOD-003-S08: LOADING [INICIO] */
+/* MOD-003-008: LOADING [INICIO] */
 .hc-loading {
   text-align: center;
   padding: 40px;
@@ -307,9 +307,9 @@ FECHA: 24/01/2026 14:13 (UTC-5)
 @keyframes hc-spin {
   to { transform: rotate(360deg); }
 }
-/* MOD-003-S08: FIN */
+/* MOD-003-008: FIN */
 
-/* MOD-003-S09: RESPONSIVE [INICIO] */
+/* MOD-003-009: RESPONSIVE [INICIO] */
 @media (max-width: 768px) {
   .hc-grid {
     font-size: 11px;
@@ -329,7 +329,7 @@ FECHA: 24/01/2026 14:13 (UTC-5)
     padding: 20px;
   }
 }
-/* MOD-003-S09: FIN */
+/* MOD-003-009: FIN */
 
 </style>
 <!-- MOD-003: FIN -->
@@ -394,7 +394,7 @@ FECHA: 24/01/2026 14:13 (UTC-5)
 <!-- MOD-005: JAVASCRIPT [INICIO] -->
 <script>
 
-// MOD-005-S01: ENCAPSULAMIENTO IIFE [INICIO]
+// MOD-005-001: ENCAPSULAMIENTO IIFE [INICIO]
 (function () {
 'use strict';
 
@@ -404,9 +404,9 @@ if (window.HorarioClaseModule) {
 }
 
 console.log('🕐 HorarioClaseModule V01.26 CODEWORKSHOP iniciando...');
-// MOD-005-S01: FIN
+// MOD-005-001: FIN
 
-// MOD-005-S02: VARIABLES Y CONSTANTES [INICIO]
+// MOD-005-002: VARIABLES Y CONSTANTES [INICIO]
 let clasesData = [];
 let cursosData = [];
 let horarioMatrix = {};
@@ -417,9 +417,9 @@ const DIAS_CORTOS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 let _initDone = false;
 let _retryCount = 0;
 const MAX_RETRIES = 5;
-// MOD-005-S02: FIN
+// MOD-005-002: FIN
 
-// MOD-005-S03: INICIALIZACIÓN [INICIO]
+// MOD-005-003: INICIALIZACIÓN [INICIO]
 function init() {
   console.log('🕐 HorarioClaseModule.init() llamado (intento ' + (_retryCount + 1) + ')');
   
@@ -446,9 +446,9 @@ function init() {
   
   cargarCursos();
 }
-// MOD-005-S03: FIN
+// MOD-005-003: FIN
 
-// MOD-005-S04: CARGA DE CURSOS V2 [INICIO]
+// MOD-005-004: CARGA DE CURSOS V2 [INICIO]
 function cargarCursos() {
   console.log('🕐 Cargando cursos...');
   
@@ -490,9 +490,9 @@ function poblarDropdownCursos() {
   
   console.log('🕐 Dropdown poblado con', cursosData.length, 'cursos');
 }
-// MOD-005-S04: FIN
+// MOD-005-004: FIN
 
-// MOD-005-S05: CARGA DE HORARIO [INICIO]
+// MOD-005-005: CARGA DE HORARIO [INICIO]
 function cargarHorarioClases() {
   console.log('🕐 Cargando horario clases...');
   
@@ -524,9 +524,9 @@ function cargarHorarioClases() {
     })
     .studentObtenerHorarioClases({ codeAlum: currentUser.codeAlum });
 }
-// MOD-005-S05: FIN
+// MOD-005-005: FIN
 
-// MOD-005-S06: CONSTRUCCIÓN DE MATRIZ [INICIO]
+// MOD-005-006: CONSTRUCCIÓN DE MATRIZ [INICIO]
 function construirMatriz() {
   console.log('🕐 Construyendo matriz con', clasesData.length, 'clases');
   
@@ -575,9 +575,9 @@ function construirMatriz() {
   
   console.log('🕐 Matriz construida:', horarioMatrix);
 }
-// MOD-005-S06: FIN
+// MOD-005-006: FIN
 
-// MOD-005-S07: HELPERS DE PROCESAMIENTO [INICIO]
+// MOD-005-007: HELPERS DE PROCESAMIENTO [INICIO]
 function extraerDia(t) {
   if (!t) return null;
   const s = String(t).toLowerCase().trim();
@@ -643,9 +643,9 @@ function colorCurso(curso) {
   const c = cursosData.find(x => x.Curso === curso);
   return c ? c.Color : '#667eea';
 }
-// MOD-005-S07: FIN
+// MOD-005-007: FIN
 
-// MOD-005-S08: RENDERIZADO DE GRID [INICIO]
+// MOD-005-008: RENDERIZADO DE GRID [INICIO]
 function renderGrid() {
   console.log('🕐 Renderizando grid...');
   
@@ -718,9 +718,9 @@ function ocultarLoading() {
   const l = document.getElementById('loadingHC');
   if (l) l.style.display = 'none';
 }
-// MOD-005-S08: FIN
+// MOD-005-008: FIN
 
-// MOD-005-S09: MODAL SELECCIÓN [INICIO]
+// MOD-005-009: MODAL SELECCIÓN [INICIO]
 function mostrarSeleccionClase(dia, hora) {
   console.log('🕐 Mostrando selección de clase:', { dia, hora });
   
@@ -782,9 +782,9 @@ function editarClaseDirecta(clase) {
 
   document.getElementById('formClase').classList.add('active');
 }
-// MOD-005-S09: FIN
+// MOD-005-009: FIN
 
-// MOD-005-S10: VALIDACIÓN SOLAPAMIENTO [INICIO]
+// MOD-005-010: VALIDACIÓN SOLAPAMIENTO [INICIO]
 function verificarSolapamiento(dia, horaIni, horaFin, rowNumberActual) {
   console.log('🕐 Verificando solapamiento:', { dia, horaIni, horaFin });
   
@@ -810,9 +810,9 @@ function verificarSolapamiento(dia, horaIni, horaFin, rowNumberActual) {
   
   return solapamientosUnicos;
 }
-// MOD-005-S10: FIN
+// MOD-005-010: FIN
 
-// MOD-005-S11: FORMULARIO AGREGAR [INICIO]
+// MOD-005-011: FORMULARIO AGREGAR [INICIO]
 function clickCelda(dia, hora) {
   console.log('🕐 Click en celda:', { dia, hora });
   abrirFormularioAgregar(dia, hora);
@@ -842,9 +842,9 @@ function abrirFormularioAgregar(dia, hora) {
   const select = document.getElementById('claseCurso');
   if (select) select.focus();
 }
-// MOD-005-S11: FIN
+// MOD-005-011: FIN
 
-// MOD-005-S12: FORMULARIO EDITAR [INICIO]
+// MOD-005-012: FORMULARIO EDITAR [INICIO]
 function editarClase(dia, hora) {
   console.log('🕐 Editar clase:', { dia, hora });
   
@@ -862,9 +862,9 @@ function editarClase(dia, hora) {
   const clase = clases[0].clase;
   editarClaseDirecta(clase);
 }
-// MOD-005-S12: FIN
+// MOD-005-012: FIN
 
-// MOD-005-S13: FORMULARIO SUBMIT [INICIO]
+// MOD-005-013: FORMULARIO SUBMIT [INICIO]
 function handleSubmitClase(event) {
   event.preventDefault();
 
@@ -971,9 +971,9 @@ function handleClaseError(error, esEdicion) {
     alert('Error de conexión. Intenta nuevamente');
   }
 }
-// MOD-005-S13: FIN
+// MOD-005-013: FIN
 
-// MOD-005-S14: FORMULARIO ELIMINAR [INICIO]
+// MOD-005-014: FORMULARIO ELIMINAR [INICIO]
 function confirmarEliminarClase() {
   const rowNumber = document.getElementById('claseRowNumber').value;
 
@@ -1023,9 +1023,9 @@ function handleClaseEliminada(response) {
     }
   }
 }
-// MOD-005-S14: FIN
+// MOD-005-014: FIN
 
-// MOD-005-S15: FORMULARIO HELPERS [INICIO]
+// MOD-005-015: FORMULARIO HELPERS [INICIO]
 function resetFormClase() {
   const form = document.getElementById('claseForm');
   if (form) form.reset();
@@ -1041,9 +1041,9 @@ function cancelarFormClase() {
   if (formDiv) formDiv.classList.remove('active');
   resetFormClase();
 }
-// MOD-005-S15: FIN
+// MOD-005-015: FIN
 
-// MOD-005-S16: FORMATEO [INICIO]
+// MOD-005-016: FORMATEO [INICIO]
 function formatearHora12(h) {
   if (h === 12) return '12 PM';
   if (h > 12) return (h - 12) + ' PM';
@@ -1055,9 +1055,9 @@ function formatearHora12Desde24(hora24Str) {
   const [h] = hora24Str.split(':').map(Number);
   return formatearHora12(h);
 }
-// MOD-005-S16: FIN
+// MOD-005-016: FIN
 
-// MOD-005-S17: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
+// MOD-005-017: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
 window.hcClickCelda = clickCelda;
 window.hcAbrirFormularioAgregar = abrirFormularioAgregar;
 window.hcEditarClase = editarClase;
@@ -1090,7 +1090,7 @@ window.HorarioClaseModule = {
 
 console.log('%c🕐 HorarioClaseModule V01.26 CODEWORKSHOP cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
-// MOD-005-S17: FIN
+// MOD-005-017: FIN
 
 })();
 
