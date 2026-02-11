@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtareas.html
-VERSIÓN: 01.22
-FECHA: 26/01/2026 13:03 (UTC-5)
+VERSIÓN: 01.23
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -12,7 +12,7 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 <!-- MOD-002: ESTILOS V2 [INICIO] -->
 <style>
 
-/* MOD-002-S01: CONTENEDOR PRINCIPAL [INICIO] */
+/* MOD-002-001: CONTENEDOR PRINCIPAL [INICIO] */
 .tareas-container {
   background: white;
   border-radius: 12px;
@@ -40,9 +40,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   gap: 12px;
   flex-wrap: wrap;
 }
-/* MOD-002-S01: FIN */
+/* MOD-002-001: FIN */
 
-/* MOD-002-S02: FILTROS [INICIO] */
+/* MOD-002-002: FILTROS [INICIO] */
 .filtro-container {
   display: flex;
   align-items: center;
@@ -69,9 +69,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   outline: none;
   border-color: #667eea;
 }
-/* MOD-002-S02: FIN */
+/* MOD-002-002: FIN */
 
-/* MOD-002-S03: BOTONES BASE [INICIO] */
+/* MOD-002-003: BOTONES BASE [INICIO] */
 .btn-agregar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -118,9 +118,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 .btn-secondary:hover {
   background: #5a6268;
 }
-/* MOD-002-S03: FIN */
+/* MOD-002-003: FIN */
 
-/* MOD-002-S04: BOTONES ICONOS [INICIO] */
+/* MOD-002-004: BOTONES ICONOS [INICIO] */
 .btn-icon {
   background: transparent;
   border: none;
@@ -138,9 +138,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 .btn-icon.delete {
   color: #dc3545;
 }
-/* MOD-002-S04: FIN */
+/* MOD-002-004: FIN */
 
-/* MOD-002-S05: FORMULARIO BASE [INICIO] */
+/* MOD-002-005: FORMULARIO BASE [INICIO] */
 .form-tarea {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
@@ -165,9 +165,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     transform: translateY(0);
   }
 }
-/* MOD-002-S05: FIN */
+/* MOD-002-005: FIN */
 
-/* MOD-002-S06: FORMULARIO LAYOUT [INICIO] */
+/* MOD-002-006: FORMULARIO LAYOUT [INICIO] */
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -190,9 +190,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 .form-group label .required {
   color: #dc3545;
 }
-/* MOD-002-S06: FIN */
+/* MOD-002-006: FIN */
 
-/* MOD-002-S07: FORMULARIO INPUTS [INICIO] */
+/* MOD-002-007: FORMULARIO INPUTS [INICIO] */
 .form-group input,
 .form-group select {
   width: 100%;
@@ -217,17 +217,17 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   font-size: 12px;
   color: #666;
 }
-/* MOD-002-S07: FIN */
+/* MOD-002-007: FIN */
 
-/* MOD-002-S08: FORMULARIO ACTIONS [INICIO] */
+/* MOD-002-008: FORMULARIO ACTIONS [INICIO] */
 .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
 }
-/* MOD-002-S08: FIN */
+/* MOD-002-008: FIN */
 
-/* MOD-002-S09: TABLA BASE [INICIO] */
+/* MOD-002-009: TABLA BASE [INICIO] */
 .tareas-table-container {
   overflow-x: auto;
 }
@@ -263,9 +263,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   padding: 12px;
   color: #333;
 }
-/* MOD-002-S09: FIN */
+/* MOD-002-009: FIN */
 
-/* MOD-002-S10: CURSO TAG [INICIO] */
+/* MOD-002-010: CURSO TAG [INICIO] */
 .curso-tag {
   display: inline-block;
   padding: 4px 10px;
@@ -275,9 +275,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   background: #e9ecef;
   color: #495057;
 }
-/* MOD-002-S10: FIN */
+/* MOD-002-010: FIN */
 
-/* MOD-002-S11: COLORES NOTA [INICIO] */
+/* MOD-002-011: COLORES NOTA [INICIO] */
 .nota-cell {
   text-align: center;
   font-weight: 600;
@@ -300,9 +300,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   color: #999;
   font-style: italic;
 }
-/* MOD-002-S11: FIN */
+/* MOD-002-011: FIN */
 
-/* MOD-002-S12: CELDAS AUXILIARES [INICIO] */
+/* MOD-002-012: CELDAS AUXILIARES [INICIO] */
 .fecha-cell {
   white-space: nowrap;
 }
@@ -317,9 +317,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   color: #666;
   font-size: 13px;
 }
-/* MOD-002-S12: FIN */
+/* MOD-002-012: FIN */
 
-/* MOD-002-S13: ESTADO VACÍO [INICIO] */
+/* MOD-002-013: ESTADO VACÍO [INICIO] */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -335,9 +335,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 .empty-state-text {
   font-size: 15px;
 }
-/* MOD-002-S13: FIN */
+/* MOD-002-013: FIN */
 
-/* MOD-002-S14: LOADING [INICIO] */
+/* MOD-002-014: LOADING [INICIO] */
 .loading-container {
   text-align: center;
   padding: 40px;
@@ -357,9 +357,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-/* MOD-002-S14: FIN */
+/* MOD-002-014: FIN */
 
-/* MOD-002-S15: RESPONSIVE [INICIO] */
+/* MOD-002-015: RESPONSIVE [INICIO] */
 @media (max-width: 768px) {
   .tareas-container {
     padding: 16px;
@@ -413,7 +413,7 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     display: none;
   }
 }
-/* MOD-002-S15: FIN */
+/* MOD-002-015: FIN */
 
 </style>
 <!-- MOD-002: FIN -->
@@ -421,7 +421,7 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 <!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
 <div class="tareas-container">
 
-<!-- MOD-003-S01: HEADER Y FILTROS [INICIO] -->
+<!-- MOD-003-001: HEADER Y FILTROS [INICIO] -->
   <div class="tareas-header">
     <h2>✏️ Mis Tareas</h2>
     <div class="header-actions">
@@ -436,9 +436,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
       </button>
     </div>
   </div>
-  <!-- MOD-003-S01: FIN -->
+  <!-- MOD-003-001: FIN -->
 
-<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR [INICIO] -->
+<!-- MOD-003-002: FORMULARIO AGREGAR/EDITAR [INICIO] -->
   <div id="formTarea" class="form-tarea">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nueva Tarea</h3>
 
@@ -540,16 +540,16 @@ FECHA: 26/01/2026 13:03 (UTC-5)
       </div>
     </form>
   </div>
-  <!-- MOD-003-S02: FIN -->
+  <!-- MOD-003-002: FIN -->
 
-<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
+<!-- MOD-003-003: CONTENEDOR TABLA [INICIO] -->
   <div id="tareasTableContainer" class="tareas-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando tareas...</p>
     </div>
   </div>
-  <!-- MOD-003-S03: FIN -->
+  <!-- MOD-003-003: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
@@ -557,7 +557,7 @@ FECHA: 26/01/2026 13:03 (UTC-5)
 <!-- MOD-004: JAVASCRIPT V2 [INICIO] -->
 <script>
 
-// MOD-004-S01: VARIABLES ENCAPSULADAS [INICIO]
+// MOD-004-001: VARIABLES ENCAPSULADAS [INICIO]
 (function PBE_TAREAS_MODULE() {
   'use strict';
 
@@ -565,9 +565,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   let cursosData = [];
   let tareasFiltradas = [];
   let _initDone = false;
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: INICIALIZACIÓN IDEMPOTENTE [INICIO]
+// MOD-004-002: INICIALIZACIÓN IDEMPOTENTE [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -586,9 +586,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: CARGA DE CURSOS V2 [INICIO]
+// MOD-004-003: CARGA DE CURSOS V2 [INICIO]
   function cargarCursos() {
     console.log('🔵 [TAREAS] Solicitando cursos al backend...');
     google.script.run
@@ -642,9 +642,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     console.log('   - SELECT FORM opciones:', selectCurso.options.length);
     console.log('   - SELECT FILTRO opciones:', selectFiltro.options.length);
   }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: CARGA DE TAREAS [INICIO]
+// MOD-004-004: CARGA DE TAREAS [INICIO]
   function cargarTareas() {
     google.script.run
       .withSuccessHandler(handleTareasLoaded)
@@ -675,9 +675,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     showAlert('error', 'Error de conexión al cargar tareas');
     renderEmptyState();
   }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: FILTRADO Y RENDERIZADO V2 [INICIO]
+// MOD-004-005: FILTRADO Y RENDERIZADO V2 [INICIO]
   function aplicarFiltro() {
     const selectFiltro = document.getElementById('filtroCursoTarea');
     const cursoSeleccionado = selectFiltro ? selectFiltro.value : '';
@@ -735,9 +735,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✏️</div><div class="empty-state-text">No tienes tareas registradas aún.<br>Haz clic en "+ Agregar Tarea" para comenzar.</div></div>';
     }
   }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: FORMULARIO TOGGLE Y SUBMIT [INICIO]
+// MOD-004-006: FORMULARIO TOGGLE Y SUBMIT [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formTarea');
     const isActive = form.classList.contains('active');
@@ -871,9 +871,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     document.getElementById('formTarea').classList.remove('active');
     resetFormTarea();
   }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: EDICIÓN Y ELIMINACIÓN [INICIO]
+// MOD-004-007: EDICIÓN Y ELIMINACIÓN [INICIO]
   function editarTarea(rowNumber) {
     const t = tareasData.find(x => x._rowNumber === rowNumber);
     if (!t) return;
@@ -916,9 +916,9 @@ FECHA: 26/01/2026 13:03 (UTC-5)
     showAlert('success', '✓ Tarea eliminada exitosamente');
     cargarTareas();
   }
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: HELPERS Y EXPORTACIÓN [INICIO]
+// MOD-004-008: HELPERS Y EXPORTACIÓN [INICIO]
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
@@ -946,7 +946,7 @@ FECHA: 26/01/2026 13:03 (UTC-5)
   window.TareasModule = {
     init: init
   };
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
 })();
 
