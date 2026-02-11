@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 5atabrepasos.html
-VERSIÓN: 01.25
-FECHA: 02/02/2026 14:05 (UTC-5)
+VERSIÓN: 01.26
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -380,7 +380,7 @@ FECHA: 02/02/2026 14:05 (UTC-5)
 <!-- MOD-003: CONTENEDOR REPASOS [INICIO] -->
 <div class="repasos-container">
 
-<!-- MOD-003-S01: HEADER Y FILTROS [INICIO] -->
+<!-- MOD-003-001: HEADER Y FILTROS [INICIO] -->
   <div class="repasos-header">
     <h2>🔄 Mis Repasos</h2>
     <div class="header-actions">
@@ -395,9 +395,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       </button>
     </div>
   </div>
-  <!-- MOD-003-S01: FIN -->
+  <!-- MOD-003-001: FIN -->
 
-<!-- MOD-003-S02: FORMULARIO AGREGAR/EDITAR [INICIO] -->
+<!-- MOD-003-002: FORMULARIO AGREGAR/EDITAR [INICIO] -->
   <div id="formRepaso" class="form-repaso">
     <h3 id="formTitle" style="margin-bottom: 16px; color: #667eea;">Agregar Nuevo Repaso</h3>
 
@@ -492,16 +492,16 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       </div>
     </form>
   </div>
-  <!-- MOD-003-S02: FIN -->
+  <!-- MOD-003-002: FIN -->
 
-<!-- MOD-003-S03: CONTENEDOR TABLA [INICIO] -->
+<!-- MOD-003-003: CONTENEDOR TABLA [INICIO] -->
   <div id="repasosTableContainer" class="repasos-table-container">
     <div class="loading-container">
       <div class="spinner"></div>
       <p>Cargando repasos...</p>
     </div>
   </div>
-  <!-- MOD-003-S03: FIN -->
+  <!-- MOD-003-003: FIN -->
 
 </div>
 <!-- MOD-003: FIN -->
@@ -511,14 +511,14 @@ FECHA: 02/02/2026 14:05 (UTC-5)
 (function PBE_REPASOS_MODULE() {
   'use strict';
 
-// MOD-004-S01: VARIABLES GLOBALES [INICIO]
+// MOD-004-001: VARIABLES GLOBALES [INICIO]
   let repasosData = [];
   let cursosListaData = [];
   let repasosFiltrados = [];
   let _initDone = false;
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: HELPERS SEGURIDAD [INICIO]
+// MOD-004-002: HELPERS SEGURIDAD [INICIO]
   function escHtml(value) {
     const s = String(value == null ? '' : value);
     return s
@@ -550,9 +550,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     const regex = /^\d{2}\/\d{2}\/\d{4}$/;
     return regex.test(String(fecha || '').trim());
   }
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: INICIALIZACIÓN [INICIO]
+// MOD-004-003: INICIALIZACIÓN [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -571,9 +571,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
     init();
   }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: CARGAR CURSOS [INICIO]
+// MOD-004-004: CARGAR CURSOS [INICIO]
   function cargarCursos() {
     google.script.run
       .withSuccessHandler(handleCursosLoaded)
@@ -590,9 +590,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     cursosListaData = response.data || [];
     poblarDropdownCursos();
   }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: POBLAR DROPDOWNS [INICIO]
+// MOD-004-005: POBLAR DROPDOWNS [INICIO]
   function poblarDropdownCursos() {
     const selectCurso = document.getElementById('repasoCurso');
     const selectFiltro = document.getElementById('filtroCursoRepaso');
@@ -617,9 +617,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       selectFiltro.appendChild(option2);
     });
   }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: CARGAR REPASOS [INICIO]
+// MOD-004-006: CARGAR REPASOS [INICIO]
   function cargarRepasos() {
     google.script.run
       .withSuccessHandler(handleRepasosLoaded)
@@ -650,9 +650,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     mostrarError('Error de conexión al cargar repasos');
     renderEmptyState();
   }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: FILTRADO [INICIO]
+// MOD-004-007: FILTRADO [INICIO]
   function aplicarFiltro() {
     const el = document.getElementById('filtroCursoRepaso');
     const cursoSeleccionado = el ? el.value : '';
@@ -667,9 +667,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
 
     renderRepasosTable();
   }
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
-// MOD-004-S08: RENDER TABLA [INICIO]
+// MOD-004-008: RENDER TABLA [INICIO]
   function renderRepasosTable() {
     const container = document.getElementById('repasosTableContainer');
     if (!container) return;
@@ -706,9 +706,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     html += '</tbody></table>';
     container.innerHTML = html;
   }
-// MOD-004-S08: FIN
+// MOD-004-008: FIN
 
-// MOD-004-S09: ESTADO VACÍO [INICIO]
+// MOD-004-009: ESTADO VACÍO [INICIO]
   function renderEmptyState() {
     const container = document.getElementById('repasosTableContainer');
     if (!container) return;
@@ -722,9 +722,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><div class="empty-state-text">No tienes repasos registrados aún.<br>Haz clic en "+ Agregar Repaso" para comenzar.</div></div>';
     }
   }
-// MOD-004-S09: FIN
+// MOD-004-009: FIN
 
-// MOD-004-S10: TOGGLE FORMULARIO [INICIO]
+// MOD-004-010: TOGGLE FORMULARIO [INICIO]
   function toggleFormAgregar() {
     const form = document.getElementById('formRepaso');
     if (!form) return;
@@ -742,9 +742,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       form.classList.add('active');
     }
   }
-// MOD-004-S10: FIN
+// MOD-004-010: FIN
 
-// MOD-004-S11: SUBMIT FORMULARIO [INICIO]
+// MOD-004-011: SUBMIT FORMULARIO [INICIO]
   function handleSubmitRepaso(event) {
     event.preventDefault();
 
@@ -814,9 +814,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
         .studentAgregarRepaso(params);
     }
   }
-// MOD-004-S11: FIN
+// MOD-004-011: FIN
 
-// MOD-004-S12: HANDLERS CRUD [INICIO]
+// MOD-004-012: HANDLERS CRUD [INICIO]
   function handleRepasoAdded(response) {
     const btnSubmit = document.getElementById('btnSubmit');
     if (btnSubmit) {
@@ -879,9 +879,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     console.error('Error:', error);
     mostrarError('Error de conexión');
   }
-// MOD-004-S12: FIN
+// MOD-004-012: FIN
 
-// MOD-004-S13: EDITAR REPASO [INICIO]
+// MOD-004-013: EDITAR REPASO [INICIO]
   function editarRepaso(rowNumber) {
     const rn = toSafeRowNumber(rowNumber);
     if (rn == null) {
@@ -911,9 +911,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     const temaEl = document.getElementById('repasoTema');
     if (temaEl) temaEl.focus();
   }
-// MOD-004-S13: FIN
+// MOD-004-013: FIN
 
-// MOD-004-S14: ELIMINAR REPASO [INICIO]
+// MOD-004-014: ELIMINAR REPASO [INICIO]
   function confirmarEliminarRepaso(rowNumber, tema) {
     const rn = toSafeRowNumber(rowNumber);
     if (rn == null) {
@@ -939,9 +939,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       .withFailureHandler(handleRepasoError)
       .studentEliminarRepaso({ rowNumber: rn });
   }
-// MOD-004-S14: FIN
+// MOD-004-014: FIN
 
-// MOD-004-S15: RESET Y CANCELAR FORM [INICIO]
+// MOD-004-015: RESET Y CANCELAR FORM [INICIO]
   function resetFormRepaso() {
     const form = document.getElementById('repasoForm');
     if (form) form.reset();
@@ -961,9 +961,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
     if (form) form.classList.remove('active');
     resetFormRepaso();
   }
-// MOD-004-S15: FIN
+// MOD-004-015: FIN
 
-// MOD-004-S16: ALERTAS [INICIO]
+// MOD-004-016: ALERTAS [INICIO]
   function mostrarExito(mensaje) {
     if (typeof showAlert === 'function') {
       showAlert('success', mensaje);
@@ -979,9 +979,9 @@ FECHA: 02/02/2026 14:05 (UTC-5)
       console.error('✗ ' + mensaje);
     }
   }
-// MOD-004-S16: FIN
+// MOD-004-016: FIN
 
-// MOD-004-S17: API PÚBLICA [INICIO]
+// MOD-004-017: API PÚBLICA [INICIO]
   window.RepasosModule = {
     init: init,
     aplicarFiltro: aplicarFiltro,
@@ -993,7 +993,7 @@ FECHA: 02/02/2026 14:05 (UTC-5)
   };
 
   console.log('%c🔄 Sub-tab Repasos V01.21 Cargado', 'font-size: 11px; color: #667eea;');
-// MOD-004-S17: FIN
+// MOD-004-017: FIN
 
 })();
 </script>
