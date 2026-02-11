@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4btabdeberes.html
-VERSIÓN: 01.20
-FECHA: 25/01/2026 17:04 (UTC-5)
+VERSIÓN: 01.21
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -160,7 +160,7 @@ FECHA: 25/01/2026 17:04 (UTC-5)
 <!-- MOD-004: JAVASCRIPT V2 [INICIO] -->
 <script>
 
-// MOD-004-S01: VARIABLES GLOBALES Y CONTROL LAZY-INIT [INICIO]
+// MOD-004-001: VARIABLES GLOBALES Y CONTROL LAZY-INIT [INICIO]
 // Control de Lazy-Init para Módulos
 var deberesSubtabsLoaded = {
   todos: false,
@@ -168,9 +168,9 @@ var deberesSubtabsLoaded = {
   tareas: false,
   lecturas: false
 };
-// MOD-004-S01: FIN
+// MOD-004-001: FIN
 
-// MOD-004-S02: FUNCIÓN SWITCH SUBTABDEBERES [INICIO]
+// MOD-004-002: FUNCIÓN SWITCH SUBTABDEBERES [INICIO]
 // Navegación entre Sub-tabs Deberes
 function switchSubTabDeberes(subTabName) {
   console.log('[4btabdeberes] 🔄 switchSubTabDeberes llamada con:', subTabName);
@@ -222,9 +222,9 @@ function switchSubTabDeberes(subTabName) {
     console.log('[4btabdeberes] ℹ️ Módulo ya inicializado:', subTabName);
   }
 }
-// MOD-004-S02: FIN
+// MOD-004-002: FIN
 
-// MOD-004-S03: FUNCIÓN UPDATE DEBERES BADGE [INICIO]
+// MOD-004-003: FUNCIÓN UPDATE DEBERES BADGE [INICIO]
 // Actualizar Badge de Contador
 function updateDeberesBadge(tipo, count) {
   const badge = document.querySelector('.tab-badge[data-tab="' + tipo + '"]');
@@ -237,9 +237,9 @@ function updateDeberesBadge(tipo, count) {
     badge.style.display = 'none';
   }
 }
-// MOD-004-S03: FIN
+// MOD-004-003: FIN
 
-// MOD-004-S04: FUNCIÓN FILTRAR POR FECHA [INICIO]
+// MOD-004-004: FUNCIÓN FILTRAR POR FECHA [INICIO]
 // Filtrar Deberes por Rango de Fechas
 function filtrarPorFecha(deberes, desde, hasta) {
   if (!Array.isArray(deberes)) return [];
@@ -257,9 +257,9 @@ function filtrarPorFecha(deberes, desde, hasta) {
     return fechaDeber >= fechaDesde && fechaDeber <= fechaHasta;
   });
 }
-// MOD-004-S04: FIN
+// MOD-004-004: FIN
 
-// MOD-004-S05: HELPER PARSE FECHA DDMMAAAA [INICIO]
+// MOD-004-005: HELPER PARSE FECHA DDMMAAAA [INICIO]
 // Parsear Fecha DD/MM/AAAA a Date
 function parseFechaDD_MM_AAAA(fecha) {
   if (!fecha) return null;
@@ -277,9 +277,9 @@ function parseFechaDD_MM_AAAA(fecha) {
     return null;
   }
 }
-// MOD-004-S05: FIN
+// MOD-004-005: FIN
 
-// MOD-004-S06: FUNCIÓN ORDENAR POR FECHA [INICIO]
+// MOD-004-006: FUNCIÓN ORDENAR POR FECHA [INICIO]
 // Ordenar por Fecha
 function ordenarPorFecha(deberes) {
   return deberes.sort(function(a, b) {
@@ -295,9 +295,9 @@ function ordenarPorFecha(deberes) {
     return fechaA - fechaB;
   });
 }
-// MOD-004-S06: FIN
+// MOD-004-006: FIN
 
-// MOD-004-S07: AUTO-ACTIVACIÓN Y LOGS FINALES [INICIO]
+// MOD-004-007: AUTO-ACTIVACIÓN Y LOGS FINALES [INICIO]
 // Auto-activar Sub-tab por defecto
 setTimeout(function() {
   console.log('[4btabdeberes] 🚀 Auto-activando sub-tab por defecto: todos');
@@ -310,7 +310,7 @@ console.log('Sub-tabs disponibles: Todos, Evaluaciones, Tareas, Lecturas');
 console.log('Funciones auxiliares: updateDeberesBadge, filtrarPorFecha, ordenarPorFecha');
 console.log('currentUser disponible:', typeof currentUser !== 'undefined');
 console.log('Lazy-init habilitado para todos los sub-tabs');
-// MOD-004-S07: FIN
+// MOD-004-007: FIN
 
 </script>
 <!-- MOD-004: FIN -->
