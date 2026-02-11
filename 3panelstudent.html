@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.24
-FECHA: 02/02/2026 11:32 (UTC-5)
+VERSIÓN: 01.25
+FECHA: 11/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -21,7 +21,7 @@ FECHA: 02/02/2026 11:32 (UTC-5)
 <!-- MOD-003: ESTILOS [INICIO] -->
 <style>
 
-/* MOD-003-S01: RESET Y BASE [INICIO] */
+/* MOD-003-001: RESET Y BASE [INICIO] */
 * {
   margin: 0;
   padding: 0;
@@ -33,9 +33,9 @@ body {
   background: #f5f7fa;
   min-height: 100vh;
 }
-/* MOD-003-S01: FIN */
+/* MOD-003-001: FIN */
 
-/* MOD-003-S02: NAVBAR [INICIO] */
+/* MOD-003-002: NAVBAR [INICIO] */
 .navbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -89,9 +89,9 @@ body {
 .btn-logout:hover {
   background: rgba(255, 255, 255, 0.3);
 }
-/* MOD-003-S02: FIN */
+/* MOD-003-002: FIN */
 
-/* MOD-003-S03: LAYOUT PRINCIPAL [INICIO] */
+/* MOD-003-003: LAYOUT PRINCIPAL [INICIO] */
 .main-layout {
   max-width: 1400px;
   margin: 30px auto;
@@ -99,9 +99,9 @@ body {
   display: flex;
   gap: 20px;
 }
-/* MOD-003-S03: FIN */
+/* MOD-003-003: FIN */
 
-/* MOD-003-S04: TABS SIDEBAR [INICIO] */
+/* MOD-003-004: TABS SIDEBAR [INICIO] */
 .tabs-sidebar {
   width: fit-content;
   flex-shrink: 0;
@@ -188,9 +188,9 @@ body {
 .tab-btn[title] {
   position: relative;
 }
-/* MOD-003-S04: FIN */
+/* MOD-003-004: FIN */
 
-/* MOD-003-S05: CONTENT CONTAINER [INICIO] */
+/* MOD-003-005: CONTENT CONTAINER [INICIO] */
 .content-container {
   flex: 1;
   min-width: 0;
@@ -215,9 +215,9 @@ body {
     transform: translateY(0);
   }
 }
-/* MOD-003-S05: FIN */
+/* MOD-003-005: FIN */
 
-/* MOD-003-S06: ALERTAS [INICIO] */
+/* MOD-003-006: ALERTAS [INICIO] */
 .alert {
   position: fixed;
   top: 20px;
@@ -266,9 +266,9 @@ body {
   color: #0c5460;
   border-left: 4px solid #17a2b8;
 }
-/* MOD-003-S06: FIN */
+/* MOD-003-006: FIN */
 
-/* MOD-003-S07: LOADING SCREEN [INICIO] */
+/* MOD-003-007: LOADING SCREEN [INICIO] */
 .loading-screen {
   display: none;
   position: fixed;
@@ -306,9 +306,9 @@ body {
   color: #667eea;
   font-weight: 600;
 }
-/* MOD-003-S07: FIN */
+/* MOD-003-007: FIN */
 
-/* MOD-003-S08: RESPONSIVE MOBILE [INICIO] */
+/* MOD-003-008: RESPONSIVE MOBILE [INICIO] */
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
@@ -370,7 +370,7 @@ body {
     max-width: none;
   }
 }
-/* MOD-003-S08: FIN */
+/* MOD-003-008: FIN */
 
 </style>
 <!-- MOD-003: FIN -->
@@ -506,7 +506,7 @@ console.log('%c✓ currentUser inicializado ANTES de cargar tabs',
 <!-- MOD-012: JAVASCRIPT - FUNCIONES GLOBALES [INICIO] -->
 <script>
 
-// MOD-012-S01: INICIALIZACIÓN UI [INICIO]
+// MOD-012-001: INICIALIZACIÓN UI [INICIO]
 window.onload = function() {
   if (currentUser.nombre) {
     document.getElementById('userName').textContent = currentUser.nombre;
@@ -517,9 +517,9 @@ window.onload = function() {
   console.log('%cFunciones globales: showAlert, showLoading, hideLoading, switchTab, toggleSidebar', 
               'font-size: 12px; color: #666;');
 };
-// MOD-012-S01: FIN
+// MOD-012-001: FIN
 
-// MOD-012-S02: NAVEGACIÓN TABS [INICIO]
+// MOD-012-002: NAVEGACIÓN TABS [INICIO]
 function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(function(tab) {
     tab.classList.remove('active');
@@ -534,9 +534,9 @@ function switchTab(tabName) {
 
   console.log('Tab cambiado a:', tabName);
 }
-// MOD-012-S02: FIN
+// MOD-012-002: FIN
 
-// MOD-012-S03: COLAPSADOR SIDEBAR [INICIO]
+// MOD-012-003: COLAPSADOR SIDEBAR [INICIO]
 function handleSidebarClick(event) {
   if (event.target.closest('.tab-btn')) {
     return;
@@ -558,9 +558,9 @@ function toggleSidebar() {
   
   console.log('Sidebar:', isCollapsed ? 'colapsado' : 'expandido');
 }
-// MOD-012-S03: FIN
+// MOD-012-003: FIN
 
-// MOD-012-S04: SISTEMA ALERTAS [INICIO]
+// MOD-012-004: SISTEMA ALERTAS [INICIO]
 function showAlert(type, message) {
   const existingAlerts = document.querySelectorAll('.alert');
   existingAlerts.forEach(function(alert) {
@@ -577,9 +577,9 @@ function showAlert(type, message) {
     alertBox.remove();
   }, 4000);
 }
-// MOD-012-S04: FIN
+// MOD-012-004: FIN
 
-// MOD-012-S05: LOADING SCREEN [INICIO]
+// MOD-012-005: LOADING SCREEN [INICIO]
 function showLoading() {
   document.getElementById('loadingScreen').classList.add('active');
 }
@@ -587,18 +587,18 @@ function showLoading() {
 function hideLoading() {
   document.getElementById('loadingScreen').classList.remove('active');
 }
-// MOD-012-S05: FIN
+// MOD-012-005: FIN
 
-// MOD-012-S06: LOGOUT [INICIO]
+// MOD-012-006: LOGOUT [INICIO]
 function logout() {
   if (confirm('¿Deseas cerrar sesión?')) {
     sessionStorage.clear();
     window.top.location.href = '<?!= scriptUrl ?>';
   }
 }
-// MOD-012-S06: FIN
+// MOD-012-006: FIN
 
-// MOD-012-S07: UTILIDADES FECHA [INICIO]
+// MOD-012-007: UTILIDADES FECHA [INICIO]
 function formatFecha(fecha) {
   if (!fecha) return '-';
   
@@ -651,7 +651,7 @@ function validarFecha(fecha) {
   
   return true;
 }
-// MOD-012-S07: FIN
+// MOD-012-007: FIN
 
 </script>
 <!-- MOD-012: FIN -->
