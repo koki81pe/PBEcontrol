@@ -3,21 +3,24 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabcalendario.html
-VERSIÓN: 01.21
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.22
+FECHA: 12/02/2026 15:27 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
 <!-- MOD-002: ESTILOS [INICIO] -->
 <style>
-/* CONTENEDOR PRINCIPAL */
+
+/* MOD-002-001: CONTENEDOR PRINCIPAL [INICIO] */
 .calendario-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
+/* MOD-002-001: FIN */
 
+/* MOD-002-002: HEADER [INICIO] */
 .calendario-header {
   display: flex;
   justify-content: space-between;
@@ -33,7 +36,9 @@ FECHA: 11/02/2026 14:41 (UTC-5)
   margin: 0;
   font-size: 24px;
 }
+/* MOD-002-002: FIN */
 
+/* MOD-002-003: NAVEGACIÓN HEADER [INICIO] */
 .calendario-nav button {
   background: rgba(255, 255, 255, 0.2);
   border: none;
@@ -47,8 +52,9 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 .calendario-nav button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+/* MOD-002-003: FIN */
 
-/* GRID DEL CALENDARIO */
+/* MOD-002-004: GRID CALENDARIO [INICIO] */
 .calendario-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -57,7 +63,9 @@ FECHA: 11/02/2026 14:41 (UTC-5)
   border-radius: 8px;
   overflow: hidden;
 }
+/* MOD-002-004: FIN */
 
+/* MOD-002-005: CABECERA DÍAS [INICIO] */
 .calendario-dia-header {
   background: #f5f5f5;
   padding: 12px;
@@ -65,7 +73,9 @@ FECHA: 11/02/2026 14:41 (UTC-5)
   font-weight: 600;
   font-size: 14px;
 }
+/* MOD-002-005: FIN */
 
+/* MOD-002-006: CELDAS [INICIO] */
 .calendario-celda {
   background: #fff;
   min-height: 100px;
@@ -93,42 +103,55 @@ FECHA: 11/02/2026 14:41 (UTC-5)
   border: 3px solid #667eea;
   box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
 }
+/* MOD-002-006: FIN */
 
+/* MOD-002-007: NÚMERO DE DÍA [INICIO] */
 .calendario-dia-numero {
   font-weight: 700;
   margin-bottom: 6px;
   font-size: 16px;
 }
+/* MOD-002-007: FIN */
 
-.calendario-indicadores {
+/* MOD-002-008: CHIPS DEBERES [INICIO] */
+.cal-chips-container {
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.calendario-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.cal-chip {
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+  font-weight: 500;
+  text-align: center;
 }
 
-.calendario-dot.evaluacion {
-  background: #dc3545;
+.cal-chip.evaluacion { background: #dc3545; }
+.cal-chip.tarea      { background: #3498db; }
+.cal-chip.lectura    { background: #28a745; }
+.cal-chip.actividad  { background: #17a2b8; }
+
+.cal-chip-mas {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  padding: 2px;
+  line-height: 1.3;
 }
 
-.calendario-dot.tarea {
-  background: #ffc107;
+.cal-chip-mas:hover {
+  color: #667eea;
+  text-decoration: underline;
 }
+/* MOD-002-008: FIN */
 
-.calendario-dot.lectura {
-  background: #28a745;
-}
-
-.calendario-dot.actividad {
-  background: #17a2b8;
-}
-
-/* MODAL */
+/* MOD-002-009: MODAL [INICIO] */
 .calendario-modal {
   display: none;
   position: fixed;
@@ -146,145 +169,102 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 .calendario-modal-content {
   background: #fff;
   border-radius: 12px;
+  padding: 24px;
   width: 90%;
-  max-width: 600px;
+  max-width: 480px;
   max-height: 80vh;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: calModalFadeIn 0.3s ease;
+}
+
+@keyframes calModalFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .calendario-modal-header {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .calendario-modal-header h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
+  color: #333;
 }
 
 .calendario-modal-header button {
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  color: #fff;
   font-size: 24px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  color: #999;
   cursor: pointer;
   line-height: 1;
 }
 
 .calendario-modal-header button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  color: #333;
 }
 
 .calendario-modal-body {
-  padding: 20px;
-  overflow-y: auto;
-  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+/* MOD-002-009: FIN */
 
+/* MOD-002-010: ITEMS ACTIVIDAD MODAL [INICIO] */
 .calendario-actividad-item {
   padding: 12px;
-  margin-bottom: 10px;
+  border-radius: 8px;
   border-left: 4px solid #ccc;
-  background: #f8f9fa;
-  border-radius: 4px;
-}
-
-.calendario-actividad-item.evaluacion {
-  border-color: #dc3545;
-  background: #fee;
-}
-
-.calendario-actividad-item.tarea {
-  border-color: #ffc107;
-  background: #fff3cd;
-}
-
-.calendario-actividad-item.lectura {
-  border-color: #28a745;
-  background: #d4edda;
-}
-
-.calendario-actividad-item.actividad {
-  border-color: #17a2b8;
-  background: #d1ecf1;
+  background: #f9f9f9;
+  font-size: 14px;
 }
 
 .calendario-actividad-item strong {
   display: block;
   margin-bottom: 4px;
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.calendario-actividad-item div {
-  font-size: 14px;
-  margin-bottom: 2px;
-}
+.calendario-actividad-item.evaluacion { border-left-color: #dc3545; background: #fff5f5; }
+.calendario-actividad-item.tarea      { border-left-color: #3498db; background: #f0f8ff; }
+.calendario-actividad-item.lectura    { border-left-color: #28a745; background: #f0fff4; }
+.calendario-actividad-item.actividad  { border-left-color: #17a2b8; background: #f0feff; }
+/* MOD-002-010: FIN */
 
-/* LOADING */
+/* MOD-002-011: LOADING Y ERROR [INICIO] */
 .calendario-loading {
-  text-align: center;
-  padding: 40px;
   display: none;
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
 }
 
-.calendario-loading.active {
-  display: block;
-}
+.calendario-loading.active { display: block; }
 
-.calendario-loading .spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ERROR */
 .calendario-error {
-  text-align: center;
-  padding: 40px;
-  color: #dc3545;
   display: none;
-}
-
-.calendario-error.active {
-  display: block;
-}
-
-.calendario-error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.calendario-error-text {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.calendario-error-subtext {
-  font-size: 14px;
+  text-align: center;
+  padding: 60px 20px;
   color: #999;
 }
 
-/* RESPONSIVE */
+.calendario-error.active  { display: block; }
+.calendario-error-icon    { font-size: 48px; margin-bottom: 16px; }
+.calendario-error-text    { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.calendario-error-subtext { font-size: 14px; color: #999; }
+/* MOD-002-011: FIN */
+
+/* MOD-002-012: RESPONSIVE [INICIO] */
 @media (max-width: 768px) {
   .calendario-header {
     flex-direction: column;
@@ -310,6 +290,8 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     max-width: none;
   }
 }
+/* MOD-002-012: FIN */
+
 </style>
 <!-- MOD-002: FIN -->
 
@@ -359,19 +341,21 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 
 <!-- MOD-004: JAVASCRIPT [INICIO] -->
 <script>
+// MOD-004-001: ENCAPSULAMIENTO Y PROTECCIÓN [INICIO]
 (function PBE_CALENDARIO_MODULE() {
   'use strict';
 
-  // PREVENIR DOBLE CARGA
   if (window.CalendarioModule && window.CalendarioModule._loaded) {
     console.log('🗓️ CalendarioModule ya cargado, ignorando');
     return;
   }
 
-  console.log('🗓️ CalendarioModule V01.20 iniciando...');
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+// MOD-004-001: FIN
 
-  const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+// MOD-004-002: VARIABLES Y CONSTANTES [INICIO]
+  const MAX_CHIPS = 3;
 
   const CalendarioModule = {
     _loaded: true,
@@ -379,381 +363,292 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     _retryCount: 0,
     m: new Date().getMonth(),
     y: new Date().getFullYear(),
-    acts: [],
+    acts: []
+  };
+// MOD-004-002: FIN
 
-    // INIT CON RETRY LOGIC
-    init() {
-      console.log('🗓️ CalendarioModule.init() llamado (intento ' + (this._retryCount + 1) + ')');
+// MOD-004-003: INICIALIZACIÓN CON RETRY [INICIO]
+  CalendarioModule.init = function() {
+    console.log('🗓️ CalendarioModule.init() llamado (intento ' + (this._retryCount + 1) + ')');
 
-      if (this._initDone) {
-        console.log('🗓️ CalendarioModule ya inicializado, ignorando');
-        return;
-      }
-
-      if (typeof currentUser === 'undefined' || !currentUser) {
-        console.warn('🗓️ currentUser no disponible aún, reintentando...');
-        
-        if (this._retryCount < 5) {
-          this._retryCount++;
-          setTimeout(() => this.init(), 200);
-        } else {
-          console.error('🗓️ currentUser no disponible después de 5 intentos');
-          this.mostrarError('Usuario no disponible', 'Recarga la página');
-        }
-        return;
-      }
-
-      if (!currentUser.codeAlum) {
-        console.error('🗓️ currentUser.codeAlum vacío:', currentUser);
-        this.mostrarError('Código de alumno no disponible', 'Recarga la página');
-        return;
-      }
-
-      this._initDone = true;
-      console.log('🗓️ CalendarioModule inicializado para:', currentUser.codeAlum);
-
-      this.load();
-    },
-
-    nav(d) { 
-      this.m += d; 
-      if (this.m > 11) { this.m = 0; this.y++; } 
-      if (this.m < 0) { this.m = 11; this.y--; }
-      console.log('🗓️ Navegando a:', MESES[this.m], this.y);
-      this.render(); 
-    },
-
-    hoy() { 
-      const n = new Date(); 
-      this.m = n.getMonth(); 
-      this.y = n.getFullYear();
-      console.log('🗓️ Volviendo a hoy:', MESES[this.m], this.y);
-      this.render(); 
-    },
-
-    mostrarError(titulo, subtitulo) {
-      const loading = document.getElementById('calLoading');
-      const error = document.getElementById('calError');
-      const grid = document.getElementById('calGrid');
-
-      if (loading) loading.classList.remove('active');
-      if (grid) grid.style.display = 'none';
-
-      if (error) {
-        error.classList.add('active');
-        const t = error.querySelector('.calendario-error-text');
-        const s = error.querySelector('.calendario-error-subtext');
-        if (t) t.textContent = titulo || 'Error';
-        if (s) s.textContent = subtitulo || 'Por favor, recarga la página';
-      }
-    },
-
-    // CARGA DE DATOS
-    load() {
-      console.log('🗓️ Cargando datos del calendario...');
-      
-      const loading = document.getElementById('calLoading');
-      const error = document.getElementById('calError');
-      const grid = document.getElementById('calGrid');
-
-      if (loading) loading.classList.add('active');
-      if (error) error.classList.remove('active');
-      if (grid) grid.style.display = 'none';
-
-      Promise.all([
-        this.call('studentObtenerEvaluaciones', 'FechaEval', 'Evaluacion', 'evaluacion', 'Evaluación'),
-        this.call('studentObtenerTareas', 'FechaEntrega', 'TipoTarea', 'tarea', 'Tarea'),
-        this.call('studentObtenerLecturas', 'FechaEval', 'Título', 'lectura', 'Lectura'),
-        this.call('studentObtenerHorarioSem', 'FechaHS', 'Actividad', 'actividad', 'Actividad')
-      ]).then(results => {
-        this.acts = results.flat();
-        console.log('🗓️ Total de actividades cargadas:', this.acts.length);
-        console.log('🗓️ Desglose:', {
-          evaluaciones: results[0].length,
-          tareas: results[1].length,
-          lecturas: results[2].length,
-          actividades: results[3].length
-        });
-
-        if (loading) loading.classList.remove('active');
-        if (grid) grid.style.display = 'grid';
-        
-        this.render();
-      }).catch(err => {
-        console.error('🗓️ Error en Promise.all:', err);
-        this.mostrarError('Error al cargar datos', 'No se pudieron obtener las actividades');
-      });
-    },
-
-    // LLAMADAS AL BACKEND
-    call(fn, campoFecha, campoNombre, tipo, tipoNombre) {
-      console.log('🗓️ Llamando a:', fn);
-      
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler(response => {
-            console.log('🗓️', fn, 'response:', response);
-            
-            if (!response) {
-              console.error('🗓️', fn, 'retornó NULL');
-              resolve([]);
-              return;
-            }
-
-            if (!response.success) {
-              console.error('🗓️', fn, 'error:', response.error);
-              resolve([]);
-              return;
-            }
-
-            if (!Array.isArray(response.data)) {
-              console.error('🗓️', fn, 'data no es array:', response.data);
-              resolve([]);
-              return;
-            }
-
-            const mapped = response.data.map(item => {
-              const actividad = {
-                tipo: tipo,
-                tipoNombre: tipoNombre,
-                fecha: item[campoFecha] || '',
-                nombre: item[campoNombre] || 'Sin nombre',
-                curso: item.Curso || ''
-              };
-
-              if (response.data.indexOf(item) === 0) {
-                console.log('🗓️', fn, 'ejemplo:', actividad);
-              }
-
-              return actividad;
-            });
-
-            console.log('🗓️', fn, 'mapeados:', mapped.length);
-            resolve(mapped);
-          })
-          .withFailureHandler(error => {
-            console.error('🗓️', fn, 'falló:', error);
-            resolve([]);
-          })
-          [fn]({ codeAlum: currentUser.codeAlum });
-      });
-    },
-
-    // RENDERIZADO
-    render() {
-      console.log('🗓️ Renderizando calendario:', MESES[this.m], this.y);
-      
-      document.getElementById('calTitulo').textContent = `${MESES[this.m]} ${this.y}`;
-      
-      const grid = document.getElementById('calGrid');
-      
-      while (grid.children.length > 7) {
-        grid.removeChild(grid.lastChild);
-      }
-
-      const primerDia = new Date(this.y, this.m, 1);
-      const start = (primerDia.getDay() || 7) - 1;
-      let d = 1 - start;
-
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-
-      for (let i = 0; i < 42; i++, d++) {
-        const date = new Date(this.y, this.m, d);
-        const fueraMes = date.getMonth() !== this.m;
-        
-        const cell = document.createElement('div');
-        cell.className = 'calendario-celda' + (fueraMes ? ' fuera-mes' : '');
-        
-        const cellDate = new Date(date);
-        cellDate.setHours(0, 0, 0, 0);
-        if (cellDate.getTime() === hoy.getTime()) {
-          cell.classList.add('hoy');
-        }
-
-        cell.innerHTML = `<div class="calendario-dia-numero">${date.getDate()}</div>`;
-
-        if (!fueraMes) {
-          const fechaStr = this.formatearFecha(date);
-          const actsDia = this.acts.filter(a => a.fecha === fechaStr);
-
-          if (actsDia.length > 0) {
-            const ind = document.createElement('div');
-            ind.className = 'calendario-indicadores';
-            
-            const tiposUnicos = [...new Set(actsDia.map(a => a.tipo))];
-            tiposUnicos.forEach(t => {
-              const dot = document.createElement('span');
-              dot.className = 'calendario-dot ' + t;
-              ind.appendChild(dot);
-            });
-            
-            cell.appendChild(ind);
-            cell.onclick = () => this.abrirModal(date, actsDia);
-          }
-        }
-        
-        grid.appendChild(cell);
-      }
-
-      console.log('🗓️ Calendario renderizado con 42 celdas');
-    },
-
-    // MODAL
-    abrirModal(fecha, actividades) {
-      console.log('🗓️ Abriendo modal para:', this.formatearFecha(fecha), 'con', actividades.length, 'actividades');
-      
-      document.getElementById('modalTitulo').textContent = 
-        `${fecha.getDate()} de ${MESES[fecha.getMonth()]} ${this.y}`;
-      
-      const body = document.getElementById('modalBody');
-      body.innerHTML = actividades.map(a => `
-        <div class="calendario-actividad-item ${a.tipo}">
-          <strong>${a.tipoNombre}</strong>
-          <div>${a.nombre}</div>
-          ${a.curso ? `<div>Curso: ${a.curso}</div>` : ''}
-        </div>
-      `).join('');
-      
-      document.getElementById('calModal').classList.add('active');
-    },
-
-    cerrar() {
-      console.log('🗓️ Cerrando modal');
-      document.getElementById('calModal').classList.remove('active');
-    },
-
-    cerrarSiFondo(event) {
-      if (event.target.id === 'calModal') {
-        this.cerrar();
-      }
-    },
-
-    // HELPERS
-    formatearFecha(date) {
-      const dia = String(date.getDate()).padStart(2, '0');
-      const mes = String(date.getMonth() + 1).padStart(2, '0');
-      const anio = date.getFullYear();
-      return `${dia}/${mes}/${anio}`;
+    if (this._initDone) {
+      console.log('🗓️ CalendarioModule ya inicializado, ignorando');
+      return;
     }
+
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.codeAlum) {
+      console.warn('🗓️ currentUser no disponible aún, reintentando...');
+      if (this._retryCount < 5) {
+        this._retryCount++;
+        setTimeout(() => this.init(), 200);
+      } else {
+        console.error('🗓️ currentUser no disponible después de 5 intentos');
+        this.mostrarError('Usuario no disponible', 'Recarga la página');
+      }
+      return;
+    }
+
+    this._initDone = true;
+    console.log('🗓️ CalendarioModule inicializado para:', currentUser.codeAlum);
+    this.load();
+  };
+// MOD-004-003: FIN
+
+// MOD-004-004: NAVEGACIÓN [INICIO]
+  CalendarioModule.nav = function(d) {
+    this.m += d;
+    if (this.m > 11) { this.m = 0; this.y++; }
+    if (this.m < 0)  { this.m = 11; this.y--; }
+    console.log('🗓️ Navegando a:', MESES[this.m], this.y);
+    this.render();
   };
 
-  // EXPONER GLOBALMENTE
+  CalendarioModule.hoy = function() {
+    const n = new Date();
+    this.m = n.getMonth();
+    this.y = n.getFullYear();
+    console.log('🗓️ Volviendo a hoy:', MESES[this.m], this.y);
+    this.render();
+  };
+// MOD-004-004: FIN
+
+// MOD-004-005: CARGA DE DATOS [INICIO]
+  CalendarioModule.load = function() {
+    console.log('🗓️ Cargando datos del calendario...');
+
+    const loading = document.getElementById('calLoading');
+    const error   = document.getElementById('calError');
+    const grid    = document.getElementById('calGrid');
+
+    if (loading) loading.classList.add('active');
+    if (error)   error.classList.remove('active');
+    if (grid)    grid.style.display = 'none';
+
+    Promise.all([
+      this.call('studentObtenerEvaluaciones', 'FechaEval',    'Evaluacion', 'evaluacion', 'Evaluación'),
+      this.call('studentObtenerTareas',       'FechaEntrega', 'TipoTarea',  'tarea',      'Tarea'),
+      this.call('studentObtenerLecturas',     'FechaEval',    'Título',     'lectura',    'Lectura'),
+      this.call('studentObtenerHorarioSem',   'FechaHS',      'Actividad',  'actividad',  'Actividad')
+    ]).then(results => {
+      this.acts = results.flat();
+      console.log('🗓️ Total actividades cargadas:', this.acts.length);
+      if (loading) loading.classList.remove('active');
+      if (grid)    grid.style.display = 'grid';
+      this.render();
+    }).catch(err => {
+      console.error('🗓️ Error en Promise.all:', err);
+      this.mostrarError('Error al cargar datos', 'No se pudieron obtener las actividades');
+    });
+  };
+// MOD-004-005: FIN
+
+// MOD-004-006: LLAMADAS AL BACKEND [INICIO]
+  CalendarioModule.call = function(fn, campoFecha, campoNombre, tipo, tipoNombre) {
+    console.log('🗓️ Llamando a:', fn);
+
+    return new Promise((resolve) => {
+      google.script.run
+        .withSuccessHandler(response => {
+          if (!response || !response.success || !Array.isArray(response.data)) {
+            console.error('🗓️', fn, 'respuesta inválida:', response);
+            resolve([]);
+            return;
+          }
+
+          const mapped = response.data.map(item => ({
+            tipo,
+            tipoNombre,
+            fecha:  item[campoFecha]  || '',
+            nombre: item[campoNombre] || 'Sin nombre',
+            curso:  item.Curso        || ''
+          }));
+
+          console.log('🗓️', fn, 'mapeados:', mapped.length);
+          resolve(mapped);
+        })
+        .withFailureHandler(error => {
+          console.error('🗓️', fn, 'falló:', error);
+          resolve([]);
+        })
+        [fn]({ codeAlum: currentUser.codeAlum });
+    });
+  };
+// MOD-004-006: FIN
+
+// MOD-004-007: RENDERIZADO DEL GRID [INICIO]
+  CalendarioModule.render = function() {
+    console.log('🗓️ Renderizando calendario:', MESES[this.m], this.y);
+
+    document.getElementById('calTitulo').textContent = `${MESES[this.m]} ${this.y}`;
+
+    const grid = document.getElementById('calGrid');
+    while (grid.children.length > 7) {
+      grid.removeChild(grid.lastChild);
+    }
+
+    const primerDia = new Date(this.y, this.m, 1);
+    const start = (primerDia.getDay() || 7) - 1;
+    let d = 1 - start;
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 42; i++, d++) {
+      const date     = new Date(this.y, this.m, d);
+      const fueraMes = date.getMonth() !== this.m;
+
+      const cell = document.createElement('div');
+      cell.className = 'calendario-celda' + (fueraMes ? ' fuera-mes' : '');
+
+      const cellDate = new Date(date);
+      cellDate.setHours(0, 0, 0, 0);
+      if (cellDate.getTime() === hoy.getTime()) {
+        cell.classList.add('hoy');
+      }
+
+      cell.innerHTML = `<div class="calendario-dia-numero">${date.getDate()}</div>`;
+
+      if (!fueraMes) {
+        const fechaStr  = this.formatearFecha(date);
+        const actsDia   = this.acts.filter(a => a.fecha === fechaStr);
+
+        if (actsDia.length > 0) {
+          cell.appendChild(this.renderChips(actsDia));
+          cell.onclick = () => this.abrirModal(date, actsDia);
+        }
+      }
+
+      grid.appendChild(cell);
+    }
+
+    console.log('🗓️ Calendario renderizado con 42 celdas');
+  };
+// MOD-004-007: FIN
+
+// MOD-004-008: RENDER CHIPS [INICIO]
+  CalendarioModule.renderChips = function(actsDia) {
+    const container = document.createElement('div');
+    container.className = 'cal-chips-container';
+
+    const visibles  = actsDia.slice(0, MAX_CHIPS);
+    const restantes = actsDia.length - MAX_CHIPS;
+
+    visibles.forEach(a => {
+      const chip = document.createElement('div');
+      chip.className = 'cal-chip ' + a.tipo;
+      const tipoCorto  = this.tipoCorto(a.tipo);
+      const cursoCorto = a.curso.length > 6 ? a.curso.substring(0, 6) : a.curso;
+      chip.textContent = tipoCorto + ': ' + cursoCorto;
+      container.appendChild(chip);
+    });
+
+    if (restantes > 0) {
+      const mas = document.createElement('div');
+      mas.className = 'cal-chip-mas';
+      mas.textContent = '+' + restantes + ' más';
+      container.appendChild(mas);
+    }
+
+    return container;
+  };
+
+  CalendarioModule.tipoCorto = function(tipo) {
+    const mapa = {
+      'evaluacion': 'Eval',
+      'tarea':      'Tarea',
+      'lectura':    'Lect',
+      'actividad':  'Act'
+    };
+    return mapa[tipo] || tipo.substring(0, 5);
+  };
+// MOD-004-008: FIN
+
+// MOD-004-009: MODAL [INICIO]
+  CalendarioModule.abrirModal = function(fecha, actividades) {
+    console.log('🗓️ Abriendo modal para:', this.formatearFecha(fecha), 'con', actividades.length, 'actividades');
+
+    document.getElementById('modalTitulo').textContent =
+      `${fecha.getDate()} de ${MESES[fecha.getMonth()]} ${this.y}`;
+
+    const body = document.getElementById('modalBody');
+    body.innerHTML = actividades.map(a => `
+      <div class="calendario-actividad-item ${a.tipo}">
+        <strong>${a.tipoNombre}</strong>
+        <div>${a.nombre}</div>
+        ${a.curso ? `<div>Curso: ${a.curso}</div>` : ''}
+      </div>
+    `).join('');
+
+    document.getElementById('calModal').classList.add('active');
+  };
+
+  CalendarioModule.cerrar = function() {
+    console.log('🗓️ Cerrando modal');
+    document.getElementById('calModal').classList.remove('active');
+  };
+
+  CalendarioModule.cerrarSiFondo = function(event) {
+    if (event.target.id === 'calModal') {
+      this.cerrar();
+    }
+  };
+// MOD-004-009: FIN
+
+// MOD-004-010: HELPERS [INICIO]
+  CalendarioModule.formatearFecha = function(date) {
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  };
+
+  CalendarioModule.mostrarError = function(titulo, subtitulo) {
+    const loading = document.getElementById('calLoading');
+    const error   = document.getElementById('calError');
+    const grid    = document.getElementById('calGrid');
+
+    if (loading) loading.classList.remove('active');
+    if (grid)    grid.style.display = 'none';
+
+    if (error) {
+      error.classList.add('active');
+      const t = error.querySelector('.calendario-error-text');
+      const s = error.querySelector('.calendario-error-subtext');
+      if (t) t.textContent = titulo    || 'Error';
+      if (s) s.textContent = subtitulo || 'Por favor, recarga la página';
+    }
+  };
+// MOD-004-010: FIN
+
+// MOD-004-011: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
   window.CalendarioModule = CalendarioModule;
 
-  // AUTO-INIT CON RETRY
   setTimeout(() => {
-    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
-      console.log('🗓️ currentUser detectado, auto-inicializando...');
-      CalendarioModule.init();
-    } else {
-      console.log('🗓️ currentUser no disponible, iniciando retry logic...');
-      CalendarioModule.init();
-    }
+    CalendarioModule.init();
   }, 150);
 
-  console.log('%c🗓️ CalendarioModule V01.20 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+  console.log('%c🗓️ CalendarioModule V01.22 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
 })();
+// MOD-004-011: FIN
 </script>
 <!-- MOD-004: FIN -->
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Calendario mensual interactivo con vista de actividades académicas
-Muestra evaluaciones, tareas, lecturas y actividades del horario semanal
+Calendario mensual interactivo. Muestra evaluaciones, tareas, lecturas
+y actividades del horario semanal como chips con color por tipo.
+Click en celda abre modal con detalle del día.
 
-FUNCIONALIDAD:
-Renderizar calendario mensual con grid de 6x7
-Navegar entre meses (anterior/siguiente/hoy)
-Cargar actividades desde múltiples fuentes
-Mostrar indicadores visuales por tipo de actividad
-Modal con detalle de actividades al hacer click en día
-
-TIPOS DE ACTIVIDADES:
-Evaluaciones (rojo): Exámenes y pruebas
-Tareas (amarillo): Trabajos y asignaciones
-Lecturas (verde): Material de lectura
-Actividades (azul): Horario semanal
-
-ESTRUCTURA DE DATOS:
-Cada actividad contiene:
-- tipo: evaluacion, tarea, lectura, actividad
-- tipoNombre: Nombre legible del tipo
-- fecha: DD/MM/AAAA
-- nombre: Nombre de la actividad
-- curso: Código del curso
-
-CARACTERÍSTICAS TÉCNICAS:
-Módulo objeto CalendarioModule
-Retry logic para currentUser (5 intentos, 200ms)
-Promise.all para carga paralela de datos
-Validación robusta de respuestas backend
-Logs exhaustivos con prefijo 🗓️
-
-MAPEO DE CAMPOS BACKEND:
-Evaluaciones: FechaEval → Evaluacion
-Tareas: FechaEntrega → TipoTarea
-Lecturas: FechaEval → Título
-Horario: FechaHS → Actividad
-
-CONEXIÓN BACKEND:
-studentObtenerEvaluaciones({ codeAlum }): Lista de evaluaciones
-studentObtenerTareas({ codeAlum }): Lista de tareas
-studentObtenerLecturas({ codeAlum }): Lista de lecturas
-studentObtenerHorarioSem({ codeAlum }): Horario semanal
+CRÍTICO:
+- Prefijo CSS: .cal-* (no compartir con otros módulos)
+- window.CalendarioModule expuesto globalmente (IIFE)
+- Retry logic: 5 intentos x 200ms para currentUser
 
 DEPENDENCIAS:
-currentUser.codeAlum: Identificador del estudiante
-Requiere backend V01.25+ (fechas DD/MM/AAAA)
-
-CALENDARIO:
-Grid de 7 columnas (Lun-Dom)
-42 celdas (6 semanas)
-Semana comienza en Lunes
-Marca el día actual con borde azul
-Días fuera del mes en gris
-
-INDICADORES:
-Puntos de colores en días con actividades
-Un punto por tipo único de actividad
-Click en día abre modal con lista completa
-
-MODAL:
-Header con fecha seleccionada
-Lista de actividades con colores por tipo
-Cierre con botón X o click fuera del modal
-
-NAVEGACIÓN:
-← Anterior: Mes anterior
-Hoy: Volver al mes actual
-Siguiente →: Mes siguiente
-
-ESTADOS UI:
-Loading: Spinner mientras carga datos
-Error: Mensaje de error con opción de recarga
-Calendario: Grid con días y actividades
-
-PROTECCIONES:
-Previene doble carga (_loaded flag)
-Init idempotente (_initDone flag)
-Retry logic robusto para currentUser
-Validación de respuestas NULL/success/data
-
-RESPONSIVE:
-Mobile: Header en columna, celdas más pequeñas
-Desktop: Header en fila, celdas amplias
-Modal: Ancho adaptativo (95% mobile, 90% desktop)
-
-CAMBIOS V01.19 → V01.20:
-Remodulación Estándar CodeWorkShop v4.0
-CSS en MOD-002
-HTML en MOD-003
-JavaScript (módulo objeto) en MOD-004
-Comentarios aligerados
-Notas consolidadas en MOD-099
-Mantiene lógica funcional sin cambios
-Mantiene retry logic y mapeo de campos corregidos
+- currentUser.codeAlum (requerido)
+- studentObtenerEvaluaciones, studentObtenerTareas,
+  studentObtenerLecturas, studentObtenerHorarioSem
 -->
 <!-- MOD-099: FIN -->
