@@ -1,0 +1,797 @@
+<!-- MOD-001: ENCABEZADO [INICIO] -->
+<!--
+*****************************************
+PROYECTO: PBE Control
+ARCHIVO: 2modaldeberes.html
+VERSIÓN: 01.00
+FECHA: 13/02/2026 11:23 (UTC-5)
+*****************************************
+-->
+<!-- MOD-001: FIN -->
+
+<!-- MOD-002: ESTILOS CSS [INICIO] -->
+<style>
+
+/* MOD-002-001: MODAL OVERLAY Y CONTENEDOR [INICIO] */
+.md-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 20000;
+  align-items: center;
+  justify-content: center;
+}
+.md-overlay.active {
+  display: flex;
+}
+.md-contenedor {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  width: 90%;
+  max-width: 560px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.28);
+  animation: mdFadeIn 0.25s ease;
+}
+@keyframes mdFadeIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* MOD-002-001: FIN */
+
+/* MOD-002-002: HEADER DEL MODAL [INICIO] */
+.md-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #f0f0f0;
+}
+.md-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+.md-btn-cerrar {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+.md-btn-cerrar:hover { color: #333; }
+/* MOD-002-002: FIN */
+
+/* MOD-002-003: SELECTOR DE TIPO [INICIO] */
+.md-tipo-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.md-tipo-btn {
+  flex: 1;
+  padding: 9px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.md-tipo-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+.md-tipo-btn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+/* MOD-002-003: FIN */
+
+/* MOD-002-004: FORM GRUPOS, LABELS E INPUTS [INICIO] */
+.md-form { display: none; }
+.md-form.active { display: block; }
+.md-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.md-grupo { display: flex; flex-direction: column; }
+.md-grupo label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 5px;
+}
+.md-grupo label .md-req { color: #dc3545; }
+.md-grupo input,
+.md-grupo select {
+  padding: 9px 11px;
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.md-grupo input:focus,
+.md-grupo select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.md-grupo small {
+  margin-top: 3px;
+  font-size: 11px;
+  color: #888;
+}
+/* MOD-002-004: FIN */
+
+/* MOD-002-005: BOTONES DE ACCIÓN [INICIO] */
+.md-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  justify-content: flex-end;
+}
+.md-btn {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.md-btn-primario {
+  background: #667eea;
+  color: white;
+}
+.md-btn-primario:hover { background: #5568d3; }
+.md-btn-primario:disabled {
+  background: #b0b8f0;
+  cursor: not-allowed;
+}
+.md-btn-secundario {
+  background: #e9ecef;
+  color: #555;
+}
+.md-btn-secundario:hover { background: #dee2e6; }
+/* MOD-002-005: FIN */
+
+/* MOD-002-006: RESPONSIVE Y ANIMACIONES [INICIO] */
+.md-alerta {
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  display: none;
+}
+.md-alerta.active { display: block; }
+.md-alerta.error   { background: #fdecea; color: #c0392b; border-left: 4px solid #e74c3c; }
+.md-alerta.success { background: #eafaf1; color: #1e8449;  border-left: 4px solid #2ecc71; }
+@media (max-width: 600px) {
+  .md-contenedor { padding: 20px; }
+  .md-tipo-btn   { font-size: 12px; padding: 8px 0; }
+  .md-acciones   { flex-direction: column; }
+  .md-btn        { width: 100%; }
+}
+/* MOD-002-006: FIN */
+
+</style>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: HTML — OVERLAY Y WRAPPER [INICIO] -->
+<div id="mdOverlay" class="md-overlay" onclick="window.ModalDeberModule.cerrarSiFondo(event)">
+  <div class="md-contenedor" onclick="event.stopPropagation()">
+<!-- MOD-003: FIN -->
+
+<!-- MOD-004: HTML — HEADER DEL MODAL [INICIO] -->
+    <div class="md-header">
+      <h3 id="mdTitulo">Nuevo Deber</h3>
+      <button class="md-btn-cerrar" onclick="window.ModalDeberModule.cerrar()" title="Cerrar">×</button>
+    </div>
+    <div id="mdAlerta" class="md-alerta"></div>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-005: HTML — SELECTOR TIPO DEBER [INICIO] -->
+    <div class="md-tipo-nav">
+      <button class="md-tipo-btn active" id="mdBtnEval"  onclick="window.ModalDeberModule.cambiarTipo('eval')">📝 Evaluación</button>
+      <button class="md-tipo-btn"        id="mdBtnTarea" onclick="window.ModalDeberModule.cambiarTipo('tarea')">✏️ Tarea</button>
+      <button class="md-tipo-btn"        id="mdBtnLect"  onclick="window.ModalDeberModule.cambiarTipo('lect')">📖 Lectura</button>
+    </div>
+<!-- MOD-005: FIN -->
+
+<!-- MOD-006: HTML — FORMULARIO EVALUACIÓN [INICIO] -->
+    <div id="mdFormEval" class="md-form active">
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Curso <span class="md-req">*</span></label>
+          <select id="md-eval-curso"><option value="">Seleccionar curso...</option></select>
+        </div>
+        <div class="md-grupo">
+          <label>Nombre <span class="md-req">*</span></label>
+          <input type="text" id="md-eval-nombre" placeholder="Ej: Parcial 1">
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Fecha <span class="md-req">*</span></label>
+          <input type="text" id="md-eval-fecha" placeholder="DD/MM/AAAA">
+        </div>
+        <div class="md-grupo">
+          <label>Nota</label>
+          <input type="number" id="md-eval-nota" placeholder="0 - 20" min="0" max="20" step="0.1">
+        </div>
+        <div class="md-grupo">
+          <label>Peso (%)</label>
+          <input type="number" id="md-eval-peso" placeholder="%" min="0" max="100">
+        </div>
+      </div>
+      <div class="md-acciones">
+        <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
+        <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitEval()">Guardar</button>
+      </div>
+    </div>
+<!-- MOD-006: FIN -->
+
+<!-- MOD-007: HTML — FORMULARIO TAREA [INICIO] -->
+    <div id="mdFormTarea" class="md-form">
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Curso <span class="md-req">*</span></label>
+          <select id="md-tarea-curso"><option value="">Seleccionar curso...</option></select>
+        </div>
+        <div class="md-grupo">
+          <label>Nombre <span class="md-req">*</span></label>
+          <input type="text" id="md-tarea-nombre" placeholder="Ej: Trabajo de Investigación">
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Fecha de Entrega <span class="md-req">*</span></label>
+          <input type="text" id="md-tarea-fechaentrega" placeholder="DD/MM/AAAA">
+        </div>
+        <div class="md-grupo">
+          <label>Fecha de Realización</label>
+          <input type="text" id="md-tarea-fecharealiz" placeholder="DD/MM/AAAA">
+          <small>Opcional</small>
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Nota</label>
+          <input type="number" id="md-tarea-nota" placeholder="0 - 20" min="0" max="20" step="0.1">
+        </div>
+        <div class="md-grupo">
+          <label>Peso (%)</label>
+          <input type="number" id="md-tarea-peso" placeholder="%" min="0" max="100">
+        </div>
+      </div>
+      <div class="md-acciones">
+        <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
+        <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitTarea()">Guardar</button>
+      </div>
+    </div>
+<!-- MOD-007: FIN -->
+
+<!-- MOD-008: HTML — FORMULARIO LECTURA [INICIO] -->
+    <div id="mdFormLect" class="md-form">
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Curso <span class="md-req">*</span></label>
+          <select id="md-lect-curso"><option value="">Seleccionar curso...</option></select>
+        </div>
+        <div class="md-grupo">
+          <label>Título <span class="md-req">*</span></label>
+          <input type="text" id="md-lect-titulo" placeholder="Ej: El Principito">
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Total Páginas <span class="md-req">*</span></label>
+          <input type="number" id="md-lect-cantpag" placeholder="Ej: 120" min="1">
+        </div>
+        <div class="md-grupo">
+          <label>Páginas Leídas <span class="md-req">*</span></label>
+          <input type="number" id="md-lect-pagactual" placeholder="0" min="0" value="0">
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Fecha Inicio <span class="md-req">*</span></label>
+          <input type="text" id="md-lect-fechainicio" placeholder="DD/MM/AAAA">
+        </div>
+        <div class="md-grupo">
+          <label>Fecha Fin <span class="md-req">*</span></label>
+          <input type="text" id="md-lect-fechafin" placeholder="DD/MM/AAAA">
+        </div>
+      </div>
+      <div class="md-fila">
+        <div class="md-grupo">
+          <label>Fecha Evaluación</label>
+          <input type="text" id="md-lect-fechaeval" placeholder="DD/MM/AAAA">
+          <small>Opcional</small>
+        </div>
+        <div class="md-grupo">
+          <label>Nota</label>
+          <input type="number" id="md-lect-nota" placeholder="0 - 20" min="0" max="20" step="0.1">
+        </div>
+        <div class="md-grupo">
+          <label>Peso (%)</label>
+          <input type="number" id="md-lect-peso" placeholder="%" min="0" max="100">
+        </div>
+      </div>
+      <div class="md-acciones">
+        <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
+        <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitLect()">Guardar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- MOD-008: FIN -->
+
+<!-- MOD-009: JAVASCRIPT — MODALDEBEREMODULE [INICIO] -->
+<script>
+
+// MOD-009-001: ENCAPSULAMIENTO IIFE Y VARIABLES [INICIO]
+(function PBE_MODAL_DEBERES() {
+  'use strict';
+
+  if (window.ModalDeberModule && window.ModalDeberModule._loaded) {
+    console.log('📋 ModalDeberModule ya cargado, ignorando');
+    return;
+  }
+
+  let _tipoActivo = 'eval';
+  let _fechaActual = '';
+  let _origen      = '';
+  let _cursosCache = [];
+  let _cursosListos = false;
+// MOD-009-001: FIN
+
+// MOD-009-002: ABRIR MODAL [INICIO]
+  function abrir(params) {
+    params = params || {};
+    _tipoActivo  = params.tipo   || 'eval';
+    _fechaActual = params.fecha  || '';
+    _origen      = params.origen || '';
+
+    _limpiarTodo();
+    _actualizarTitulo();
+    cambiarTipo(_tipoActivo);
+    _preFecha();
+
+    if (!_cursosListos) {
+      _cargarCursos();
+    }
+
+    document.getElementById('mdOverlay').classList.add('active');
+    console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| fecha:', _fechaActual, '| origen:', _origen);
+  }
+// MOD-009-002: FIN
+
+// MOD-009-003: CERRAR MODAL Y LIMPIAR ESTADO [INICIO]
+  function cerrar() {
+    document.getElementById('mdOverlay').classList.remove('active');
+    _ocultarAlerta();
+  }
+
+  function cerrarSiFondo(event) {
+    if (event.target.id === 'mdOverlay') cerrar();
+  }
+
+  function _limpiarTodo() {
+    _limpiarEval();
+    _limpiarTarea();
+    _limpiarLect();
+    _ocultarAlerta();
+  }
+
+  function _limpiarEval() {
+    _val('md-eval-curso',  '');
+    _val('md-eval-nombre', '');
+    _val('md-eval-fecha',  '');
+    _val('md-eval-nota',   '');
+    _val('md-eval-peso',   '');
+  }
+
+  function _limpiarTarea() {
+    _val('md-tarea-curso',        '');
+    _val('md-tarea-nombre',       '');
+    _val('md-tarea-fechaentrega', '');
+    _val('md-tarea-fecharealiz',  '');
+    _val('md-tarea-nota',         '');
+    _val('md-tarea-peso',         '');
+  }
+
+  function _limpiarLect() {
+    _val('md-lect-curso',       '');
+    _val('md-lect-titulo',      '');
+    _val('md-lect-cantpag',     '');
+    _val('md-lect-pagactual',   '0');
+    _val('md-lect-fechainicio', '');
+    _val('md-lect-fechafin',    '');
+    _val('md-lect-fechaeval',   '');
+    _val('md-lect-nota',        '');
+    _val('md-lect-peso',        '');
+  }
+// MOD-009-003: FIN
+
+// MOD-009-004: CAMBIAR TIPO ACTIVO [INICIO]
+  function cambiarTipo(tipo) {
+    _tipoActivo = tipo;
+
+    ['eval', 'tarea', 'lect'].forEach(function(t) {
+      const btn  = document.getElementById('mdBtn' + _capitalizar(t));
+      const form = document.getElementById('mdForm' + _capitalizar(t));
+      if (btn)  btn.classList.toggle('active',  t === tipo);
+      if (form) form.classList.toggle('active', t === tipo);
+    });
+
+    _actualizarTitulo();
+    _preFecha();
+    _ocultarAlerta();
+    console.log('[ModalDeberModule] Tipo activo:', _tipoActivo);
+  }
+
+  function _actualizarTitulo() {
+    const titulos = { eval: 'Nueva Evaluación', tarea: 'Nueva Tarea', lect: 'Nueva Lectura' };
+    const el = document.getElementById('mdTitulo');
+    if (el) el.textContent = titulos[_tipoActivo] || 'Nuevo Deber';
+  }
+
+  function _preFecha() {
+    if (!_fechaActual) return;
+    if (_tipoActivo === 'eval')  _val('md-eval-fecha',          _fechaActual);
+    if (_tipoActivo === 'tarea') _val('md-tarea-fechaentrega',  _fechaActual);
+    if (_tipoActivo === 'lect')  _val('md-lect-fechainicio',    _fechaActual);
+  }
+// MOD-009-004: FIN
+
+// MOD-009-005: CARGAR CURSOS DESDE GAS [INICIO]
+  function _cargarCursos() {
+    if (typeof currentUser === 'undefined' || !currentUser.codeAlum) return;
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response && response.success && Array.isArray(response.data)) {
+          _cursosCache  = response.data;
+          _cursosListos = true;
+          _poblarSelects();
+        }
+      })
+      .withFailureHandler(function(e) {
+        console.error('[ModalDeberModule] Error al cargar cursos:', e);
+      })
+      .studentObtenerCursos({ codeAlum: currentUser.codeAlum });
+  }
+// MOD-009-005: FIN
+
+// MOD-009-006: POBLAR SELECTS DE CURSOS [INICIO]
+  function _poblarSelects() {
+    ['md-eval-curso', 'md-tarea-curso', 'md-lect-curso'].forEach(function(id) {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Seleccionar curso...</option>';
+      _cursosCache.forEach(function(c) {
+        const opt = document.createElement('option');
+        opt.value       = c.Curso;
+        opt.textContent = c.Curso;
+        sel.appendChild(opt);
+      });
+    });
+  }
+// MOD-009-006: FIN
+
+// MOD-009-007: VALIDACIÓN DE CAMPOS [INICIO]
+  function _validarFecha(f) {
+    return /^\d{2}\/\d{2}\/\d{4}$/.test(f);
+  }
+
+  function _get(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function _mostrarAlerta(tipo, msg) {
+    const el = document.getElementById('mdAlerta');
+    if (!el) return;
+    el.className  = 'md-alerta active ' + tipo;
+    el.textContent = msg;
+  }
+
+  function _ocultarAlerta() {
+    const el = document.getElementById('mdAlerta');
+    if (el) { el.className = 'md-alerta'; el.textContent = ''; }
+  }
+// MOD-009-007: FIN
+
+// MOD-009-008: SUBMIT EVALUACIÓN [INICIO]
+  function submitEval() {
+    const curso   = _get('md-eval-curso');
+    const nombre  = _get('md-eval-nombre');
+    const fecha   = _get('md-eval-fecha');
+    const nota    = _get('md-eval-nota');
+    const peso    = _get('md-eval-peso');
+
+    if (!curso || !nombre || !fecha) {
+      _mostrarAlerta('error', 'Completa los campos obligatorios: Curso, Nombre y Fecha.');
+      return;
+    }
+    if (!_validarFecha(fecha)) {
+      _mostrarAlerta('error', 'Formato de fecha inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+
+    _bloquearBtn('mdFormEval');
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (!response || response.success !== true) {
+          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la evaluación.');
+          _desbloquearBtn('mdFormEval');
+          return;
+        }
+        _onGuardadoExitoso('Evaluación guardada exitosamente.');
+      })
+      .withFailureHandler(function(e) {
+        console.error('[ModalDeberModule] Error eval:', e);
+        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+        _desbloquearBtn('mdFormEval');
+      })
+      .studentAgregarEvaluacion({
+        codeAlum: currentUser.codeAlum,
+        curso:    curso,
+        nomEval:  nombre,
+        fechaEval: fecha,
+        nota:     nota,
+        peso:     peso,
+        sem:      ''
+      });
+  }
+// MOD-009-008: FIN
+
+// MOD-009-009: SUBMIT TAREA [INICIO]
+  function submitTarea() {
+    const curso        = _get('md-tarea-curso');
+    const nombre       = _get('md-tarea-nombre');
+    const fechaEntrega = _get('md-tarea-fechaentrega');
+    const fechaRealiz  = _get('md-tarea-fecharealiz');
+    const nota         = _get('md-tarea-nota');
+    const peso         = _get('md-tarea-peso');
+
+    if (!curso || !nombre || !fechaEntrega) {
+      _mostrarAlerta('error', 'Completa los campos obligatorios: Curso, Nombre y Fecha de Entrega.');
+      return;
+    }
+    if (!_validarFecha(fechaEntrega)) {
+      _mostrarAlerta('error', 'Formato de fecha de entrega inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+    if (fechaRealiz && !_validarFecha(fechaRealiz)) {
+      _mostrarAlerta('error', 'Formato de fecha de realización inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+
+    _bloquearBtn('mdFormTarea');
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (!response || response.success !== true) {
+          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la tarea.');
+          _desbloquearBtn('mdFormTarea');
+          return;
+        }
+        _onGuardadoExitoso('Tarea guardada exitosamente.');
+      })
+      .withFailureHandler(function(e) {
+        console.error('[ModalDeberModule] Error tarea:', e);
+        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+        _desbloquearBtn('mdFormTarea');
+      })
+      .studentAgregarTarea({
+        codeAlum:     currentUser.codeAlum,
+        curso:        curso,
+        tarea:        nombre,
+        fechaEntrega: fechaEntrega,
+        fechaAccion:  fechaRealiz,
+        nota:         nota,
+        peso:         peso,
+        sem:          ''
+      });
+  }
+// MOD-009-009: FIN
+
+// MOD-009-010: SUBMIT LECTURA [INICIO]
+  function submitLect() {
+    const curso       = _get('md-lect-curso');
+    const titulo      = _get('md-lect-titulo');
+    const cantPag     = _get('md-lect-cantpag');
+    const pagActual   = _get('md-lect-pagactual') || '0';
+    const fechaInicio = _get('md-lect-fechainicio');
+    const fechaFin    = _get('md-lect-fechafin');
+    const fechaEval   = _get('md-lect-fechaeval');
+    const nota        = _get('md-lect-nota');
+    const peso        = _get('md-lect-peso');
+
+    if (!curso || !titulo || !cantPag || !fechaInicio || !fechaFin) {
+      _mostrarAlerta('error', 'Completa los campos obligatorios: Curso, Título, Páginas, Fecha Inicio y Fecha Fin.');
+      return;
+    }
+    if (!_validarFecha(fechaInicio)) {
+      _mostrarAlerta('error', 'Formato de fecha de inicio inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+    if (!_validarFecha(fechaFin)) {
+      _mostrarAlerta('error', 'Formato de fecha de fin inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+    if (fechaEval && !_validarFecha(fechaEval)) {
+      _mostrarAlerta('error', 'Formato de fecha de evaluación inválido. Usa DD/MM/AAAA.');
+      return;
+    }
+    if (parseInt(cantPag) <= 0) {
+      _mostrarAlerta('error', 'El total de páginas debe ser mayor a 0.');
+      return;
+    }
+
+    _bloquearBtn('mdFormLect');
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (!response || response.success !== true) {
+          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la lectura.');
+          _desbloquearBtn('mdFormLect');
+          return;
+        }
+        _onGuardadoExitoso('Lectura guardada exitosamente.');
+      })
+      .withFailureHandler(function(e) {
+        console.error('[ModalDeberModule] Error lectura:', e);
+        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+        _desbloquearBtn('mdFormLect');
+      })
+      .studentAgregarLectura({
+        codeAlum:    currentUser.codeAlum,
+        curso:       curso,
+        lectura:     titulo,
+        cantPag:     cantPag,
+        pagActual:   pagActual,
+        fechaInicio: fechaInicio,
+        fechaFin:    fechaFin,
+        fechaEval:   fechaEval,
+        nota:        nota,
+        peso:        peso,
+        sem:         ''
+      });
+  }
+// MOD-009-010: FIN
+
+// MOD-009-011: RETORNO AL ORIGEN [INICIO]
+  function _onGuardadoExitoso(mensaje) {
+    cerrar();
+
+    if (_origen === 'horariosem') {
+      if (window.PlanningModule && typeof window.PlanningModule.switchTab === 'function') {
+        window.PlanningModule.switchTab('horariosem');
+      }
+      setTimeout(function() {
+        if (typeof window.renderizarDeberes === 'function') {
+          window.renderizarDeberes();
+        } else if (window.HorarioSemanalModule && typeof window.HorarioSemanalModule.renderizarDeberes === 'function') {
+          window.HorarioSemanalModule.renderizarDeberes();
+        }
+      }, 300);
+    }
+
+    if (_origen === 'calendario') {
+      if (window.PlanningModule && typeof window.PlanningModule.switchTab === 'function') {
+        window.PlanningModule.switchTab('calendario');
+      }
+      setTimeout(function() {
+        if (window.CalendarioModule && typeof window.CalendarioModule.init === 'function') {
+          window.CalendarioModule.init();
+        }
+      }, 300);
+    }
+
+    if (typeof window.showAlert === 'function') {
+      window.showAlert('success', mensaje);
+    }
+
+    console.log('[ModalDeberModule] Guardado exitoso. Retornando a origen:', _origen);
+  }
+// MOD-009-011: FIN
+
+// MOD-009-012: HELPERS, EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
+  function _capitalizar(str) {
+    if (str === 'lect') return 'Lect';
+    if (str === 'eval') return 'Eval';
+    if (str === 'tarea') return 'Tarea';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function _val(id, valor) {
+    const el = document.getElementById(id);
+    if (el) el.value = valor;
+  }
+
+  function _bloquearBtn(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const btn = form.querySelector('.md-btn-primario');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+  }
+
+  function _desbloquearBtn(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const btn = form.querySelector('.md-btn-primario');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+    }
+  }
+
+  window.ModalDeberModule = {
+    _loaded:      true,
+    abrir:        abrir,
+    cerrar:       cerrar,
+    cerrarSiFondo: cerrarSiFondo,
+    cambiarTipo:  cambiarTipo,
+    submitEval:   submitEval,
+    submitTarea:  submitTarea,
+    submitLect:   submitLect
+  };
+
+  console.log('%c📋 ModalDeberModule V01.00 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
+
+})();
+// MOD-009-012: FIN
+
+</script>
+<!-- MOD-009: FIN -->
+
+<!-- MOD-099: NOTAS [INICIO] -->
+<!--
+DESCRIPCIÓN:
+Modal libre para registro de nuevos deberes (Evaluación, Tarea, Lectura)
+invocable desde cualquier subtab sin navegar fuera del origen.
+
+CRÍTICO:
+- Prefijo CSS e IDs: md-* (sin colisión con módulos existentes)
+- window.ModalDeberModule expuesto globalmente (IIFE)
+- _cursosCache se carga una sola vez por sesión de modal
+
+DEPENDENCIAS:
+- currentUser.codeAlum (requerido)
+- studentObtenerCursos, studentAgregarEvaluacion,
+  studentAgregarTarea, studentAgregarLectura (1code.gs)
+- window.PlanningModule.switchTab() para retorno al origen
+- window.renderizarDeberes() o HorarioSemanalModule.renderizarDeberes()
+  para refrescar vista tras guardar desde horariosem
+
+USO:
+  window.ModalDeberModule.abrir({ tipo, fecha, origen })
+  tipo:   'eval' | 'tarea' | 'lect'
+  fecha:  'DD/MM/AAAA' (se pre-carga en el campo de fecha del tipo)
+  origen: 'horariosem' | 'calendario' | (futuro)
+-->
+<!-- MOD-099: FIN -->
