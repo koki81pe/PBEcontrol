@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabcalendario.html
-VERSIÓN: 01.22
-FECHA: 12/02/2026 15:27 (UTC-5)
+VERSIÓN: 01.24
+FECHA: 14/02/2026 10:22 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -216,29 +216,65 @@ FECHA: 12/02/2026 15:27 (UTC-5)
   flex-direction: column;
   gap: 10px;
 }
+
+.cal-crear-deber-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.cal-crear-deber-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.cal-crear-deber-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.cal-crear-btn {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.cal-crear-btn:hover { opacity: 0.85; }
+.cal-crear-btn.eval   { background: #dc3545; }
+.cal-crear-btn.lect   { background: #28a745; }
+.cal-crear-btn.tarea  { background: #3498db; }
+.cal-crear-btn.cancel { background: #6c757d; }
 /* MOD-002-009: FIN */
 
 /* MOD-002-010: ITEMS ACTIVIDAD MODAL [INICIO] */
-.calendario-actividad-item {
-  padding: 12px;
-  border-radius: 8px;
-  border-left: 4px solid #ccc;
-  background: #f9f9f9;
-  font-size: 14px;
-}
-
-.calendario-actividad-item strong {
+.cal-deber-btn {
   display: block;
-  margin-bottom: 4px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-sizing: border-box;
 }
-
-.calendario-actividad-item.evaluacion { border-left-color: #dc3545; background: #fff5f5; }
-.calendario-actividad-item.tarea      { border-left-color: #3498db; background: #f0f8ff; }
-.calendario-actividad-item.lectura    { border-left-color: #28a745; background: #f0fff4; }
-.calendario-actividad-item.actividad  { border-left-color: #17a2b8; background: #f0feff; }
+.cal-deber-btn:hover      { opacity: 0.85; }
+.cal-deber-btn.evaluacion { background: #dc3545; }
+.cal-deber-btn.tarea      { background: #3498db; }
+.cal-deber-btn.lectura    { background: #28a745; }
+.cal-deber-btn.actividad  { background: #17a2b8; }
 /* MOD-002-010: FIN */
 
 /* MOD-002-011: LOADING Y ERROR [INICIO] */
@@ -328,6 +364,8 @@ FECHA: 12/02/2026 15:27 (UTC-5)
   </div>
 </div>
 
+<input type="hidden" id="calFechaActual" value="">
+
 <div id="calModal" class="calendario-modal" onclick="CalendarioModule.cerrarSiFondo(event)">
   <div class="calendario-modal-content" onclick="event.stopPropagation()">
     <div class="calendario-modal-header">
@@ -335,6 +373,15 @@ FECHA: 12/02/2026 15:27 (UTC-5)
       <button onclick="CalendarioModule.cerrar()">×</button>
     </div>
     <div id="modalBody" class="calendario-modal-body"></div>
+    <div class="cal-crear-deber-section">
+      <div class="cal-crear-deber-label">Crear deber:</div>
+      <div class="cal-crear-deber-btns">
+        <button class="cal-crear-btn eval"   onclick="CalendarioModule.crearDeber('eval')">Eval</button>
+        <button class="cal-crear-btn lect"   onclick="CalendarioModule.crearDeber('lect')">Lect</button>
+        <button class="cal-crear-btn tarea"  onclick="CalendarioModule.crearDeber('tarea')">Tarea</button>
+        <button class="cal-crear-btn cancel" onclick="CalendarioModule.cerrar()">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- MOD-003: FIN -->
@@ -425,10 +472,10 @@ FECHA: 12/02/2026 15:27 (UTC-5)
     if (grid)    grid.style.display = 'none';
 
     Promise.all([
-      this.call('studentObtenerEvaluaciones', 'FechaEval',    'Evaluacion', 'evaluacion', 'Evaluación'),
-      this.call('studentObtenerTareas',       'FechaEntrega', 'TipoTarea',  'tarea',      'Tarea'),
-      this.call('studentObtenerLecturas',     'FechaEval',    'Título',     'lectura',    'Lectura'),
-      this.call('studentObtenerHorarioSem',   'FechaHS',      'Actividad',  'actividad',  'Actividad')
+      this.call('studentObtenerEvaluaciones', 'FechaEval',    'NomEval',   'evaluacion', 'Evaluación'),
+      this.call('studentObtenerTareas',       'FechaEntrega', 'Tarea',     'tarea',      'Tarea'),
+      this.call('studentObtenerLecturas',     'FechaFin',     'Lectura',   'lectura',    'Lectura'),
+      this.call('studentObtenerHorarioSem',   'FechaHS',      'Actividad', 'actividad',  'Actividad')
     ]).then(results => {
       this.acts = results.flat();
       console.log('🗓️ Total actividades cargadas:', this.acts.length);
@@ -458,9 +505,10 @@ FECHA: 12/02/2026 15:27 (UTC-5)
           const mapped = response.data.map(item => ({
             tipo,
             tipoNombre,
-            fecha:  item[campoFecha]  || '',
-            nombre: item[campoNombre] || 'Sin nombre',
-            curso:  item.Curso        || ''
+            fecha:      item[campoFecha]  || '',
+            nombre:     item[campoNombre] || '',
+            curso:      item.Curso        || '',
+            _rowNumber: item._rowNumber   || null
           }));
 
           console.log('🗓️', fn, 'mapeados:', mapped.length);
@@ -509,13 +557,14 @@ FECHA: 12/02/2026 15:27 (UTC-5)
       cell.innerHTML = `<div class="calendario-dia-numero">${date.getDate()}</div>`;
 
       if (!fueraMes) {
-        const fechaStr  = this.formatearFecha(date);
-        const actsDia   = this.acts.filter(a => a.fecha === fechaStr);
+        const fechaStr = this.formatearFecha(date);
+        const actsDia  = this.acts.filter(a => a.fecha === fechaStr);
 
         if (actsDia.length > 0) {
           cell.appendChild(this.renderChips(actsDia));
-          cell.onclick = () => this.abrirModal(date, actsDia);
         }
+
+        cell.onclick = () => this.abrirModal(date, actsDia);
       }
 
       grid.appendChild(cell);
@@ -565,31 +614,91 @@ FECHA: 12/02/2026 15:27 (UTC-5)
 
 // MOD-004-009: MODAL [INICIO]
   CalendarioModule.abrirModal = function(fecha, actividades) {
-    console.log('🗓️ Abriendo modal para:', this.formatearFecha(fecha), 'con', actividades.length, 'actividades');
+    const fechaStr = this.formatearFecha(fecha);
+    console.log('🗓️ Abriendo modal para:', fechaStr, 'con', actividades.length, 'actividades');
 
-    document.getElementById('modalTitulo').textContent =
-      `${fecha.getDate()} de ${MESES[fecha.getMonth()]} ${this.y}`;
+    document.getElementById('modalTitulo').textContent = 'Deberes - ' + fechaStr;
+    document.getElementById('calFechaActual').value = fechaStr;
 
     const body = document.getElementById('modalBody');
-    body.innerHTML = actividades.map(a => `
-      <div class="calendario-actividad-item ${a.tipo}">
-        <strong>${a.tipoNombre}</strong>
-        <div>${a.nombre}</div>
-        ${a.curso ? `<div>Curso: ${a.curso}</div>` : ''}
-      </div>
-    `).join('');
+    let html = '';
 
+    if (actividades.length === 0) {
+      html = '<p style="color:#999;text-align:center;padding:10px 0;">Sin deberes este día</p>';
+    } else {
+      actividades.forEach(a => {
+        const tipoCorto   = this.tipoCorto(a.tipo);
+        const nombreCorto = a.nombre ? a.nombre.substring(0, 25) : 'Sin nombre';
+        const cursoCorto  = a.curso  ? a.curso.substring(0, 8)   : '';
+        const rowNum      = a._rowNumber || 0;
+        html += `<button type="button" class="cal-deber-btn ${a.tipo}"
+          onclick="CalendarioModule.editarDeber('${a.tipo}', ${rowNum})">
+          ${tipoCorto} - ${cursoCorto}: ${nombreCorto}
+        </button>`;
+      });
+    }
+
+    body.innerHTML = html;
     document.getElementById('calModal').classList.add('active');
   };
 
   CalendarioModule.cerrar = function() {
     console.log('🗓️ Cerrando modal');
     document.getElementById('calModal').classList.remove('active');
+    document.getElementById('calFechaActual').value = '';
   };
 
   CalendarioModule.cerrarSiFondo = function(event) {
     if (event.target.id === 'calModal') {
       this.cerrar();
+    }
+  };
+
+  CalendarioModule.editarDeber = function(tipo, rowNumber) {
+    this.cerrar();
+    const tipoLower = tipo.toLowerCase();
+    console.log('🗓️ Editando deber:', tipo, 'rowNumber:', rowNumber);
+
+    if (tipoLower === 'evaluacion') {
+      window.switchTab('deberes');
+      setTimeout(function() { window.switchSubTabDeberes('eval'); }, 200);
+      setTimeout(function() {
+        if (window.EvalModule && typeof window.EvalModule.editarEval === 'function') {
+          window.EvalModule.editarEval(rowNumber);
+        }
+      }, 600);
+    } else if (tipoLower === 'tarea') {
+      window.switchTab('deberes');
+      setTimeout(function() { window.switchSubTabDeberes('tareas'); }, 200);
+      setTimeout(function() {
+        if (window.TareasModule && typeof window.TareasModule.editarTarea === 'function') {
+          window.TareasModule.editarTarea(rowNumber);
+        }
+      }, 600);
+    } else if (tipoLower === 'lectura') {
+      window.switchTab('deberes');
+      setTimeout(function() { window.switchSubTabDeberes('lecturas'); }, 200);
+      setTimeout(function() {
+        if (window.LecturasModule && typeof window.LecturasModule.editarLectura === 'function') {
+          window.LecturasModule.editarLectura(rowNumber);
+        }
+      }, 600);
+    }
+  };
+
+  CalendarioModule.crearDeber = function(tipo) {
+    const fecha = document.getElementById('calFechaActual').value;
+    this.cerrar();
+    console.log('🗓️ Crear deber tipo:', tipo, '| fecha:', fecha);
+
+    if (window.ModalDeberModule && typeof window.ModalDeberModule.abrir === 'function') {
+      window.ModalDeberModule.abrir({
+        tipo:   tipo,
+        fecha:  fecha,
+        origen: 'calendario'
+      });
+    } else {
+      console.error('❌ ModalDeberModule no disponible');
     }
   };
 // MOD-004-009: FIN
@@ -639,15 +748,17 @@ FECHA: 12/02/2026 15:27 (UTC-5)
 DESCRIPCIÓN:
 Calendario mensual interactivo. Muestra evaluaciones, tareas, lecturas
 y actividades del horario semanal como chips con color por tipo.
-Click en celda abre modal con detalle del día.
+Click en cualquier celda del mes abre modal con deberes del día.
 
 CRÍTICO:
 - Prefijo CSS: .cal-* (no compartir con otros módulos)
 - window.CalendarioModule expuesto globalmente (IIFE)
 - Retry logic: 5 intentos x 200ms para currentUser
+- FechaFin como fecha de referencia para lecturas en el grid
 
 DEPENDENCIAS:
 - currentUser.codeAlum (requerido)
+- window.ModalDeberModule (2modaldeberes.html) para crear deberes
 - studentObtenerEvaluaciones, studentObtenerTareas,
   studentObtenerLecturas, studentObtenerHorarioSem
 -->
