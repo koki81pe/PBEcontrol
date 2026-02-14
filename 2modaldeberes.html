@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.04
-FECHA: 14/02/2026 11:43 (UTC-5)
+VERSIÓN: 01.05
+FECHA: 14/02/2026 14:39 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -706,10 +706,8 @@ FECHA: 14/02/2026 11:43 (UTC-5)
         window.PlanningModule.switchTab('horariosem');
       }
       setTimeout(function() {
-        if (typeof window.renderizarDeberes === 'function') {
-          window.renderizarDeberes();
-        } else if (window.HorarioSemanalModule && typeof window.HorarioSemanalModule.renderizarDeberes === 'function') {
-          window.HorarioSemanalModule.renderizarDeberes();
+        if (typeof window.hsRefrescar === 'function') {
+          window.hsRefrescar();
         }
       }, 300);
     }
