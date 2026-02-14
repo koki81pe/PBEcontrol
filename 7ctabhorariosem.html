@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.54
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.56
+FECHA: 13/02/2026 12:19 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -2460,7 +2460,7 @@ function mostrarNotificacion(tipo, mensaje) {
 }
 // MOD-006-023: FIN
 
-// MOD-006-024: RENDERIZAR DEBERES V3 [INICIO]
+// MOD-006-024: RENDERIZAR DEBERES Y MODAL LISTA [INICIO]
 let deberesSemanaCache = [];
 let fechaSeleccionadaModal = null;
 
@@ -2470,31 +2470,28 @@ function renderizarDeberes() {
     console.warn('⚠️ Semana no encontrada para deberes');
     return;
   }
-  
+
   const fechaInicio = semana.FechaInicio;
-  const fechaFin = semana.FechaFin;
-  const fechas = calcularFechasSemana(semanaActual);
-  
+  const fechaFin    = semana.FechaFin;
+  const fechas      = calcularFechasSemana(semanaActual);
+
   console.log('📝 Cargando deberes de la semana', semanaActual);
-  
+
   google.script.run
-    .withSuccessHandler(response => {
+    .withSuccessHandler(function(response) {
       if (!response || !response.success) {
         console.warn('⚠️ Response inválido:', response);
         return;
       }
-      
       const deberes = response.data;
       if (!Array.isArray(deberes)) {
         console.warn('⚠️ deberes.data no es un array:', typeof deberes);
         return;
       }
-      
       deberesSemanaCache = filtrarDeberesPorFechas(deberes, fechaInicio, fechaFin);
-      
       llenarCeldasDeberes(fechas.dias, deberesSemanaCache);
     })
-    .withFailureHandler(e => {
+    .withFailureHandler(function(e) {
       console.error('❌ Error al cargar deberes:', e);
     })
     .studentObtenerTodosDeberes({ codeAlum: currentUser.codeAlum });
@@ -2502,60 +2499,49 @@ function renderizarDeberes() {
 
 function llenarCeldasDeberes(diasSemana, deberes) {
   const deberesPorDia = {};
-  
-  diasSemana.forEach(fecha => {
+
+  diasSemana.forEach(function(fecha) {
     const key = formatearFechaISO(fecha);
     deberesPorDia[key] = [];
   });
-  
-  deberes.forEach(deber => {
+
+  deberes.forEach(function(deber) {
     if (!deber.fecha) return;
     const fechaDeber = parsearFechaDDMMAAAA(deber.fecha);
     const key = formatearFechaISO(fechaDeber);
-    if (deberesPorDia[key]) {
-      deberesPorDia[key].push(deber);
-    }
+    if (deberesPorDia[key]) deberesPorDia[key].push(deber);
   });
-  
-  diasSemana.forEach(fecha => {
-    const key = formatearFechaISO(fecha);
+
+  diasSemana.forEach(function(fecha) {
+    const key   = formatearFechaISO(fecha);
     const celda = document.getElementById('hsDeberesCol-' + key);
-    
-    if (!celda) {
-      console.warn('⚠️ Celda de deberes no encontrada:', key);
-      return;
-    }
-    
+    if (!celda) return;
+
     const deberesDelDia = deberesPorDia[key] || [];
     let html = '';
-    
-    if (deberesDelDia.length === 0) {
-      html = '';
-    } else if (deberesDelDia.length <= 5) {
-      deberesDelDia.forEach(deber => {
-        const tipoCorto = obtenerTipoCorto(deber.tipo);
+
+    if (deberesDelDia.length > 0 && deberesDelDia.length <= 5) {
+      deberesDelDia.forEach(function(deber) {
+        const tipoCorto  = obtenerTipoCorto(deber.tipo);
         const cursoCorto = truncarCurso(deber.curso);
-        const tipoClass = deber.tipo.toLowerCase();
+        const tipoClass  = deber.tipo.toLowerCase();
         html += `<div class="hs-deber-item ${tipoClass}">${tipoCorto}: ${cursoCorto}</div>`;
       });
-    } else {
+    } else if (deberesDelDia.length > 5) {
       html = `<div class="hs-deberes-many">${deberesDelDia.length} deberes<br>Dar clic</div>`;
     }
-    
+
     celda.innerHTML = html;
   });
-  
+
   console.log('✅ Deberes cargados:', deberesSemanaCache.length);
 }
 
 function obtenerTipoCorto(tipo) {
   const tipos = {
-    'Evaluación': 'Eval',
-    'evaluación': 'Eval',
-    'Tarea': 'Tarea',
-    'tarea': 'Tarea',
-    'Lectura': 'Lect',
-    'lectura': 'Lect'
+    'Evaluación': 'Eval', 'evaluación': 'Eval',
+    'Tarea': 'Tarea',     'tarea': 'Tarea',
+    'Lectura': 'Lect',    'lectura': 'Lect'
   };
   return tipos[tipo] || tipo.substring(0, 5);
 }
@@ -2566,15 +2552,10 @@ function truncarCurso(curso) {
 }
 
 function filtrarDeberesPorFechas(deberes, fechaInicio, fechaFin) {
-  if (!Array.isArray(deberes)) {
-    console.error('❌ filtrarDeberesPorFechas: deberes no es un array', typeof deberes);
-    return [];
-  }
-  
+  if (!Array.isArray(deberes)) return [];
   const inicio = parsearFechaDDMMAAAA(fechaInicio);
-  const fin = parsearFechaDDMMAAAA(fechaFin);
-  
-  return deberes.filter(deber => {
+  const fin    = parsearFechaDDMMAAAA(fechaFin);
+  return deberes.filter(function(deber) {
     if (!deber.fecha) return false;
     const fechaDeber = parsearFechaDDMMAAAA(deber.fecha);
     return fechaDeber >= inicio && fechaDeber <= fin;
@@ -2583,33 +2564,30 @@ function filtrarDeberesPorFechas(deberes, fechaInicio, fechaFin) {
 
 function hsAbrirModalListaDeberes(fechaStr) {
   fechaSeleccionadaModal = fechaStr;
-  
-  const deberesDelDia = deberesSemanaCache.filter(d => d.fecha === fechaStr);
-  
+
+  const deberesDelDia = deberesSemanaCache.filter(function(d) { return d.fecha === fechaStr; });
   const header = document.getElementById('modalListaDeberesHeader');
-  const body = document.getElementById('modalListaDeberesBody');
-  const modal = document.getElementById('modalListaDeberes');
-  
+  const body   = document.getElementById('modalListaDeberesBody');
+  const modal  = document.getElementById('modalListaDeberes');
   if (!header || !body || !modal) return;
-  
-  header.textContent = `Deberes - ${fechaStr}`;
-  
+
+  header.textContent = 'Deberes - ' + fechaStr;
+
   let html = '';
-  
   if (deberesDelDia.length === 0) {
     html = '<p style="color:#999;text-align:center;padding:10px;">Sin deberes este día</p>';
   } else {
-    deberesDelDia.forEach(deber => {
-      const tipoClass = deber.tipo.toLowerCase();
-      const tipoCorto = obtenerTipoCorto(deber.tipo);
+    deberesDelDia.forEach(function(deber) {
+      const tipoClass   = deber.tipo.toLowerCase();
+      const tipoCorto   = obtenerTipoCorto(deber.tipo);
       const nombreCorto = deber.nombre ? deber.nombre.substring(0, 20) : 'Sin nombre';
-      html += `<button type="button" class="hs-lista-deber-btn ${tipoClass}" 
+      html += `<button type="button" class="hs-lista-deber-btn ${tipoClass}"
         onclick="window.hsEditarDeberDesdeModal('${deber.tipo}', ${deber._rowNumber})">
         ${tipoCorto} - ${deber.curso}: ${nombreCorto}
       </button>`;
     });
   }
-  
+
   body.innerHTML = html;
   modal.classList.add('active');
 }
@@ -2622,10 +2600,9 @@ function hsCerrarModalListaDeberes() {
 
 function hsEditarDeberDesdeModal(tipo, rowNumber) {
   hsCerrarModalListaDeberes();
-  
   const tipoLower = tipo.toLowerCase();
   console.log('📝 Editando deber:', tipo, 'rowNumber:', rowNumber);
-  
+
   if (tipoLower === 'evaluación' || tipoLower === 'evaluacion') {
     navegarYEjecutar('deberes', 'eval', function() {
       if (window.EvalModule && typeof window.EvalModule.editarEval === 'function') {
@@ -2633,7 +2610,6 @@ function hsEditarDeberDesdeModal(tipo, rowNumber) {
       } else if (typeof window.editarEval === 'function') {
         window.editarEval(rowNumber);
       } else {
-        console.error('❌ Función editarEval no disponible');
         mostrarNotificacion('error', 'No se pudo abrir el editor de evaluaciones');
       }
     });
@@ -2644,7 +2620,6 @@ function hsEditarDeberDesdeModal(tipo, rowNumber) {
       } else if (typeof window.editarTarea === 'function') {
         window.editarTarea(rowNumber);
       } else {
-        console.error('❌ Función editarTarea no disponible');
         mostrarNotificacion('error', 'No se pudo abrir el editor de tareas');
       }
     });
@@ -2655,7 +2630,6 @@ function hsEditarDeberDesdeModal(tipo, rowNumber) {
       } else if (typeof window.editarLectura === 'function') {
         window.editarLectura(rowNumber);
       } else {
-        console.error('❌ Función editarLectura no disponible');
         mostrarNotificacion('error', 'No se pudo abrir el editor de lecturas');
       }
     });
@@ -2663,56 +2637,30 @@ function hsEditarDeberDesdeModal(tipo, rowNumber) {
 }
 
 function hsCrearDeberDesdeModal(tipo) {
+  const fechaCapturada = fechaSeleccionadaModal;
   hsCerrarModalListaDeberes();
-  
-  console.log('📝 Creando deber tipo:', tipo);
-  
-  if (tipo === 'eval') {
-    navegarYEjecutar('deberes', 'eval', function() {
-      if (window.EvalModule && typeof window.EvalModule.toggleFormAgregar === 'function') {
-        window.EvalModule.toggleFormAgregar();
-      } else if (typeof window.toggleFormAgregar === 'function') {
-        window.toggleFormAgregar();
-      } else {
-        console.error('❌ Función toggleFormAgregar (eval) no disponible');
-        mostrarNotificacion('error', 'No se pudo abrir el formulario de evaluaciones');
-      }
+  console.log('📝 Creando deber tipo:', tipo, '| fecha:', fechaCapturada);
+
+  if (window.ModalDeberModule && typeof window.ModalDeberModule.abrir === 'function') {
+    window.ModalDeberModule.abrir({
+      tipo:   tipo,
+      fecha:  fechaCapturada || '',
+      origen: 'horariosem'
     });
-  } else if (tipo === 'tarea') {
-    navegarYEjecutar('deberes', 'tareas', function() {
-      if (window.TareasModule && typeof window.TareasModule.toggleFormAgregar === 'function') {
-        window.TareasModule.toggleFormAgregar();
-      } else if (typeof window.toggleFormAgregar === 'function') {
-        window.toggleFormAgregar();
-      } else {
-        console.error('❌ Función toggleFormAgregar (tareas) no disponible');
-        mostrarNotificacion('error', 'No se pudo abrir el formulario de tareas');
-      }
-    });
-  } else if (tipo === 'lect') {
-    navegarYEjecutar('deberes', 'lecturas', function() {
-      if (window.LecturasModule && typeof window.LecturasModule.toggleFormAgregar === 'function') {
-        window.LecturasModule.toggleFormAgregar();
-      } else if (typeof window.toggleFormAgregar === 'function') {
-        window.toggleFormAgregar();
-      } else {
-        console.error('❌ Función toggleFormAgregar (lecturas) no disponible');
-        mostrarNotificacion('error', 'No se pudo abrir el formulario de lecturas');
-      }
-    });
+  } else {
+    console.error('❌ ModalDeberModule no disponible');
+    mostrarNotificacion('error', 'No se pudo abrir el formulario de deberes');
   }
 }
 
 function navegarYEjecutar(tab, subtab, callback) {
   console.log('🔀 Navegando a:', tab, '>', subtab);
-  
   if (typeof window.switchTab === 'function') {
     window.switchTab(tab);
   } else {
     console.error('❌ switchTab no disponible');
     return;
   }
-  
   setTimeout(function() {
     if (typeof window.switchSubTabDeberes === 'function') {
       window.switchSubTabDeberes(subtab);
@@ -2720,11 +2668,8 @@ function navegarYEjecutar(tab, subtab, callback) {
       console.error('❌ switchSubTabDeberes no disponible');
       return;
     }
-    
     setTimeout(function() {
-      if (typeof callback === 'function') {
-        callback();
-      }
+      if (typeof callback === 'function') callback();
     }, 400);
   }, 200);
 }
@@ -2797,50 +2742,23 @@ console.log('%c📅 HorarioSemanalModule V01.49 CODEWORKSHOP cargado',
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Grid semanal 7×16 (7 AM-10 PM) para actividades dinámicas por semana.
-Gestión con navegación, copia y limpieza. Clases fijas + actividades coloreadas.
+Grid semanal con gestión de actividades y visualización de deberes
+por día. Navegación por semanas, copia y limpieza de semana.
 
-FUNCIONALIDAD:
-- Configuración fecha inicio ciclo ("1ra clase")
-- Navegación por semanas calculadas automáticamente
-- Clases fijas (grises, desde HorarioClase)
-- Actividades dinámicas (coloreadas por tipo)
-- Copiar/Limpiar semanas
-- Modal confirmación estilizado
-
-DEPENDENCIAS BACKEND:
-- studentObtenerConfigSemana()
-- studentGuardarConfigSemana()
-- studentObtenerSemanas()
-- studentCrearSemana()
-- studentObtenerCursos()
-- studentObtenerHorarioClases()
-- studentObtenerHorarioSem()
-- studentAgregarHorarioSem()
-- studentActualizarHorarioSem()
-- studentEliminarHorarioSem()
-- studentCopiarSemana()
-- studentLimpiarSemana()
-
-ESTRUCTURA:
-MOD-001: Encabezado
-MOD-002: Texto libre
-MOD-003: Estilos CSS
-MOD-004: Estructura HTML
-MOD-005: JavaScript (23 submódulos S01-S23)
-MOD-006: Notas
-
-CAMBIOS V01.32 → V01.33:
-- Remodulación según estándar CodeWorkShop v4.0
-- MOD-005 con 23 submódulos JavaScript
-- Delimitadores correctos (//) dentro de <script>
-- Fix: Parseo DD/MM/AAAA desde backend
-- Modal confirmación estilizado (no confirm() nativo)
-- Prefijo 'hs' en funciones globales
-
-AISLAMIENTO:
-- Prefijo CSS: .hs-*
-- Prefijo JS: window.hs*
+CRÍTICO:
+- Prefijo CSS: .hs-* / Prefijo JS: window.hs*
 - Sin conflicto con HorarioClase (.hc-*)
+- hsCrearDeberDesdeModal() invoca ModalDeberModule.abrir()
+  en lugar de navegar al tab Deberes
+
+DEPENDENCIAS:
+- currentUser.codeAlum (requerido)
+- window.ModalDeberModule (2modaldeberes.html) para crear deberes
+- studentObtenerConfigSemana, studentObtenerSemanas,
+  studentObtenerCursos, studentObtenerHorarioClases,
+  studentObtenerHorarioSem, studentAgregarHorarioSem,
+  studentActualizarHorarioSem, studentEliminarHorarioSem,
+  studentCopiarSemana, studentLimpiarSemana,
+  studentObtenerTodosDeberes
 -->
 <!-- MOD-099: FIN -->
