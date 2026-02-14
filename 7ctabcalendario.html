@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabcalendario.html
-VERSIÓN: 01.24
-FECHA: 14/02/2026 10:22 (UTC-5)
+VERSIÓN: 01.29
+FECHA: 14/02/2026 12:39 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -474,7 +474,7 @@ FECHA: 14/02/2026 10:22 (UTC-5)
     Promise.all([
       this.call('studentObtenerEvaluaciones', 'FechaEval',    'NomEval',   'evaluacion', 'Evaluación'),
       this.call('studentObtenerTareas',       'FechaEntrega', 'Tarea',     'tarea',      'Tarea'),
-      this.call('studentObtenerLecturas',     'FechaFin',     'Lectura',   'lectura',    'Lectura'),
+      this.call('studentObtenerLecturas',     'FechaEval',     'Lectura',   'lectura',    'Lectura'),
       this.call('studentObtenerHorarioSem',   'FechaHS',      'Actividad', 'actividad',  'Actividad')
     ]).then(results => {
       this.acts = results.flat();
@@ -736,10 +736,22 @@ FECHA: 14/02/2026 10:22 (UTC-5)
     CalendarioModule.init();
   }, 150);
 
-  console.log('%c🗓️ CalendarioModule V01.22 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+  console.log('%c🗓️ CalendarioModule V01.25 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
-})();
 // MOD-004-011: FIN
+
+// MOD-004-012: RELOAD [INICIO]
+  CalendarioModule.reload = function() {
+    console.log('🗓️ CalendarioModule.reload() llamado');
+    this._initDone = false;
+    this.load();
+  };
+// MOD-004-012: FIN
+
+// MOD-004-013: CIERRE IIFE [INICIO]
+})();
+// MOD-004-013: FIN
+
 </script>
 <!-- MOD-004: FIN -->
 
@@ -754,7 +766,8 @@ CRÍTICO:
 - Prefijo CSS: .cal-* (no compartir con otros módulos)
 - window.CalendarioModule expuesto globalmente (IIFE)
 - Retry logic: 5 intentos x 200ms para currentUser
-- FechaFin como fecha de referencia para lecturas en el grid
+- FechaEval como fecha de referencia para lecturas en el grid
+- reload() resetea _initDone y recarga datos sin retry de currentUser
 
 DEPENDENCIAS:
 - currentUser.codeAlum (requerido)
