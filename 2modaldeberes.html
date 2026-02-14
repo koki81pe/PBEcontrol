@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.00
-FECHA: 13/02/2026 11:23 (UTC-5)
+VERSIÓN: 01.03
+FECHA: 13/02/2026 12:34 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -401,6 +401,7 @@ FECHA: 13/02/2026 11:23 (UTC-5)
     _limpiarEval();
     _limpiarTarea();
     _limpiarLect();
+    _resetBotones();
     _ocultarAlerta();
   }
 
@@ -432,6 +433,18 @@ FECHA: 13/02/2026 11:23 (UTC-5)
     _val('md-lect-nota',        '');
     _val('md-lect-peso',        '');
   }
+
+  function _resetBotones() {
+    ['mdFormEval', 'mdFormTarea', 'mdFormLect'].forEach(function(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      const btn = form.querySelector('.md-btn-primario');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Guardar';
+      }
+    });
+  }
 // MOD-009-003: FIN
 
 // MOD-009-004: CAMBIAR TIPO ACTIVO [INICIO]
@@ -459,9 +472,9 @@ FECHA: 13/02/2026 11:23 (UTC-5)
 
   function _preFecha() {
     if (!_fechaActual) return;
-    if (_tipoActivo === 'eval')  _val('md-eval-fecha',          _fechaActual);
-    if (_tipoActivo === 'tarea') _val('md-tarea-fechaentrega',  _fechaActual);
-    if (_tipoActivo === 'lect')  _val('md-lect-fechainicio',    _fechaActual);
+    if (_tipoActivo === 'eval') _val('md-eval-fecha', _fechaActual);
+    if (_tipoActivo === 'tarea') _val('md-tarea-fechaentrega', _fechaActual);
+    if (_tipoActivo === 'lect') _val('md-lect-fechaeval', _fechaActual);
   }
 // MOD-009-004: FIN
 
