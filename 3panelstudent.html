@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.25
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.26
+FECHA: 13/02/2026 11:40 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -481,7 +481,7 @@ console.log('%c✓ currentUser inicializado ANTES de cargar tabs',
 </aside>
 <!-- MOD-009: FIN -->
 
-<!-- MOD-010: CONTENEDOR TABS [INICIO] -->
+<!-- MOD-010: CONTENEDOR TABS Y MODAL DEBERES [INICIO] -->
 <main class="content-container">
   
   <div id="tab-cursosyrep" class="tab-content active">
@@ -495,6 +495,8 @@ console.log('%c✓ currentUser inicializado ANTES de cargar tabs',
   <div id="tab-planning" class="tab-content">
     <?!= include('4ctabplanning'); ?>
   </div>
+
+  <?!= include('2modaldeberes'); ?>
 
 </main>
 <!-- MOD-010: FIN -->
@@ -664,72 +666,26 @@ function validarFecha(fecha) {
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Panel principal del estudiante con sistema de tabs verticales
-Contenedor maestro que carga sub-módulos mediante include()
-
-ESTRUCTURA:
-1. Navbar: Logo, nombre estudiante, botón salir
-2. Tabs verticales (3 botones): Cursos y Repasos, Deberes, Planning
-3. Contenedores dinámicos con includes de sub-módulos
+Panel principal del estudiante. Contenedor maestro que carga
+sub-módulos mediante include() y aloja el modal global de deberes.
 
 TABS INCLUIDOS:
 - tab-cursosyrep → include('4atabcursosyrep')
-- tab-deberes → include('4btabdeberes')
-- tab-planning → include('4ctabplanning')
+- tab-deberes    → include('4btabdeberes')
+- tab-planning   → include('4ctabplanning')
 
-VARIABLE GLOBAL CRÍTICA:
-currentUser = { codeAlum, nombre, email }
-- Se inicializa ANTES de los includes (MOD-004)
-- Ejecuta IIFE inmediato para cargar datos de sessionStorage
-- Disponible para todos los sub-módulos incluidos
+MODAL GLOBAL:
+- include('2modaldeberes') → window.ModalDeberModule
+- Uso: ModalDeberModule.abrir({ tipo, fecha, origen })
 
-FLUJO DE INICIALIZACIÓN:
-1. MOD-004 ejecuta IIFE que lee sessionStorage
-2. Valida existencia y completitud de datos de usuario
-3. Asigna datos a currentUser (scope global)
-4. Los includes se inyectan y pueden usar currentUser
-5. window.onload actualiza UI con nombre de usuario
-
-FUNCIONES GLOBALES DISPONIBLES:
-- switchTab(tabName): Navegación entre tabs
-- showAlert(type, message): Sistema de alertas
-- showLoading() / hideLoading(): Pantalla de carga
-- logout(): Cerrar sesión y limpiar sessionStorage
-- formatFecha(fecha): Formatear DD/MM/AAAA a texto
-- diasRestantes(fecha): Calcular días hasta fecha
-- validarFecha(fecha): Validar formato DD/MM/AAAA
-
-CONEXIÓN CON BACKEND:
-- Los sub-módulos llaman a funciones student* en 1code.gs
-- Todos usan currentUser.codeAlum para identificar al estudiante
-- Backend conecta con Student.* en módulos de lógica
-
-CARACTERÍSTICAS TÉCNICAS:
-- Tabs verticales en desktop, horizontales en mobile
-- Animaciones de transición entre tabs
-- Sistema de alertas con auto-dismiss
-- Loading screen global
-- Responsive design completo
-- Sticky navbar y tabs sidebar
+CRÍTICO:
+- currentUser se inicializa en MOD-004 ANTES de los includes
+- Sin currentUser los sub-módulos no pueden identificar al alumno
 
 DEPENDENCIAS:
-- sessionStorage: Debe contener 'pbe_user' con datos del login
-- 3index.html: Establece sessionStorage al autenticar
-- Sub-módulos: 4atabcursosyrep.html, 4btabdeberes.html, 4ctabplanning.html
+- sessionStorage 'pbe_user' → establecido por 3index.html
+- Sub-módulos: 4atabcursosyrep, 4btabdeberes, 4ctabplanning
+- Modal global: 2modaldeberes.html (window.ModalDeberModule)
 - Backend: 1code.gs con wrappers student*
-
-FIX CRÍTICO V01.20 → V01.21:
-- currentUser se inicializa mediante IIFE en MOD-004
-- IIFE se ejecuta ANTES de los includes
-- Garantiza que currentUser exista cuando los tabs se carguen
-- Elimina race condition donde tabs buscaban currentUser inexistente
-
-CAMBIOS V01.20 → V01.21:
-- Remodulación completa según Estándar CodeWorkShop v4.0
-- MOD-004 contiene inicialización crítica de currentUser
-- CSS encapsulado en MOD-003
-- JavaScript principal en MOD-012
-- Estructura HTML modularizada
-- Comentarios consolidados en MOD-099
 -->
 <!-- MOD-099: FIN -->
