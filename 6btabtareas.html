@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtareas.html
-VERSIÓN: 01.24
-FECHA: 15/02/2026 15:53 (UTC-5)
+VERSIÓN: 01.26
+FECHA: 16/02/2026 08:06 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -738,6 +738,92 @@ FECHA: 15/02/2026 15:53 (UTC-5)
 // MOD-004-005: FIN
 
 // MOD-004-006: FORMULARIO TOGGLE Y SUBMIT [INICIO]
+  function toggleFormAgregar() {
+    const form = document.getElementById('formTarea');
+    const isActive = form.classList.contains('active');
+
+    if (isActive) {
+      form.classList.remove('active');
+    } else {
+      resetFormTarea();
+      document.getElementById('formTitle').textContent = 'Agregar Nueva Tarea';
+      document.getElementById('tareaModoEdicion').value = 'false';
+      form.classList.add('active');
+    }
+  }
+
+  function validarFecha(fecha) {
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    return regex.test(fecha);
+  }
+
+  function handleSubmitTarea(event) {
+    event.preventDefault();
+
+    const curso = document.getElementById('tareaCurso').value;
+    const tarea = document.getElementById('tareaTarea').value.trim();
+    const fechaEntrega = document.getElementById('tareaFechaEntrega').value.trim();
+    const fechaAccion = document.getElementById('tareaFechaAccion').value.trim();
+    const nota = document.getElementById('tareaNota').value.trim();
+    const peso = document.getElementById('tareaPeso').value.trim();
+    const sem = document.getElementById('tareaSem').value.trim();
+    const rowNumber = document.getElementById('tareaRowNumber').value;
+    const esEdicion = document.getElementById('tareaModoEdicion').value === 'true';
+
+    if (!curso || !tarea || !fechaEntrega) {
+      showAlert('error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    if (!validarFecha(fechaEntrega)) {
+      showAlert('error', 'Formato de fecha de entrega inválido. Usa DD/MM/AAAA');
+      return;
+    }
+
+    if (fechaAccion && !validarFecha(fechaAccion)) {
+      showAlert('error', 'Formato de fecha de realización inválido. Usa DD/MM/AAAA');
+      return;
+    }
+
+    if (nota && (parseFloat(nota) < 0 || parseFloat(nota) > 20)) {
+      showAlert('error', 'La nota debe estar entre 0 y 20');
+      return;
+    }
+
+    if (peso && (parseFloat(peso) < 0 || parseFloat(peso) > 100)) {
+      showAlert('error', 'El peso debe estar entre 0 y 100%');
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      curso: curso,
+      tarea: tarea,
+      fechaEntrega: fechaEntrega,
+      fechaAccion: fechaAccion,
+      nota: nota,
+      peso: peso,
+      sem: sem
+    };
+
+    if (esEdicion) {
+      params.rowNumber = parseInt(rowNumber, 10);
+      google.script.run
+        .withSuccessHandler(handleTareaUpdated)
+        .withFailureHandler(handleTareaError)
+        .studentActualizarTarea(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleTareaAdded)
+        .withFailureHandler(handleTareaError)
+        .studentAgregarTarea(params);
+    }
+  }
+
   function handleTareaAdded(response) {
     const btnSubmit = document.getElementById('btnSubmit');
     btnSubmit.disabled = false;
@@ -879,7 +965,16 @@ FECHA: 15/02/2026 15:53 (UTC-5)
     recargarCursos: cargarCursos
   };
 
-  console.log('%c✏️ Sub-tab Tareas V01.24 cargado', 'font-size: 11px; color: #667eea;');
+  setTimeout(function() {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+      console.log('✏️ currentUser detectado, auto-inicializando TareasModule...');
+      init();
+    } else {
+      console.log('✏️ currentUser no disponible, TareasModule esperando llamada externa');
+    }
+  }, 150);
+
+  console.log('%c✏️ Sub-tab Tareas V01.25 cargado', 'font-size: 11px; color: #667eea;');
 // MOD-004-008: FIN
 
 })();
