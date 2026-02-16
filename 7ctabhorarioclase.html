@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.28
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.30
+FECHA: 15/02/2026 16:56 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -876,31 +876,22 @@ function handleSubmitClase(event) {
   const rowNumber = document.getElementById('claseRowNumber').value;
 
   if (!curso || !horaIni || !horaFin) {
-    if (window.showAlert) {
-      showAlert('error', 'Completa todos los campos');
-    } else {
-      alert('Completa todos los campos');
-    }
+    if (window.showAlert) { showAlert('error', 'Completa todos los campos'); }
+    else { alert('Completa todos los campos'); }
     return false;
   }
 
   if (horaIni >= horaFin) {
-    if (window.showAlert) {
-      showAlert('error', 'La hora de fin debe ser mayor a la de inicio');
-    } else {
-      alert('La hora de fin debe ser mayor a la de inicio');
-    }
+    if (window.showAlert) { showAlert('error', 'La hora de fin debe ser mayor a la de inicio'); }
+    else { alert('La hora de fin debe ser mayor a la de inicio'); }
     return false;
   }
 
   const solapamientos = verificarSolapamiento(dia, horaIni, horaFin, rowNumber ? parseInt(rowNumber) : null);
-  
+
   if (solapamientos.length > 0) {
     const mensaje = `⚠️ Ya existe ${solapamientos.join(', ')} en este horario.\n\n¿Crear solapamiento de todos modos?`;
-    
-    if (!confirm(mensaje)) {
-      return false;
-    }
+    if (!confirm(mensaje)) return false;
   }
 
   const btnSubmit = document.getElementById('btnSubmit');
@@ -916,10 +907,7 @@ function handleSubmitClase(event) {
   };
 
   if (esEdicion) {
-    if (rowNumber) {
-      params.rowNumber = parseInt(rowNumber);
-    }
-
+    if (rowNumber) params.rowNumber = parseInt(rowNumber);
     google.script.run
       .withSuccessHandler(r => handleClaseGuardada(r, true))
       .withFailureHandler(e => handleClaseError(e, true))
@@ -941,35 +929,25 @@ function handleClaseGuardada(response, esEdicion) {
 
   if (response && response.success) {
     const msg = esEdicion ? '✔ Clase actualizada' : '✔ Clase agregada';
-    if (window.showAlert) {
-      showAlert('success', msg);
-    } else {
-      alert(msg);
-    }
+    if (window.showAlert) { showAlert('success', msg); } else { alert(msg); }
+    if (window.pbeFlags) window.pbeFlags.horariosem = true;
     cancelarFormClase();
     cargarHorarioClases();
   } else {
     const error = response ? response.error : 'Error desconocido';
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
+    if (window.showAlert) { showAlert('error', error); } else { alert('Error: ' + error); }
   }
 }
 
 function handleClaseError(error, esEdicion) {
   console.error('🕐 Error:', error);
-  
+
   const btnSubmit = document.getElementById('btnSubmit');
   btnSubmit.disabled = false;
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
-  if (window.showAlert) {
-    showAlert('error', 'Error de conexión. Intenta nuevamente');
-  } else {
-    alert('Error de conexión. Intenta nuevamente');
-  }
+
+  if (window.showAlert) { showAlert('error', 'Error de conexión. Intenta nuevamente'); }
+  else { alert('Error de conexión. Intenta nuevamente'); }
 }
 // MOD-005-013: FIN
 
@@ -978,11 +956,8 @@ function confirmarEliminarClase() {
   const rowNumber = document.getElementById('claseRowNumber').value;
 
   if (!rowNumber) {
-    if (window.showAlert) {
-      showAlert('error', 'No se puede eliminar esta clase');
-    } else {
-      alert('No se puede eliminar esta clase');
-    }
+    if (window.showAlert) { showAlert('error', 'No se puede eliminar esta clase'); }
+    else { alert('No se puede eliminar esta clase'); }
     return;
   }
 
@@ -996,31 +971,21 @@ function eliminarClase(rowNumber) {
     .withSuccessHandler(handleClaseEliminada)
     .withFailureHandler(e => {
       console.error('🕐 Error al eliminar:', e);
-      if (window.showAlert) {
-        showAlert('error', 'Error al eliminar');
-      } else {
-        alert('Error al eliminar');
-      }
+      if (window.showAlert) { showAlert('error', 'Error al eliminar'); }
+      else { alert('Error al eliminar'); }
     })
     .studentEliminarHorarioClase({ rowNumber: rowNumber });
 }
 
 function handleClaseEliminada(response) {
   if (response && response.success) {
-    if (window.showAlert) {
-      showAlert('success', '✔ Clase eliminada');
-    } else {
-      alert('Clase eliminada');
-    }
+    if (window.showAlert) { showAlert('success', '✔ Clase eliminada'); } else { alert('Clase eliminada'); }
+    if (window.pbeFlags) window.pbeFlags.horariosem = true;
     cancelarFormClase();
     cargarHorarioClases();
   } else {
     const error = response ? response.error : 'Error desconocido';
-    if (window.showAlert) {
-      showAlert('error', error);
-    } else {
-      alert('Error: ' + error);
-    }
+    if (window.showAlert) { showAlert('error', error); } else { alert('Error: ' + error); }
   }
 }
 // MOD-005-014: FIN
@@ -1105,44 +1070,21 @@ console.log('%c🕐 HorarioClaseModule V01.26 CODEWORKSHOP cargado',
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Grid visual semanal 7×16 (7 AM-10 PM) para gestión de horario de clases fijas.
+Grid visual semanal 7×16 (7 AM - 10 PM) para gestión de horario de clases fijas.
 Validación de conflictos con colores personalizados por curso.
 
 FUNCIONALIDAD:
-- Click celda vacía → Agregar clase
-- Click celda ocupada → Editar/Eliminar
-- Modal de selección para múltiples clases solapadas
+- Click celda vacía → Agregar | Click celda ocupada → Editar/Eliminar
 - Prefijos "/" para medias horas (ej: /HIST inicio 11:30)
 - Validación y confirmación de solapamientos
 
-DEPENDENCIAS BACKEND:
-- studentObtenerCursos()
-- studentObtenerHorarioClases()
-- studentAgregarHorarioClase()
-- studentActualizarHorarioClase()
-- studentEliminarHorarioClase()
+CRÍTICO:
+- pbeFlags.horariosem = true en handleClaseGuardada y handleClaseEliminada
+- Prefijo CSS: .hc-* | Prefijo JS: window.hc* (sin colisión con otros módulos)
+- Carga cursos antes que horario (evita race condition)
 
-ESTRUCTURA:
-MOD-001: Encabezado
-MOD-002: Apertura HTML
-MOD-003: Estilos CSS
-MOD-004: Estructura HTML
-MOD-005: JavaScript (17 submódulos S01-S17)
-MOD-006: Cierre HTML
-MOD-007: Notas
-
-CAMBIOS V01.25 → V01.26:
-- Remodulación según estándar CodeWorkShop v4.0
-- MOD-005 con 17 submódulos JavaScript
-- Delimitadores correctos (//) dentro de <script>
-- Fix: Carga de cursos antes que horario (race condition)
-- Prefijo 'hc' en funciones globales
-- Aislamiento CSS (.hc-) y JS (window.hc*)
-
-AISLAMIENTO:
-- Prefijo CSS: .hc-*
-- Prefijo JS: window.hc*
-- IIFE con 'use strict'
-- Sin conflicto con otros módulos
+DEPENDENCIAS:
+- window.pbeFlags → 3panelstudent.html MOD-012-008
+- studentObtenerCursos/HorarioClases | studentAgregar/Actualizar/EliminarHorarioClase
 -->
 <!-- MOD-099: FIN -->
