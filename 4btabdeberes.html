@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4btabdeberes.html
-VERSIÓN: 01.21
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.22
+FECHA: 15/02/2026 15:13 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -200,6 +200,25 @@ function switchSubTabDeberes(subTabName) {
 
   console.log('Sub-tab Deberes cambiado a:', subTabName);
 
+  if (window.pbeFlags) {
+
+    if (window.pbeFlags.cursos) {
+      window.pbeFlags.cursos = false;
+      if (window.EvalModule    && typeof window.EvalModule.recargarCursos    === 'function') window.EvalModule.recargarCursos();
+      if (window.TareasModule  && typeof window.TareasModule.recargarCursos  === 'function') window.TareasModule.recargarCursos();
+      if (window.LecturasModule && typeof window.LecturasModule.recargarCursos === 'function') window.LecturasModule.recargarCursos();
+    }
+
+    if (window.pbeFlags.deberes) {
+      window.pbeFlags.deberes = false;
+      if (subTabName === 'eval'     && window.EvalModule    && typeof window.EvalModule.recargar    === 'function') window.EvalModule.recargar();
+      if (subTabName === 'tareas'   && window.TareasModule  && typeof window.TareasModule.recargar  === 'function') window.TareasModule.recargar();
+      if (subTabName === 'lecturas' && window.LecturasModule && typeof window.LecturasModule.recargar === 'function') window.LecturasModule.recargar();
+      if (subTabName === 'todos'    && window.TodosModule   && typeof window.TodosModule.cargarDeberes === 'function') window.TodosModule.cargarDeberes();
+    }
+
+  }
+
   if (!deberesSubtabsLoaded[subTabName]) {
     deberesSubtabsLoaded[subTabName] = true;
 
@@ -321,23 +340,16 @@ DESCRIPCIÓN:
 Contenedor de sub-tabs de Deberes con sistema lazy-load.
 Incluye: Todos, Evaluaciones, Tareas y Lecturas.
 
-ESTRUCTURA:
-MOD-001: Encabezado
-MOD-002: Estilos
-MOD-003: Contenedor subtabs
-MOD-004: JavaScript con 7 submódulos
-MOD-004-S01: Variables globales lazy-init
-MOD-004-S02: Función switchSubTabDeberes
-MOD-004-S03: Función updateDeberesBadge
-MOD-004-S04: Función filtrarPorFecha
-MOD-004-S05: Helper parseFechaDD_MM_AAAA
-MOD-004-S06: Función ordenarPorFecha
-MOD-004-S07: Auto-activación y logs
-MOD-099: Notas
+CRÍTICO:
+- Flags verificados ANTES del lazy-init en switchSubTabDeberes()
+- pbeFlags.cursos recarga los 3 módulos simultáneamente y se resetea
+- pbeFlags.deberes recarga solo el subtab destino y se resetea
 
-CAMBIOS V01.29 → V01.30:
-- Submodulación de MOD-004 (7 submódulos)
-- FIX: Corrección llamada a LecturasModule.inicializar() en MOD-004-S02
-- Aplicación estándar CodeWorkShop v5.0
+DEPENDENCIAS:
+- window.pbeFlags           → 3panelstudent.html MOD-012-008
+- EvalModule.recargar/recargarCursos    → 6btabeval.html
+- TareasModule.recargar/recargarCursos  → 6btabtareas.html
+- LecturasModule.recargar/recargarCursos → 6btablecturas.html
+- TodosModule.cargarDeberes             → 6btabtodos.html
 -->
 <!-- MOD-099: FIN -->
