@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.26
-FECHA: 13/02/2026 11:40 (UTC-5)
+VERSIÓN: 01.27
+FECHA: 15/02/2026 14:41 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -655,6 +655,16 @@ function validarFecha(fecha) {
 }
 // MOD-012-007: FIN
 
+// MOD-012-008: FLAGS DE ACTUALIZACIÓN EN CASCADA [INICIO]
+window.pbeFlags = {
+  deberes:      false,  // Marca que eval/tareas/lecturas/todos necesitan recarga
+  horariosem:   false,  // Marca que HorarioSemanal necesita recarga
+  calendario:   false,  // Marca que Calendario necesita recarga
+  cursos:       false,  // Marca que selects de cursos necesitan recarga
+  horarioclase: false   // Reservado para uso futuro
+};
+// MOD-012-008: FIN
+
 </script>
 <!-- MOD-012: FIN -->
 
@@ -681,6 +691,16 @@ MODAL GLOBAL:
 CRÍTICO:
 - currentUser se inicializa en MOD-004 ANTES de los includes
 - Sin currentUser los sub-módulos no pueden identificar al alumno
+
+FLAGS DE ACTUALIZACIÓN EN CASCADA (MOD-012-008):
+- window.pbeFlags: objeto global con 5 flags booleanos
+- deberes:      marcado por Eval/Tareas/Lecturas/ModalDeber al guardar
+- horariosem:   marcado por Eval/Tareas/Lecturas/ModalDeber/HorarioClase al guardar
+- calendario:   marcado por Eval/Tareas/Lecturas/ModalDeber/HorarioSemanal al guardar
+- cursos:       marcado por CursosModule al guardar/eliminar curso
+- horarioclase: reservado
+- Lectores: switchSubTabDeberes() y PlanningModule.switchTab()
+  verifican flags al navegar y recargan si están en true
 
 DEPENDENCIAS:
 - sessionStorage 'pbe_user' → establecido por 3index.html
