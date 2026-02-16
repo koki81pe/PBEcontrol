@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabeval.html
-VERSIÓN: 01.31
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.32
+FECHA: 15/02/2026 15:50 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -741,72 +741,7 @@ FECHA: 11/02/2026 14:41 (UTC-5)
   }
 // MOD-004-005: FIN
 
-// MOD-004-006: FORMULARIO TOGGLE Y SUBMIT V2 [INICIO]
-  function toggleFormAgregar() {
-    const form = document.getElementById('formEval');
-    const isActive = form.classList.contains('active');
-
-    if (isActive) {
-      form.classList.remove('active');
-    } else {
-      resetFormEval();
-      document.getElementById('formTitle').textContent = 'Agregar Nueva Evaluación';
-      document.getElementById('evalModoEdicion').value = 'false';
-      form.classList.add('active');
-    }
-  }
-
-  function validarFecha(fecha) {
-    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-    return regex.test(fecha);
-  }
-
-  function handleSubmitEval(event) {
-    event.preventDefault();
-
-    const curso = document.getElementById('evalCurso').value;
-    const nomEval = document.getElementById('evalNomEval').value.trim();
-    const fechaEval = document.getElementById('evalFechaEval').value.trim();
-    const nota = document.getElementById('evalNota').value.trim();
-    const peso = document.getElementById('evalPeso').value.trim();
-    const sem = document.getElementById('evalSem').value.trim();
-    const rowNumber = document.getElementById('evalRowNumber').value;
-    const esEdicion = document.getElementById('evalModoEdicion').value === 'true';
-
-    if (!curso || !nomEval || !fechaEval) {
-      showAlert('error', 'Completa todos los campos obligatorios');
-      return;
-    }
-
-    if (!validarFecha(fechaEval)) {
-      showAlert('error', 'Formato de fecha inválido. Usa DD/MM/AAAA');
-      return;
-    }
-
-    const params = {
-      codeAlum: currentUser.codeAlum,
-      curso: curso,
-      nomEval: nomEval,
-      fechaEval: fechaEval,
-      nota: nota,
-      peso: peso,
-      sem: sem
-    };
-
-    if (esEdicion) {
-      params.rowNumber = rowNumber;
-      google.script.run
-        .withSuccessHandler(handleEvalSaved)
-        .withFailureHandler(handleEvalError)
-        .studentActualizarEvaluacion(params);
-    } else {
-      google.script.run
-        .withSuccessHandler(handleEvalSaved)
-        .withFailureHandler(handleEvalError)
-        .studentAgregarEvaluacion(params);
-    }
-  }
-
+// MOD-004-006: FORMULARIO GUARDAR [INICIO]
   function handleEvalSaved(response) {
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo guardar la evaluación.';
@@ -815,6 +750,11 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     }
 
     showAlert('success', '✓ Evaluación guardada exitosamente');
+    if (window.pbeFlags) {
+      window.pbeFlags.deberes    = true;
+      window.pbeFlags.horariosem = true;
+      window.pbeFlags.calendario = true;
+    }
     document.getElementById('formEval').classList.remove('active');
     resetFormEval();
     cargarEvaluaciones();
@@ -852,7 +792,7 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     document.getElementById('evalSem').value = evaluacion.Sem || '';
     document.getElementById('evalRowNumber').value = rowNumber;
     document.getElementById('evalModoEdicion').value = 'true';
-    
+
     document.getElementById('formEval').classList.add('active');
   }
 
@@ -877,11 +817,16 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     }
 
     showAlert('success', '✓ Evaluación eliminada exitosamente');
+    if (window.pbeFlags) {
+      window.pbeFlags.deberes    = true;
+      window.pbeFlags.horariosem = true;
+      window.pbeFlags.calendario = true;
+    }
     cargarEvaluaciones();
   }
 // MOD-004-007: FIN
 
-// MOD-004-008: HELPERS Y EXPORTACIÓN V3 [INICIO]
+// MOD-004-008: HELPERS Y EXPORTACIÓN [INICIO]
   function obtenerClaseNota(nota) {
     if (!nota) return 'nota-pendiente';
 
@@ -904,10 +849,12 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     handleSubmitEval: handleSubmitEval,
     editarEval: editarEval,
     confirmarEliminarEval: confirmarEliminarEval,
-    cancelarFormEval: cancelarFormEval
+    cancelarFormEval: cancelarFormEval,
+    recargar: cargarEvaluaciones,
+    recargarCursos: cargarCursos
   };
 
-  console.log('%c📝 Sub-tab Evaluaciones V01.30 cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c📝 Sub-tab Evaluaciones V01.32 cargado', 'font-size: 11px; color: #667eea;');
 // MOD-004-008: FIN
 
 })();
@@ -917,7 +864,7 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-6btabeval.html V01.30 - Sub-tab Evaluaciones CRUD
+6btabeval.html V01.32 - Sub-tab Evaluaciones CRUD
 
 ESTRUCTURA: MOD-002 CSS (24 submódulos) | MOD-003 HTML (3 submódulos) | MOD-004 JS (8 submódulos)
 
@@ -929,10 +876,9 @@ COLORES NOTA: Verde ≥14 | Amarillo 11-13 | Rojo <11
 
 PATRÓN EXPORTS: Todas las funciones encapsuladas en window.EvalModule (evita colisión global)
 
-V01.29→V01.30: FIX crítico colisión funciones globales
-- HTML onclick/onchange → EvalModule.X() (4 lugares en MOD-003)
-- JS getElementById('filtroCurso') → getElementById('filtroCursoEval')
-- Eliminados exports globales directos (window.aplicarFiltro, etc.)
-- Expandido window.EvalModule con todas las funciones públicas
+API PÚBLICA (window.EvalModule):
+- recargar: cargarEvaluaciones    → llamado por pbeFlags.deberes
+- recargarCursos: cargarCursos    → llamado por pbeFlags.cursos
+- Ambos usados por 4btabdeberes.html switchSubTabDeberes()
 -->
 <!-- MOD-099: FIN -->
