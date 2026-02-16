@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.27
-FECHA: 15/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.28
+FECHA: 15/02/2026 09:46 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -535,6 +535,18 @@ function switchTab(tabName) {
   document.getElementById('btn-' + tabName).classList.add('active');
 
   console.log('Tab cambiado a:', tabName);
+
+  // Al entrar al tab Deberes, disparar refresco del subtab activo
+  // Esto permite que pbeFlags.deberes sea verificado aunque el usuario
+  // navegue directo al tab sin pasar por un switchSubTabDeberes previo
+  if (tabName === 'deberes' && typeof window.switchSubTabDeberes === 'function') {
+    var btnActivo = document.querySelector('.subtab-btn.active');
+    var subtabNombre = btnActivo
+      ? btnActivo.id.replace('btn-subtab-', '')
+      : 'todos';
+    console.log('[switchTab] Refrescando subtab activo de Deberes:', subtabNombre);
+    window.switchSubTabDeberes(subtabNombre);
+  }
 }
 // MOD-012-002: FIN
 
