@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabeval.html
-VERSIÓN: 01.32
-FECHA: 15/02/2026 15:50 (UTC-5)
+VERSIÓN: 01.34
+FECHA: 16/02/2026 08:04 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -568,7 +568,7 @@ FECHA: 15/02/2026 15:50 (UTC-5)
   let _initDone = false;
 // MOD-004-001: FIN
 
-// MOD-004-002: INICIALIZACIÓN V5 [INICIO]
+// MOD-004-002: INICIALIZACIÓN [INICIO]
   function init() {
     if (_initDone) return;
 
@@ -580,18 +580,6 @@ FECHA: 15/02/2026 15:50 (UTC-5)
     _initDone = true;
     cargarCursos();
     cargarEvaluaciones();
-    
-    setTimeout(function() {
-      const btnAgregar = document.querySelector('.eval-container .btn-agregar');
-      if (btnAgregar) {
-        btnAgregar.addEventListener('click', function() {
-          console.log('🔴 BOTÓN +AGREGAR EVALUACIÓN PRESIONADO (evento directo)');
-        });
-        console.log('✅ Listener de EVALUACIONES agregado a:', btnAgregar);
-      } else {
-        console.log('❌ Botón .eval-container .btn-agregar NO encontrado');
-      }
-    }, 500);
   }
 
   window.addEventListener('load', init);
@@ -741,7 +729,72 @@ FECHA: 15/02/2026 15:50 (UTC-5)
   }
 // MOD-004-005: FIN
 
-// MOD-004-006: FORMULARIO GUARDAR [INICIO]
+// MOD-004-006: FORMULARIO TOGGLE Y SUBMIT [INICIO]
+  function toggleFormAgregar() {
+    const form = document.getElementById('formEval');
+    const isActive = form.classList.contains('active');
+
+    if (isActive) {
+      form.classList.remove('active');
+    } else {
+      resetFormEval();
+      document.getElementById('formTitle').textContent = 'Agregar Nueva Evaluación';
+      document.getElementById('evalModoEdicion').value = 'false';
+      form.classList.add('active');
+    }
+  }
+
+  function validarFecha(fecha) {
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    return regex.test(fecha);
+  }
+
+  function handleSubmitEval(event) {
+    event.preventDefault();
+
+    const curso = document.getElementById('evalCurso').value;
+    const nomEval = document.getElementById('evalNomEval').value.trim();
+    const fechaEval = document.getElementById('evalFechaEval').value.trim();
+    const nota = document.getElementById('evalNota').value.trim();
+    const peso = document.getElementById('evalPeso').value.trim();
+    const sem = document.getElementById('evalSem').value.trim();
+    const rowNumber = document.getElementById('evalRowNumber').value;
+    const esEdicion = document.getElementById('evalModoEdicion').value === 'true';
+
+    if (!curso || !nomEval || !fechaEval) {
+      showAlert('error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    if (!validarFecha(fechaEval)) {
+      showAlert('error', 'Formato de fecha inválido. Usa DD/MM/AAAA');
+      return;
+    }
+
+    const params = {
+      codeAlum: currentUser.codeAlum,
+      curso: curso,
+      nomEval: nomEval,
+      fechaEval: fechaEval,
+      nota: nota,
+      peso: peso,
+      sem: sem
+    };
+
+    if (esEdicion) {
+      params.rowNumber = rowNumber;
+      google.script.run
+        .withSuccessHandler(handleEvalSaved)
+        .withFailureHandler(handleEvalError)
+        .studentActualizarEvaluacion(params);
+    } else {
+      google.script.run
+        .withSuccessHandler(handleEvalSaved)
+        .withFailureHandler(handleEvalError)
+        .studentAgregarEvaluacion(params);
+    }
+  }
+
   function handleEvalSaved(response) {
     if (!response || response.success !== true) {
       const msg = response && response.error ? response.error : 'No se pudo guardar la evaluación.';
@@ -854,7 +907,16 @@ FECHA: 15/02/2026 15:50 (UTC-5)
     recargarCursos: cargarCursos
   };
 
-  console.log('%c📝 Sub-tab Evaluaciones V01.32 cargado', 'font-size: 11px; color: #667eea;');
+  setTimeout(function() {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
+      console.log('📝 currentUser detectado, auto-inicializando EvalModule...');
+      init();
+    } else {
+      console.log('📝 currentUser no disponible, EvalModule esperando llamada externa');
+    }
+  }, 150);
+
+  console.log('%c📝 Sub-tab Evaluaciones V01.33 cargado', 'font-size: 11px; color: #667eea;');
 // MOD-004-008: FIN
 
 })();
