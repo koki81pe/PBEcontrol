@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4ctabplanning.html
-VERSIÓN: 01.20
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.21
+FECHA: 15/02/2026 15:01 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -106,6 +106,19 @@ window.PlanningModule = (function () {
     if (btn) btn.classList.add('active');
 
     console.log('[Planning] Sub-tab activo:', name);
+
+    if (window.pbeFlags) {
+      if (name === 'horariosem' && window.pbeFlags.horariosem) {
+        window.pbeFlags.horariosem = false;
+        if (typeof window.hsRefrescar === 'function') window.hsRefrescar();
+      }
+      if (name === 'calendario' && window.pbeFlags.calendario) {
+        window.pbeFlags.calendario = false;
+        if (window.CalendarioModule && typeof window.CalendarioModule.reload === 'function') {
+          window.CalendarioModule.reload();
+        }
+      }
+    }
   }
 
   // Helpers reutilizados por sub-tabs
@@ -140,7 +153,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.19 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.21 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
@@ -158,80 +171,21 @@ window.PlanningModule = (function () {
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Contenedor de sub-tabs de Planning
-Módulo totalmente encapsulado en PlanningModule
+Contenedor de sub-tabs de Planning, encapsulado en PlanningModule.
 
-SUB-TABS INCLUIDOS:
-- subtab-horarioclase → include('7ctabhorarioclase'): Horario de clases
-- subtab-horariosem → include('7ctabhorariosem'): Horario semanal
-- subtab-notas → include('7ctabnotas'): Sistema de notas y promedios
-- subtab-calendario → include('7ctabcalendario'): Vista de calendario
+SUB-TABS:
+- subtab-horarioclase → 7ctabhorarioclase
+- subtab-horariosem   → 7ctabhorariosem
+- subtab-notas        → 7ctabnotas
+- subtab-calendario   → 7ctabcalendario
 
-ESTRUCTURA:
-Contenedor ligero que organiza cuatro sub-tabs de planning:
-1. Horario Clases: Gestión de horarios de clases
-2. Horario Semanal: Vista semanal del horario
-3. Notas: Cálculo de promedios ponderados
-4. Calendario: Vista de calendario mensual
-
-MÓDULO ENCAPSULADO:
-window.PlanningModule: IIFE que expone funciones públicas
-- Previene colisiones globales
-- Encapsula estado interno
-- Provee helpers compartidos
-
-FUNCIONALIDAD:
-- Navegación entre sub-tabs mediante PlanningModule.switchTab()
-- Estado compartido: currentWeekOffset, currentMonth, currentYear
-- Helpers disponibles para todos los sub-tabs
-
-ESTADO COMPARTIDO:
-- state.currentWeekOffset: Offset de semana actual (para navegación)
-- state.currentMonth: Mes actual en vista de calendario
-- state.currentYear: Año actual en vista de calendario
-
-HELPERS COMPARTIDOS:
-- obtenerDiasSemanaActual(): Retorna array de 7 días (L-D) de la semana actual
-- horaAMinutos(hora): Convierte "HH:MM" a minutos totales
-- minutosAHora(minutos): Convierte minutos totales a "HH:MM"
-- calcularPromedioPonderado(items): Calcula promedio con pesos
-
-FLUJO DE NAVEGACIÓN:
-1. Usuario hace clic en botón de sub-tab
-2. onclick llama a PlanningModule.switchTab(name)
-3. switchTab() actualiza clases active en DOM
-4. Sub-tab correspondiente se muestra con animación fadeIn
-
-CARACTERÍSTICAS TÉCNICAS:
-- IIFE completo para encapsulación total
-- Getters seguros (getContainer verifica existencia)
-- Helpers matemáticos para horarios y notas
-- Estado interno protegido
-- API pública clara y limitada
+CRÍTICO:
+- switchTab() verifica pbeFlags.horariosem y pbeFlags.calendario al navegar
+- Recarga módulo destino si flag true, luego resetea flag
 
 DEPENDENCIAS:
-- Sub-módulos: 7ctabhorarioclase.html, 7ctabhorariosem.html, 7ctabnotas.html, 7ctabcalendario.html
-- currentUser: Variable global del panel principal
-- Funciones globales: showAlert, showLoading, hideLoading (del parent)
-
-USO DE HELPERS DESDE SUB-TABS:
-// En cualquier sub-tab de planning:
-const dias = PlanningModule.obtenerDiasSemanaActual();
-const minutos = PlanningModule.horaAMinutos('14:30');
-const promedio = PlanningModule.calcularPromedioPonderado(evaluaciones);
-
-VENTAJAS DEL ENCAPSULADO:
-- Sin colisiones de nombres en scope global
-- Estado centralizado y protegido
-- Helpers compartidos sin duplicación
-- Fácil debugging (todo bajo PlanningModule)
-
-CAMBIOS V01.18 → V01.19:
-- Remodulación completa según Estándar CodeWorkShop v4.0
-- CSS encapsulado en MOD-002
-- HTML en MOD-003
-- JavaScript (IIFE) en MOD-004
-- Comentarios consolidados en MOD-099
-- Estructura consistente con otros contenedores de sub-tabs
+- window.pbeFlags        → 3panelstudent.html MOD-012-008
+- window.hsRefrescar     → 7ctabhorariosem.html
+- window.CalendarioModule.reload → 7ctabcalendario.html
 -->
 <!-- MOD-099: FIN -->
