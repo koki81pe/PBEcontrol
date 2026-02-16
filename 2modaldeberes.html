@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.05
-FECHA: 14/02/2026 14:39 (UTC-5)
+VERSIÓN: 01.06
+FECHA: 15/02/2026 16:01 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -373,6 +373,12 @@ FECHA: 14/02/2026 14:39 (UTC-5)
     _fechaActual = params.fecha  || '';
     _origen      = params.origen || '';
 
+    if (window.pbeFlags && window.pbeFlags.cursos) {
+      window.pbeFlags.cursos = false;
+      _cursosListos = false;
+      _cursosCache  = [];
+    }
+
     _limpiarTodo();
     _actualizarTitulo();
     cambiarTipo(_tipoActivo);
@@ -699,6 +705,12 @@ FECHA: 14/02/2026 14:39 (UTC-5)
 
 // MOD-009-011: RETORNO AL ORIGEN [INICIO]
   function _onGuardadoExitoso(mensaje) {
+    if (window.pbeFlags) {
+      window.pbeFlags.deberes    = true;
+      window.pbeFlags.horariosem = true;
+      window.pbeFlags.calendario = true;
+    }
+
     cerrar();
 
     if (_origen === 'horariosem') {
@@ -783,26 +795,24 @@ FECHA: 14/02/2026 14:39 (UTC-5)
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Modal libre para registro de nuevos deberes (Evaluación, Tarea, Lectura)
+Modal libre para registro de deberes (Evaluación, Tarea, Lectura)
 invocable desde cualquier subtab sin navegar fuera del origen.
 
 CRÍTICO:
 - Prefijo CSS e IDs: md-* (sin colisión con módulos existentes)
-- window.ModalDeberModule expuesto globalmente (IIFE)
-- _cursosCache se carga una sola vez por sesión de modal
+- _cursosCache se invalida si pbeFlags.cursos === true al abrir
+- _onGuardadoExitoso() marca pbeFlags antes de cerrar y retornar
 
 DEPENDENCIAS:
-- currentUser.codeAlum (requerido)
-- studentObtenerCursos, studentAgregarEvaluacion,
-  studentAgregarTarea, studentAgregarLectura (1code.gs)
-- window.PlanningModule.switchTab() para retorno al origen
-- window.renderizarDeberes() o HorarioSemanalModule.renderizarDeberes()
-  para refrescar vista tras guardar desde horariosem
+- window.pbeFlags        → 3panelstudent.html MOD-012-008
+- currentUser.codeAlum  → requerido
+- window.PlanningModule.switchTab() → retorno al origen
+- window.hsRefrescar / CalendarioModule.reload → recarga inmediata
 
 USO:
-  window.ModalDeberModule.abrir({ tipo, fecha, origen })
+  ModalDeberModule.abrir({ tipo, fecha, origen })
   tipo:   'eval' | 'tarea' | 'lect'
-  fecha:  'DD/MM/AAAA' (se pre-carga en el campo de fecha del tipo)
-  origen: 'horariosem' | 'calendario' | (futuro)
+  fecha:  'DD/MM/AAAA'
+  origen: 'horariosem' | 'calendario' | ''
 -->
 <!-- MOD-099: FIN -->
