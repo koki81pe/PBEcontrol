@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btablecturas.html
-VERSIÓN: 01.25
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.26
+FECHA: 15/02/2026 15:56 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -1024,6 +1024,11 @@ FECHA: 11/02/2026 14:41 (UTC-5)
         }
 
         showAlertSafe('success', '✓ Lectura agregada correctamente');
+        if (window.pbeFlags) {
+          window.pbeFlags.deberes    = true;
+          window.pbeFlags.horariosem = true;
+          window.pbeFlags.calendario = true;
+        }
         cancelarFormulario();
         cargarLecturas();
       })
@@ -1046,6 +1051,11 @@ FECHA: 11/02/2026 14:41 (UTC-5)
         }
 
         showAlertSafe('success', '✓ Lectura actualizada correctamente');
+        if (window.pbeFlags) {
+          window.pbeFlags.deberes    = true;
+          window.pbeFlags.horariosem = true;
+          window.pbeFlags.calendario = true;
+        }
         cancelarFormulario();
         cargarLecturas();
       })
@@ -1125,6 +1135,11 @@ FECHA: 11/02/2026 14:41 (UTC-5)
           return;
         }
         showAlertSafe('success', '✓ Lectura eliminada correctamente');
+        if (window.pbeFlags) {
+          window.pbeFlags.deberes    = true;
+          window.pbeFlags.horariosem = true;
+          window.pbeFlags.calendario = true;
+        }
         cargarLecturas();
       })
       .withFailureHandler(function(error) {
@@ -1284,7 +1299,7 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 // MOD-004-020: FIN
 
 // MOD-004-021: API PÚBLICA [INICIO]
-  console.log('%c📖 LecturasModule V01.22 FIXED cargado', 'font-size:11px;color:#667eea;font-weight:bold');
+  console.log('%c📖 LecturasModule V01.26 cargado', 'font-size:11px;color:#667eea;font-weight:bold');
 
   window.LecturasModule = {
     inicializar: inicializar,
@@ -1294,7 +1309,8 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     editarLectura: editarLectura,
     eliminarLectura: eliminarLectura,
     cancelarFormulario: cancelarFormulario,
-    recargar: cargarLecturas
+    recargar: cargarLecturas,
+    recargarCursos: cargarCursos
   };
 // MOD-004-021: FIN
 
@@ -1316,107 +1332,25 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Sub-tab del módulo "Deberes" que gestiona lecturas académicas con seguimiento
-de progreso y cálculo dinámico de páginas/día para planificación de lectura.
+Sub-tab de Deberes para gestión de lecturas académicas con seguimiento
+de progreso y cálculo dinámico de páginas/día.
 
-ESTRUCTURA MODULAR (CodeWorkShop v5.0):
-├── MOD-001: Encabezado y metadata
-├── MOD-002: Estilos CSS (19 submódulos)
-├── MOD-003: HTML estructura
-├── MOD-004: JavaScript principal (22 submódulos - IIFE autocontenido)
-└── MOD-099: Documentación técnica
+ESTRUCTURA: MOD-002 CSS (19 submódulos) | MOD-003 HTML | MOD-004 JS (22 submódulos)
 
-CAMBIOS V01.23 → V01.24:
-✅ Submodulación completa de MOD-002 (CSS en 19 secciones)
-✅ Submodulación completa de MOD-004 (JS en 22 secciones)
-✅ MOD-005 eliminado (LecturasHelpers innecesario - funciones en MOD-004)
-✅ Optimización de documentación MOD-099
+BACKEND: studentObtenerCursos/Lecturas | studentAgregar/Actualizar/EliminarLectura
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRÍTICO:
+- Fecha en calcularPagsDia (MOD-004-S06) debe mantenerse con new Date() — no hardcoded
+- Retry logic en inicialización maneja currentUser asíncrono (MOD-004-S02)
+- Sistema de alertas tiene fallback automático si showAlert() no existe (MOD-004-S20)
 
-MOD-002: ESTRUCTURA CSS (19 submódulos)
-S01: Reset/Base → S02: Contenedor → S03: Header → S04: Filtro → S05: Botón Agregar
-S06-S10: Formulario completo → S11-S13: Tabla → S14-S18: Badges/Estados → S19: Responsive
+API PÚBLICA (window.LecturasModule):
+- recargar: cargarLecturas      → llamado por pbeFlags.deberes
+- recargarCursos: cargarCursos  → llamado por pbeFlags.cursos
+- Ambos usados por 4btabdeberes.html switchSubTabDeberes()
 
-MOD-004: ESTRUCTURA JAVASCRIPT (22 submódulos)
-┌─ INICIALIZACIÓN ────────────────────────────────────┐
-│ S01: Variables globales (estado del módulo)         │
-│ S02: Inicialización con retry logic                 │
-├─ BACKEND I/O ───────────────────────────────────────┤
-│ S03: Cargar cursos (GAS)                            │
-│ S04: Poblar selects (UI update)                     │
-│ S05: Cargar lecturas (GAS)                          │
-├─ LÓGICA DE NEGOCIO ─────────────────────────────────┤
-│ S06: Cálculo Págs/Día (CRÍTICO - ver fórmula)      │
-│ S07: Parse fecha DD/MM/AAAA → Date object          │
-├─ RENDERING ─────────────────────────────────────────┤
-│ S08: Renderizar tabla (template literal)           │
-│ S09: Aplicar filtro por curso                       │
-├─ FORMULARIO ────────────────────────────────────────┤
-│ S10: Toggle form (abrir/cerrar)                     │
-│ S11: Limpiar campos                                 │
-│ S12: Submit + validaciones (70 líneas)             │
-├─ CRUD OPERATIONS ───────────────────────────────────┤
-│ S13: Agregar lectura (GAS)                          │
-│ S14: Actualizar lectura (GAS)                       │
-│ S15: Editar lectura (populate form)                 │
-│ S16: Eliminar lectura (GAS + confirm)              │
-├─ HELPERS ───────────────────────────────────────────┤
-│ S17: Validación (nota, fecha)                       │
-│ S18: DOM utils (getValue, setValue, safe*, escHtml) │
-│ S19: UI states (loading, error)                     │
-│ S20: Sistema de alertas (wrapper + fallback)       │
-├─ EXPORTS ───────────────────────────────────────────┤
-│ S21: API pública (window.LecturasModule)           │
-│ S22: Auto-init (150ms delay)                        │
-└──────────────────────────────────────────────────────┘
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-LÓGICA CRÍTICA - CÁLCULO PÁGS/DÍA (S06):
-┌──────────────────────────────────────────────────────┐
-│ Fecha hoy: 20/01/2026 (hardcoded en calcularPagsDia)│
-│                                                       │
-│ pagsPendientes = CantPag - PagActual                 │
-│ inicioReal = MAX(hoy, FechaInicio)                   │
-│ diasDisponibles = ⌈(FechaFin - inicioReal) / 86400s⌉│
-│ pagsDia = pagsPendientes ÷ diasDisponibles           │
-│                                                       │
-│ Colores semáforo:                                    │
-│ • Verde (ok): < 10 págs/día                          │
-│ • Amarillo (warning): 10-19 págs/día                 │
-│ • Rojo (critical): ≥ 20 págs/día                     │
-└──────────────────────────────────────────────────────┘
-
-VALIDACIONES CRÍTICAS (S12 + S17):
-- Campos obligatorios: curso, lectura, cantPag, fechaInicio, fechaFin
-- Formato fecha: /^\d{2}\/\d{2}\/\d{4}$/ (DD/MM/AAAA)
-- Rango páginas: 0 ≤ PagActual ≤ CantPag
-- Nota: 0-20 (opcional) | Peso: 0-100% (opcional)
-
-BACKEND DEPENDENCIES (Google Apps Script):
-- studentObtenerCursos({ codeAlum })
-- studentObtenerLecturas({ codeAlum })
-- studentAgregarLectura({ codeAlum, curso, lectura, cantPag, pagActual, 
-    fechaInicio, fechaFin, fechaEval, nota, peso, sem })
-- studentActualizarLectura({ ...params, rowNumber })
-- studentEliminarLectura({ rowNumber })
-
-COLUMNAS TABLA (8 totales):
-CURSO | LECTURA | PÁGS/DÍA | PÁGINAS | FECHA EVAL | NOTA | PESO | ACCIONES
-  Tag    Título    Badge    X/Y      DD/MM/AAAA   Badge   %    ✏️🗑️
-
-NOTA PARA IA:
-- El módulo es autocontenido (IIFE) - NO depende de MOD-005
-- parseFecha() está en MOD-004-S07, no en helpers externos
-- Si el user pide "agregar helpers globales", recordar que YA existen internos
-- Sistema de alertas tiene fallback automático si showAlert() no existe (S20)
-- Retry logic en inicialización maneja currentUser asíncrono (S02)
-
-INTEGRACIÓN:
-- Requiere: currentUser.codeAlum (global)
-- Opcional: showAlert(type, message) (global)
-- Expone: window.LecturasModule (8 métodos públicos)
-- Auto-init: 150ms delay para esperar currentUser
+DEPENDENCIAS:
+- window.pbeFlags → 3panelstudent.html MOD-012-008
+- currentUser.codeAlum (global)
 -->
 <!-- MOD-099: FIN -->
