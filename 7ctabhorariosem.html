@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.56
-FECHA: 13/02/2026 12:19 (UTC-5)
+VERSIÓN: 01.58
+FECHA: 15/02/2026 17:05 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -2191,44 +2191,44 @@ function clickCelda(fecha, hora) {
 
 function abrirFormularioActividad(fecha, hora) {
   resetFormActividad();
-  
+
   const fechaObj = new Date(fecha);
   const diaIndex = fechaObj.getDay() === 0 ? 6 : fechaObj.getDay() - 1;
   const diaCorto = DIAS_CORTOS[diaIndex];
   const fechaCorta = formatearFechaCorta(fechaObj);
-  
+
   document.getElementById('actividadFormTitle').textContent = `Agregar Actividad - ${diaCorto} ${fechaCorta}`;
   document.getElementById('actividadModoEdicion').value = 'false';
   document.getElementById('actividadFecha').value = fecha;
   document.getElementById('actividadSem').value = semanaActual;
   document.getElementById('btnSubmitActividad').textContent = 'Guardar';
   document.getElementById('btnEliminarActividad').style.display = 'none';
-  
+
   document.getElementById('actividadHoraIni').value = hora;
-  
+
   const [h] = hora.split(':').map(Number);
   const horaFinSugerida = String(Math.min(h + 1, HORA_FIN + 1)).padStart(2, '0') + ':00';
   document.getElementById('actividadHoraFin').value = horaFinSugerida;
-  
+
   document.getElementById('modalActividad').classList.add('active');
 }
 
 function editarActividad(fecha, hora) {
   const key = fecha;
   const items = horarioMatrix[key][hora];
-  
+
   if (!items || items.length === 0) return;
-  
+
   const item = items.find(i => i.tipo === 'actividad');
   if (!item) return;
-  
+
   const act = item.actividad;
-  
+
   const fechaObj = new Date(fecha);
   const diaIndex = fechaObj.getDay() === 0 ? 6 : fechaObj.getDay() - 1;
   const diaCorto = DIAS_CORTOS[diaIndex];
   const fechaCorta = formatearFechaCorta(fechaObj);
-  
+
   document.getElementById('actividadFormTitle').textContent = `Editar Actividad - ${diaCorto} ${fechaCorta}`;
   document.getElementById('actividadRowNumber').value = act._rowNumber || '';
   document.getElementById('actividadModoEdicion').value = 'true';
@@ -2239,17 +2239,17 @@ function editarActividad(fecha, hora) {
   document.getElementById('actividadHoraIni').value = normalizarHora(act.HoraInicio) || '';
   document.getElementById('actividadHoraFin').value = normalizarHora(act.HoraFin) || '';
   document.getElementById('actividadColor').value = act.Color || '#17a2b8';
-  
+
   document.getElementById('btnSubmitActividad').textContent = 'Actualizar';
   document.getElementById('btnEliminarActividad').style.display = 'block';
-  
+
   document.getElementById('modalActividad').classList.add('active');
 }
 
 function resetFormActividad() {
   const form = document.getElementById('formActividad');
   if (form) form.reset();
-  
+
   document.getElementById('actividadRowNumber').value = '';
   document.getElementById('actividadModoEdicion').value = '';
   document.getElementById('actividadFecha').value = '';
@@ -2264,7 +2264,7 @@ function cerrarModalActividad() {
 
 function handleSubmitActividad(event) {
   event.preventDefault();
-  
+
   const tipo = document.getElementById('actividadTipo').value.trim();
   const nombre = document.getElementById('actividadNombre').value.trim();
   const horaIni = document.getElementById('actividadHoraIni').value.trim();
@@ -2274,21 +2274,21 @@ function handleSubmitActividad(event) {
   const color = document.getElementById('actividadColor').value;
   const esEdicion = document.getElementById('actividadModoEdicion').value === 'true';
   const rowNumber = document.getElementById('actividadRowNumber').value;
-  
+
   if (!tipo || !nombre || !horaIni || !horaFin) {
     mostrarNotificacion('info', 'Completa todos los campos');
     return false;
   }
-  
+
   if (horaIni >= horaFin) {
     mostrarNotificacion('info', 'La hora de fin debe ser mayor a la de inicio');
     return false;
   }
-  
+
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = true;
   btnSubmit.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
-  
+
   const params = {
     codeAlum: currentUser.codeAlum,
     actividad: nombre,
@@ -2299,12 +2299,9 @@ function handleSubmitActividad(event) {
     color: color,
     sem: sem
   };
-  
+
   if (esEdicion) {
-    if (rowNumber) {
-      params.rowNumber = parseInt(rowNumber);
-    }
-    
+    if (rowNumber) params.rowNumber = parseInt(rowNumber);
     google.script.run
       .withSuccessHandler(r => handleActividadGuardada(r, true))
       .withFailureHandler(e => handleActividadError(e, true))
@@ -2315,7 +2312,7 @@ function handleSubmitActividad(event) {
       .withFailureHandler(e => handleActividadError(e, false))
       .studentAgregarHorarioSem(params);
   }
-  
+
   return false;
 }
 
@@ -2323,10 +2320,11 @@ function handleActividadGuardada(response, esEdicion) {
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = false;
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
+
   if (response && response.success) {
     const msg = esEdicion ? '✓ Actividad actualizada' : '✓ Actividad agregada';
     mostrarNotificacion('success', msg);
+    if (window.pbeFlags) window.pbeFlags.calendario = true;
     cerrarModalActividad();
     cargarHorarioSem();
   } else {
@@ -2337,11 +2335,11 @@ function handleActividadGuardada(response, esEdicion) {
 
 function handleActividadError(error, esEdicion) {
   console.error('📅 Error:', error);
-  
+
   const btnSubmit = document.getElementById('btnSubmitActividad');
   btnSubmit.disabled = false;
   btnSubmit.textContent = esEdicion ? 'Actualizar' : 'Guardar';
-  
+
   mostrarNotificacion('error', 'Error de conexión. Intenta nuevamente');
 }
 
@@ -2374,6 +2372,7 @@ function eliminarActividad(rowNumber) {
 function handleActividadEliminada(response) {
   if (response && response.success) {
     mostrarNotificacion('success', 'Actividad eliminada');
+    if (window.pbeFlags) window.pbeFlags.calendario = true;
     cerrarModalActividad();
     cargarHorarioSem();
   } else {
@@ -2746,19 +2745,17 @@ Grid semanal con gestión de actividades y visualización de deberes
 por día. Navegación por semanas, copia y limpieza de semana.
 
 CRÍTICO:
-- Prefijo CSS: .hs-* / Prefijo JS: window.hs*
-- Sin conflicto con HorarioClase (.hc-*)
-- hsCrearDeberDesdeModal() invoca ModalDeberModule.abrir()
-  en lugar de navegar al tab Deberes
+- pbeFlags.calendario = true en handleActividadGuardada y handleActividadEliminada
+- Prefijo CSS: .hs-* / Prefijo JS: window.hs* (sin conflicto con .hc-*)
+- hsCrearDeberDesdeModal() invoca ModalDeberModule.abrir() en lugar de navegar
 
 DEPENDENCIAS:
-- currentUser.codeAlum (requerido)
-- window.ModalDeberModule (2modaldeberes.html) para crear deberes
-- studentObtenerConfigSemana, studentObtenerSemanas,
-  studentObtenerCursos, studentObtenerHorarioClases,
-  studentObtenerHorarioSem, studentAgregarHorarioSem,
-  studentActualizarHorarioSem, studentEliminarHorarioSem,
-  studentCopiarSemana, studentLimpiarSemana,
-  studentObtenerTodosDeberes
+- window.pbeFlags          → 3panelstudent.html MOD-012-008
+- window.ModalDeberModule  → 2modaldeberes.html
+- currentUser.codeAlum     → requerido
+- studentObtenerConfigSemana, studentObtenerSemanas, studentObtenerCursos,
+  studentObtenerHorarioClases, studentObtenerHorarioSem,
+  studentAgregar/Actualizar/EliminarHorarioSem,
+  studentCopiarSemana, studentLimpiarSemana, studentObtenerTodosDeberes
 -->
 <!-- MOD-099: FIN -->
