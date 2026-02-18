@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabtareas.html
-VERSIÓN: 01.26
-FECHA: 16/02/2026 08:06 (UTC-5)
+VERSIÓN: 01.27
+FECHA: 17/02/2026 12:10 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -745,6 +745,10 @@ FECHA: 16/02/2026 08:06 (UTC-5)
     if (isActive) {
       form.classList.remove('active');
     } else {
+      if (window.pbeFlags && window.pbeFlags.cursos) {
+        window.pbeFlags.cursos = false;
+        cargarCursos();
+      }
       resetFormTarea();
       document.getElementById('formTitle').textContent = 'Agregar Nueva Tarea';
       document.getElementById('tareaModoEdicion').value = 'false';
@@ -974,7 +978,7 @@ FECHA: 16/02/2026 08:06 (UTC-5)
     }
   }, 150);
 
-  console.log('%c✏️ Sub-tab Tareas V01.25 cargado', 'font-size: 11px; color: #667eea;');
+  console.log('%c✏️ Sub-tab Tareas V01.27 cargado', 'font-size: 11px; color: #667eea;');
 // MOD-004-008: FIN
 
 })();
@@ -984,7 +988,7 @@ FECHA: 16/02/2026 08:06 (UTC-5)
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
-PROYECTO: PBE Control - Sub-tab Tareas V01.24
+PROYECTO: PBE Control
 DESCRIPCIÓN: CRUD completo de tareas con filtrado por curso y validaciones
 
 ESTRUCTURA: MOD-002 CSS (15 submódulos) | MOD-003 HTML | MOD-004 JS (8 submódulos)
