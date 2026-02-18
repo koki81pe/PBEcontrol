@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4atabcursosyrep.html
-VERSIÓN: 01.24
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.25
+FECHA: 16/02/2026 10:46 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -86,11 +86,20 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     document.getElementById('subtab-' + name).classList.add('active');
     document.getElementById('btn-subtab-' + name).classList.add('active');
 
+    // Verificar pbeFlags.cursos al navegar a Repasos
+    if (window.pbeFlags && window.pbeFlags.cursos && name === 'repasos') {
+      window.pbeFlags.cursos = false;
+      if (window.RepasosModule && typeof window.RepasosModule.recargarCursos === 'function') {
+        console.log('[4atabcursosyrep] 🔄 Recargando cursos en Repasos por pbeFlags.cursos');
+        window.RepasosModule.recargarCursos();
+      }
+    }
+
     if (!loaded[name]) {
       loaded[name] = true;
 
       console.log('🟢 Inicializando subtab:', name);
-      
+
       if (name === 'cursos' && window.CursosModule) {
         window.CursosModule.init();
       } else if (name === 'repasos' && window.RepasosModule) {
@@ -107,8 +116,8 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 
   // Auto-activar Cursos al cargar
   function initDefaultSubTab() {
-    console.log('📦 4atabcursosyrep V01.23: Activando Cursos por defecto');
-    
+    console.log('📦 4atabcursosyrep V01.25: Activando Cursos por defecto');
+
     setTimeout(function() {
       switchSubTab('cursos');
     }, 100);
@@ -122,7 +131,7 @@ FECHA: 11/02/2026 14:41 (UTC-5)
     initDefaultSubTab();
   }
 
-  console.log('%c📦 4atabcursosyrep V01.23 cargado',
+  console.log('%c📦 4atabcursosyrep V01.25 cargado',
     'font-weight:bold;color:#667eea');
 })();
 </script>
@@ -131,57 +140,18 @@ FECHA: 11/02/2026 14:41 (UTC-5)
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Contenedor de subtabs para Cursos y Repasos
-Sistema de lazy-load controlado por eventos
+Contenedor de subtabs para Cursos y Repasos con lazy-load y
+verificación de pbeFlags al navegar.
 
-SUBTABS INCLUIDOS:
-- subtab-cursos → include('5atabcursos')
-- subtab-repasos → include('5atabrepasos')
-
-FUNCIONALIDAD:
-- Navegación entre Cursos y Repasos mediante botones
-- Lazy-load: Los subtabs solo se inicializan al activarse por primera vez
+CRÍTICO:
+- switchSubTab() verifica pbeFlags.cursos al navegar a Repasos
+  y llama RepasosModule.recargarCursos() si está en true
+- Lazy-load: loaded[name] previene doble inicialización
 - Auto-activación: Cursos se activa por defecto al cargar
 
-FLUJO DE INICIALIZACIÓN:
-1. IIFE se ejecuta inmediatamente al cargar el módulo
-2. initDefaultSubTab() se llama con delay de 100ms
-3. switchSubTab('cursos') activa el primer subtab
-4. Llama a CursosModule.init() si existe
-5. Dispara evento 'pbe:subtab-activated'
-
-SISTEMA DE LAZY-LOAD:
-- Variable loaded controla qué subtabs ya fueron inicializados
-- Primera activación: loaded[name] = false → inicializa módulo
-- Activaciones posteriores: loaded[name] = true → solo cambia UI
-
-CONEXIÓN CON MÓDULOS:
-- window.CursosModule.init(): Inicializa módulo de cursos
-- window.RepasosModule.init(): Inicializa módulo de repasos
-- Evento 'pbe:subtab-activated': Notifica activación de subtab
-
-CARACTERÍSTICAS TÉCNICAS:
-- IIFE para encapsular lógica
-- switchSubTab() expuesto globalmente
-- Auto-inicialización inteligente (DOMContentLoaded o inmediato)
-- Delay de 100ms para garantizar currentUser disponible
-
 DEPENDENCIAS:
-- window.CursosModule: Definido en 5atabcursos.html
-- window.RepasosModule: Definido en 5atabrepasos.html
-- currentUser: Variable global del panel principal
-
-FIX CRÍTICO V01.22 → V01.23:
-- Activa subtab Cursos por defecto automáticamente
-- Conecta eventos con módulos hijos correctamente
-- Llama directamente a init() de módulos
-- Elimina race condition de inicialización
-
-CAMBIOS V01.22 → V01.23:
-- Remodulación completa según Estándar CodeWorkShop v4.0
-- CSS encapsulado en MOD-002
-- HTML en MOD-003
-- JavaScript en MOD-004 (IIFE completo)
-- Comentarios consolidados en MOD-099
+- window.CursosModule  → 5atabcursos.html
+- window.RepasosModule → 5atabrepasos.html
+- window.pbeFlags      → 3panelstudent.html MOD-012-008
 -->
 <!-- MOD-099: FIN -->
