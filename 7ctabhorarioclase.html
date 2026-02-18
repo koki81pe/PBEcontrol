@@ -3,8 +3,8 @@
 /******************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorarioclase.html
-VERSIÓN: 01.30
-FECHA: 15/02/2026 16:56 (UTC-5)
+VERSIÓN: 01.33
+FECHA: 17/02/2026 12:59 (UTC-5)
 ******************************************/
 -->
 <!-- MOD-001: FIN -->
@@ -403,7 +403,7 @@ if (window.HorarioClaseModule) {
   return;
 }
 
-console.log('🕐 HorarioClaseModule V01.26 CODEWORKSHOP iniciando...');
+console.log('🕐 HorarioClaseModule V01.33 CODEWORKSHOP iniciando...');
 // MOD-005-001: FIN
 
 // MOD-005-002: VARIABLES Y CONSTANTES [INICIO]
@@ -762,6 +762,8 @@ function cerrarModalSeleccion() {
 }
 
 function editarClaseDirecta(clase) {
+  cargarCursos();
+
   console.log('🕐 Editando clase directa:', clase);
   
   const dia = extraerDia(clase.Detalle);
@@ -820,6 +822,7 @@ function clickCelda(dia, hora) {
 
 function abrirFormularioAgregar(dia, hora) {
   resetFormClase();
+  cargarCursos();
 
   const diaCorto = DIAS_CORTOS[DIAS.indexOf(dia)];
   const horaFormato = formatearHora12Desde24(hora);
@@ -1031,6 +1034,7 @@ window.hcCerrarModalSeleccion = cerrarModalSeleccion;
 window.hcHandleSubmitClase = handleSubmitClase;
 window.hcConfirmarEliminarClase = confirmarEliminarClase;
 window.hcCancelarFormClase = cancelarFormClase;
+window.hcRecargarCursos = cargarCursos;
 
 setTimeout(function() {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.codeAlum) {
@@ -1050,10 +1054,11 @@ window.HorarioClaseModule = {
   mostrarSeleccionClase: mostrarSeleccionClase,
   guardarClase: handleSubmitClase,
   eliminarClase: confirmarEliminarClase,
-  cancelar: cancelarFormClase
+  cancelar: cancelarFormClase,
+  recargarCursos: cargarCursos
 };
 
-console.log('%c🕐 HorarioClaseModule V01.26 CODEWORKSHOP cargado',
+console.log('%c🕐 HorarioClaseModule V01.31 CODEWORKSHOP cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
 // MOD-005-017: FIN
 
@@ -1073,18 +1078,15 @@ DESCRIPCIÓN:
 Grid visual semanal 7×16 (7 AM - 10 PM) para gestión de horario de clases fijas.
 Validación de conflictos con colores personalizados por curso.
 
-FUNCIONALIDAD:
-- Click celda vacía → Agregar | Click celda ocupada → Editar/Eliminar
-- Prefijos "/" para medias horas (ej: /HIST inicio 11:30)
-- Validación y confirmación de solapamientos
-
 CRÍTICO:
 - pbeFlags.horariosem = true en handleClaseGuardada y handleClaseEliminada
+- pbeFlags.cursos verificado en abrirFormularioAgregar() y editarClaseDirecta()
+  para recargar dropdown de cursos si hay cursos nuevos en la sesión
 - Prefijo CSS: .hc-* | Prefijo JS: window.hc* (sin colisión con otros módulos)
 - Carga cursos antes que horario (evita race condition)
 
 DEPENDENCIAS:
-- window.pbeFlags → 3panelstudent.html MOD-012-008
+- window.pbeFlags  → 3panelstudent.html MOD-012-008
 - studentObtenerCursos/HorarioClases | studentAgregar/Actualizar/EliminarHorarioClase
 -->
 <!-- MOD-099: FIN -->
