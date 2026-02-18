@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabhorariosem.html
-VERSIÓN: 01.58
-FECHA: 15/02/2026 17:05 (UTC-5)
+VERSIÓN: 01.59
+FECHA: 16/02/2026 10:35 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -2679,7 +2679,7 @@ function cerrarModalDeber() {
 }
 // MOD-006-024: FIN
 
-// MOD-006-025: EXPOSICIÓN GLOBAL Y ARRANQUE V2 [INICIO]
+// MOD-006-025: EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
 window.hsInit = init;
 window.hsCargarHorarioSem = cargarHorarioSem;
 window.hsCambiarSemana = cambiarSemana;
@@ -2703,6 +2703,7 @@ window.hsCerrarModalListaDeberes = hsCerrarModalListaDeberes;
 window.hsEditarDeberDesdeModal = hsEditarDeberDesdeModal;
 window.hsCrearDeberDesdeModal = hsCrearDeberDesdeModal;
 window.hsRefrescar = hsRefrescar;
+window.hsRecargarCursos = cargarCursos;
 
 function hsRefrescar() {
   console.log('🔄 Refrescando datos de semana', semanaActual);
@@ -2727,10 +2728,11 @@ window.HorarioSemanalModule = {
   abrirConfigSemana: abrirConfigSemana,
   copiarSemanaAnterior: copiarSemanaAnterior,
   limpiarSemana: limpiarSemana,
-  refrescar: hsRefrescar
+  refrescar: hsRefrescar,
+  recargarCursos: cargarCursos
 };
 
-console.log('%c📅 HorarioSemanalModule V01.49 CODEWORKSHOP cargado',
+console.log('%c📅 HorarioSemanalModule V01.59 CODEWORKSHOP cargado',
   'font-size:11px;color:#667eea;font-weight:bold');
 // MOD-006-025: FIN
 })();
