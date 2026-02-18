@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4ctabplanning.html
-VERSIÓN: 01.21
-FECHA: 15/02/2026 15:01 (UTC-5)
+VERSIÓN: 01.22
+FECHA: 16/02/2026 10:48 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -108,6 +108,15 @@ window.PlanningModule = (function () {
     console.log('[Planning] Sub-tab activo:', name);
 
     if (window.pbeFlags) {
+      if (window.pbeFlags.cursos) {
+        window.pbeFlags.cursos = false;
+        if (name === 'horarioclase' && typeof window.hcRecargarCursos === 'function') {
+          window.hcRecargarCursos();
+        }
+        if (name === 'horariosem' && typeof window.hsRecargarCursos === 'function') {
+          window.hsRecargarCursos();
+        }
+      }
       if (name === 'horariosem' && window.pbeFlags.horariosem) {
         window.pbeFlags.horariosem = false;
         if (typeof window.hsRefrescar === 'function') window.hsRefrescar();
@@ -153,7 +162,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.21 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.22 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
@@ -173,19 +182,17 @@ window.PlanningModule = (function () {
 DESCRIPCIÓN:
 Contenedor de sub-tabs de Planning, encapsulado en PlanningModule.
 
-SUB-TABS:
-- subtab-horarioclase → 7ctabhorarioclase
-- subtab-horariosem   → 7ctabhorariosem
-- subtab-notas        → 7ctabnotas
-- subtab-calendario   → 7ctabcalendario
-
 CRÍTICO:
-- switchTab() verifica pbeFlags.horariosem y pbeFlags.calendario al navegar
-- Recarga módulo destino si flag true, luego resetea flag
+- switchTab() verifica pbeFlags.cursos, pbeFlags.horariosem y pbeFlags.calendario
+- pbeFlags.cursos recarga cursos en horarioclase o horariosem según subtab activo
+- pbeFlags.horariosem llama hsRefrescar() al navegar a horariosem
+- pbeFlags.calendario llama CalendarioModule.reload() al navegar a calendario
 
 DEPENDENCIAS:
-- window.pbeFlags        → 3panelstudent.html MOD-012-008
-- window.hsRefrescar     → 7ctabhorariosem.html
-- window.CalendarioModule.reload → 7ctabcalendario.html
+- window.pbeFlags              → 3panelstudent.html MOD-012-008
+- window.hcRecargarCursos      → 7ctabhorarioclase.html MOD-005-017
+- window.hsRecargarCursos      → 7ctabhorariosem.html MOD-006-025
+- window.hsRefrescar           → 7ctabhorariosem.html MOD-006-025
+- window.CalendarioModule.reload → 7ctabcalendario.html MOD-004-012
 -->
 <!-- MOD-099: FIN -->
