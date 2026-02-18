@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.06
-FECHA: 15/02/2026 16:01 (UTC-5)
+VERSIÓN: 01.07
+FECHA: 17/02/2026 11:34 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -373,20 +373,15 @@ FECHA: 15/02/2026 16:01 (UTC-5)
     _fechaActual = params.fecha  || '';
     _origen      = params.origen || '';
 
-    if (window.pbeFlags && window.pbeFlags.cursos) {
-      window.pbeFlags.cursos = false;
-      _cursosListos = false;
-      _cursosCache  = [];
-    }
+    _cursosListos = false;
+    _cursosCache  = [];
 
     _limpiarTodo();
     _actualizarTitulo();
     cambiarTipo(_tipoActivo);
     _preFecha();
 
-    if (!_cursosListos) {
-      _cargarCursos();
-    }
+    _cargarCursos();
 
     document.getElementById('mdOverlay').classList.add('active');
     console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| fecha:', _fechaActual, '| origen:', _origen);
@@ -784,7 +779,7 @@ FECHA: 15/02/2026 16:01 (UTC-5)
     submitLect:   submitLect
   };
 
-  console.log('%c📋 ModalDeberModule V01.00 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
+  console.log('%c📋 ModalDeberModule V01.07 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
 
 })();
 // MOD-009-012: FIN
@@ -799,13 +794,12 @@ Modal libre para registro de deberes (Evaluación, Tarea, Lectura)
 invocable desde cualquier subtab sin navegar fuera del origen.
 
 CRÍTICO:
-- Prefijo CSS e IDs: md-* (sin colisión con módulos existentes)
-- _cursosCache se invalida si pbeFlags.cursos === true al abrir
+- Cursos se recargan siempre al abrir (sin caché entre aperturas)
 - _onGuardadoExitoso() marca pbeFlags antes de cerrar y retornar
 
 DEPENDENCIAS:
-- window.pbeFlags        → 3panelstudent.html MOD-012-008
-- currentUser.codeAlum  → requerido
+- currentUser.codeAlum          → requerido
+- window.pbeFlags               → 3panelstudent.html MOD-012-008
 - window.PlanningModule.switchTab() → retorno al origen
 - window.hsRefrescar / CalendarioModule.reload → recarga inmediata
 
