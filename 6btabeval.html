@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btabeval.html
-VERSIÓN: 01.34
-FECHA: 16/02/2026 08:04 (UTC-5)
+VERSIÓN: 01.35
+FECHA: 17/02/2026 12:04 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -737,6 +737,10 @@ FECHA: 16/02/2026 08:04 (UTC-5)
     if (isActive) {
       form.classList.remove('active');
     } else {
+      if (window.pbeFlags && window.pbeFlags.cursos) {
+        window.pbeFlags.cursos = false;
+        cargarCursos();
+      }
       resetFormEval();
       document.getElementById('formTitle').textContent = 'Agregar Nueva Evaluación';
       document.getElementById('evalModoEdicion').value = 'false';
