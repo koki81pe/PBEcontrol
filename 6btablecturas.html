@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 6btablecturas.html
-VERSIÓN: 01.26
-FECHA: 15/02/2026 15:56 (UTC-5)
+VERSIÓN: 01.27
+FECHA: 17/02/2026 12:14 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -665,7 +665,7 @@ FECHA: 15/02/2026 15:56 (UTC-5)
       return;
     }
 
-    console.log('📖 Inicializando LecturasModule V01.22 FIXED...');
+    console.log('📖 Inicializando LecturasModule V01.27 FIXED...');
 
     if (typeof currentUser === 'undefined' || !currentUser || !currentUser.codeAlum) {
       console.warn('📖 currentUser no disponible, reintentando en 200ms...');
@@ -904,15 +904,18 @@ FECHA: 15/02/2026 15:56 (UTC-5)
 
     if (!form) return;
 
-    modoEdicion = false;
-    
-    if (titulo) titulo.textContent = 'Agregar Lectura';
-    if (btn) btn.textContent = 'Guardar Lectura';
-
-    limpiarFormulario();
-    form.classList.toggle('active');
-
     if (form.classList.contains('active')) {
+      form.classList.remove('active');
+    } else {
+      if (window.pbeFlags && window.pbeFlags.cursos) {
+        window.pbeFlags.cursos = false;
+        cargarCursos();
+      }
+      modoEdicion = false;
+      if (titulo) titulo.textContent = 'Agregar Lectura';
+      if (btn) btn.textContent = 'Guardar Lectura';
+      limpiarFormulario();
+      form.classList.add('active');
       const selectCurso = document.getElementById('lectura_curso');
       if (selectCurso) setTimeout(function() { selectCurso.focus(); }, 100);
     }
