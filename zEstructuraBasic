@@ -6,9 +6,7 @@ ESTRUCTURA DE ARCHIVOS DE PBE CONTROL
 1admin.gs
 1utils.gs
 
-2testback.gs
-2testfront.gs
-2testui.html
+2modaldeberes.html
 
 3index.html
 3paneladmin.html
