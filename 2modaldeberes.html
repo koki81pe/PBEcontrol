@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.08
-FECHA: 19/02/2026 13:36 (UTC-5)
+VERSIÓN: 01.09
+FECHA: 19/02/2026 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -367,6 +367,7 @@ FECHA: 19/02/2026 13:36 (UTC-5)
   let _modoEdicion  = false;
   let _rowNumber    = null;
   let _cursoEdicion = '';
+  let _datoEdicion  = null;
 // MOD-009-001: FIN
 
 // MOD-009-002: ABRIR MODAL [INICIO]
@@ -375,6 +376,20 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     _tipoActivo  = params.tipo   || 'eval';
     _fechaActual = params.fecha  || '';
     _origen      = params.origen || '';
+    _modoEdicion = params.modoEdicion || false;
+    _rowNumber   = params.rowNumber   || null;
+    _datoEdicion = _modoEdicion ? {
+      curso:       params.curso       || '',
+      nombre:      params.nombre      || '',
+      fecha:       params.fecha       || '',
+      nota:        (params.nota !== undefined && params.nota !== null) ? String(params.nota) : '',
+      peso:        (params.peso !== undefined && params.peso !== null) ? String(params.peso) : '',
+      fechaInicio: params.fechaInicio || '',
+      fechaFin:    params.fechaFin    || '',
+      fechaEval:   params.fechaEval   || '',
+      cantPag:     params.cantPag     || '',
+      pagActual:   params.pagActual   || ''
+    } : null;
 
     _cursosListos = false;
     _cursosCache  = [];
@@ -382,12 +397,16 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     _limpiarTodo();
     _actualizarTitulo();
     cambiarTipo(_tipoActivo);
-    _preFecha();
 
+    // Ocultar selector de tipo en modo edición (no se puede cambiar el tipo)
+    const tipoNav = document.querySelector('.md-tipo-nav');
+    if (tipoNav) tipoNav.style.display = _modoEdicion ? 'none' : '';
+
+    _preFecha();
     _cargarCursos();
 
     document.getElementById('mdOverlay').classList.add('active');
-    console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| fecha:', _fechaActual, '| origen:', _origen);
+    console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| origen:', _origen, '| edicion:', _modoEdicion);
   }
 // MOD-009-002: FIN
 
@@ -469,9 +488,11 @@ FECHA: 19/02/2026 13:36 (UTC-5)
   }
 
   function _actualizarTitulo() {
-    const titulos = { eval: 'Nueva Evaluación', tarea: 'Nueva Tarea', lect: 'Nueva Lectura' };
+    const titulos = _modoEdicion
+      ? { eval: 'Editar Evaluación', tarea: 'Editar Tarea', lect: 'Editar Lectura' }
+      : { eval: 'Nueva Evaluación',  tarea: 'Nueva Tarea',  lect: 'Nueva Lectura'  };
     const el = document.getElementById('mdTitulo');
-    if (el) el.textContent = titulos[_tipoActivo] || 'Nuevo Deber';
+    if (el) el.textContent = titulos[_tipoActivo] || (_modoEdicion ? 'Editar Deber' : 'Nuevo Deber');
   }
 
   function _preFecha() {
@@ -514,6 +535,35 @@ FECHA: 19/02/2026 13:36 (UTC-5)
         sel.appendChild(opt);
       });
     });
+    // En modo edición, poblar todos los campos con los datos existentes
+    _poblarCamposEdicion();
+  }
+
+  function _poblarCamposEdicion() {
+    if (!_modoEdicion || !_datoEdicion) return;
+    if (_tipoActivo === 'eval') {
+      _val('md-eval-curso',  _datoEdicion.curso);
+      _val('md-eval-nombre', _datoEdicion.nombre);
+      _val('md-eval-fecha',  _datoEdicion.fecha || _datoEdicion.fechaEval);
+      _val('md-eval-nota',   _datoEdicion.nota);
+      _val('md-eval-peso',   _datoEdicion.peso);
+    } else if (_tipoActivo === 'tarea') {
+      _val('md-tarea-curso',        _datoEdicion.curso);
+      _val('md-tarea-nombre',       _datoEdicion.nombre);
+      _val('md-tarea-fechaentrega', _datoEdicion.fecha);
+      _val('md-tarea-nota',         _datoEdicion.nota);
+      _val('md-tarea-peso',         _datoEdicion.peso);
+    } else if (_tipoActivo === 'lect') {
+      _val('md-lect-curso',       _datoEdicion.curso);
+      _val('md-lect-titulo',      _datoEdicion.nombre);
+      _val('md-lect-cantpag',     _datoEdicion.cantPag);
+      _val('md-lect-pagactual',   _datoEdicion.pagActual || '0');
+      _val('md-lect-fechainicio', _datoEdicion.fechaInicio);
+      _val('md-lect-fechafin',    _datoEdicion.fechaFin);
+      _val('md-lect-fechaeval',   _datoEdicion.fecha || _datoEdicion.fechaEval);
+      _val('md-lect-nota',        _datoEdicion.nota);
+      _val('md-lect-peso',        _datoEdicion.peso);
+    }
   }
 // MOD-009-006: FIN
 
@@ -559,29 +609,57 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormEval');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la evaluación.');
+    if (_modoEdicion && _rowNumber) {
+      // MODO EDICIÓN: actualizar registro existente
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la evaluación.');
+            _desbloquearBtn('mdFormEval');
+            return;
+          }
+          _onGuardadoExitoso('Evaluación actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error eval update:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
           _desbloquearBtn('mdFormEval');
-          return;
-        }
-        _onGuardadoExitoso('Evaluación guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error eval:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormEval');
-      })
-      .studentAgregarEvaluacion({
-        codeAlum: currentUser.codeAlum,
-        curso:    curso,
-        nomEval:  nombre,
-        fechaEval: fecha,
-        nota:     nota,
-        peso:     peso,
-        sem:      ''
-      });
+        })
+        .studentActualizarEvaluacion({
+          codeAlum:  currentUser.codeAlum,
+          rowNumber: _rowNumber,
+          curso:     curso,
+          nomEval:   nombre,
+          fechaEval: fecha,
+          nota:      nota,
+          peso:      peso
+        });
+    } else {
+      // MODO CREACIÓN: agregar nuevo registro
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la evaluación.');
+            _desbloquearBtn('mdFormEval');
+            return;
+          }
+          _onGuardadoExitoso('Evaluación guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error eval:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormEval');
+        })
+        .studentAgregarEvaluacion({
+          codeAlum:  currentUser.codeAlum,
+          curso:     curso,
+          nomEval:   nombre,
+          fechaEval: fecha,
+          nota:      nota,
+          peso:      peso,
+          sem:       ''
+        });
+    }
   }
 // MOD-009-008: FIN
 
@@ -609,30 +687,59 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormTarea');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la tarea.');
+    if (_modoEdicion && _rowNumber) {
+      // MODO EDICIÓN: actualizar registro existente
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la tarea.');
+            _desbloquearBtn('mdFormTarea');
+            return;
+          }
+          _onGuardadoExitoso('Tarea actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error tarea update:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
           _desbloquearBtn('mdFormTarea');
-          return;
-        }
-        _onGuardadoExitoso('Tarea guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error tarea:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormTarea');
-      })
-      .studentAgregarTarea({
-        codeAlum:     currentUser.codeAlum,
-        curso:        curso,
-        tarea:        nombre,
-        fechaEntrega: fechaEntrega,
-        fechaAccion:  fechaRealiz,
-        nota:         nota,
-        peso:         peso,
-        sem:          ''
-      });
+        })
+        .studentActualizarTarea({
+          codeAlum:     currentUser.codeAlum,
+          rowNumber:    _rowNumber,
+          curso:        curso,
+          tarea:        nombre,
+          fechaEntrega: fechaEntrega,
+          fechaAccion:  fechaRealiz,
+          nota:         nota,
+          peso:         peso
+        });
+    } else {
+      // MODO CREACIÓN: agregar nuevo registro
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la tarea.');
+            _desbloquearBtn('mdFormTarea');
+            return;
+          }
+          _onGuardadoExitoso('Tarea guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error tarea:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormTarea');
+        })
+        .studentAgregarTarea({
+          codeAlum:     currentUser.codeAlum,
+          curso:        curso,
+          tarea:        nombre,
+          fechaEntrega: fechaEntrega,
+          fechaAccion:  fechaRealiz,
+          nota:         nota,
+          peso:         peso,
+          sem:          ''
+        });
+    }
   }
 // MOD-009-009: FIN
 
@@ -671,33 +778,65 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormLect');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la lectura.');
+    if (_modoEdicion && _rowNumber) {
+      // MODO EDICIÓN: actualizar registro existente
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la lectura.');
+            _desbloquearBtn('mdFormLect');
+            return;
+          }
+          _onGuardadoExitoso('Lectura actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error lectura update:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
           _desbloquearBtn('mdFormLect');
-          return;
-        }
-        _onGuardadoExitoso('Lectura guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error lectura:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormLect');
-      })
-      .studentAgregarLectura({
-        codeAlum:    currentUser.codeAlum,
-        curso:       curso,
-        lectura:     titulo,
-        cantPag:     cantPag,
-        pagActual:   pagActual,
-        fechaInicio: fechaInicio,
-        fechaFin:    fechaFin,
-        fechaEval:   fechaEval,
-        nota:        nota,
-        peso:        peso,
-        sem:         ''
-      });
+        })
+        .studentActualizarLectura({
+          codeAlum:    currentUser.codeAlum,
+          rowNumber:   _rowNumber,
+          curso:       curso,
+          lectura:     titulo,
+          cantPag:     cantPag,
+          pagActual:   pagActual,
+          fechaInicio: fechaInicio,
+          fechaFin:    fechaFin,
+          fechaEval:   fechaEval,
+          nota:        nota,
+          peso:        peso
+        });
+    } else {
+      // MODO CREACIÓN: agregar nuevo registro
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la lectura.');
+            _desbloquearBtn('mdFormLect');
+            return;
+          }
+          _onGuardadoExitoso('Lectura guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error lectura:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormLect');
+        })
+        .studentAgregarLectura({
+          codeAlum:    currentUser.codeAlum,
+          curso:       curso,
+          lectura:     titulo,
+          cantPag:     cantPag,
+          pagActual:   pagActual,
+          fechaInicio: fechaInicio,
+          fechaFin:    fechaFin,
+          fechaEval:   fechaEval,
+          nota:        nota,
+          peso:        peso,
+          sem:         ''
+        });
+    }
   }
 // MOD-009-010: FIN
 
@@ -729,6 +868,15 @@ FECHA: 19/02/2026 13:36 (UTC-5)
       setTimeout(function() {
         if (window.CalendarioModule && typeof window.CalendarioModule.reload === 'function') {
           window.CalendarioModule.reload();
+        }
+      }, 300);
+    }
+
+    // Recargar grilla de Notas tras guardar/editar desde el subtab Notas
+    if (_origen === 'notas') {
+      setTimeout(function() {
+        if (window.NotasModule && typeof window.NotasModule.recargar === 'function') {
+          window.NotasModule.recargar();
         }
       }, 300);
     }
@@ -782,7 +930,7 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     submitLect:   submitLect
   };
 
-  console.log('%c📋 ModalDeberModule V01.07 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
+  console.log('%c📋 ModalDeberModule V01.09 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
 
 })();
 // MOD-009-012: FIN

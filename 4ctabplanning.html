@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4ctabplanning.html
-VERSIÓN: 01.22
-FECHA: 16/02/2026 10:48 (UTC-5)
+VERSIÓN: 01.23
+FECHA: 19/02/2026 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -128,6 +128,13 @@ window.PlanningModule = (function () {
         }
       }
     }
+
+    // Recargar Notas siempre que se ingrese al subtab (datos siempre frescos)
+    if (name === 'notas') {
+      if (window.NotasModule && typeof window.NotasModule.recargar === 'function') {
+        window.NotasModule.recargar();
+      }
+    }
   }
 
   // Helpers reutilizados por sub-tabs
@@ -162,7 +169,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.22 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.23 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
