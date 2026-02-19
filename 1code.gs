@@ -3,8 +3,8 @@
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1code.gs
-VERSIÓN: 01.30
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.31
+FECHA: 19/02/2026 13:33 (UTC-5)
 ******************************************
 */
 // MOD-001: FIN
@@ -368,13 +368,18 @@ function studentEliminarSemana(params) {
 // MOD-014: FIN
 
 // MOD-015: WRAPPERS NOTAS [INICIO]
-function studentObtenerNotasPorCurso(params) { 
+function studentObtenerNotasPorCurso(params) {
   var result = Student.obtenerNotasPorCurso(params);
   return cleanDataForSerialization(result);
 }
 
-function studentObtenerResumenNotas(params) { 
+function studentObtenerResumenNotas(params) {
   var result = Student.obtenerResumenNotas(params);
+  return cleanDataForSerialization(result);
+}
+
+function studentObtenerNotasGrid(params) {
+  var result = Student.obtenerNotasGrid(params);
   return cleanDataForSerialization(result);
 }
 // MOD-015: FIN
@@ -405,7 +410,7 @@ function adminEliminarAlumno(params) {
 }
 // MOD-017: FIN
 
-// MOD-018: NOTAS [INICIO]
+// MOD-099: NOTAS [INICIO]
 /*
 CAMBIOS V01.28 CLAUDE+ fix mod coment:
 - Se corrigió etiquetado de comentarios para identificar los MOD el 17/01/2026
@@ -431,12 +436,12 @@ MOD-011: Wrappers HorarioClases (4)
 MOD-012: Wrappers HorarioSem (4)
 MOD-013: Wrappers Config Semanas (4)
 MOD-014: Wrappers Gestión Semanas (3) ← NUEVO V01.28
-MOD-015: Wrappers Notas (2)
+MOD-015: Wrappers Notas (3)
 MOD-016: Wrappers Deberes (2)
 MOD-017: Wrappers Admin (3)
 MOD-018: Notas
 
-TOTAL FUNCIONES: 49
+TOTAL FUNCIONES: 50
 - Router y utilidades: 8
 - Wrappers Student: 38
 - Wrappers Admin: 3
@@ -452,4 +457,4 @@ ADVERTENCIAS CRÍTICAS:
 ● MOD-005: isTimeValue() procesa times ANTES de fechas
 ● MOD-014: obtenerSemanas() recibe codeAlum directo, no params completo
 */
-// MOD-018: FIN
+// MOD-099: FIN
