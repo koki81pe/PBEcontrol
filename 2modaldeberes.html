@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.08
-FECHA: 19/02/2026 13:36 (UTC-5)
+VERSIÓN: 01.09
+FECHA: 19/02/2026 17:34 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -367,6 +367,7 @@ FECHA: 19/02/2026 13:36 (UTC-5)
   let _modoEdicion  = false;
   let _rowNumber    = null;
   let _cursoEdicion = '';
+  let _datoEdicion  = null;
 // MOD-009-001: FIN
 
 // MOD-009-002: ABRIR MODAL [INICIO]
@@ -375,6 +376,9 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     _tipoActivo  = params.tipo   || 'eval';
     _fechaActual = params.fecha  || '';
     _origen      = params.origen || '';
+    _modoEdicion = params.modoEdicion === true;
+    _rowNumber   = params.rowNumber   || null;
+    _datoEdicion = _modoEdicion ? params : null;
 
     _cursosListos = false;
     _cursosCache  = [];
@@ -387,7 +391,7 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     _cargarCursos();
 
     document.getElementById('mdOverlay').classList.add('active');
-    console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| fecha:', _fechaActual, '| origen:', _origen);
+    console.log('[ModalDeberModule] Abierto — tipo:', _tipoActivo, '| modoEdicion:', _modoEdicion, '| rowNumber:', _rowNumber, '| origen:', _origen);
   }
 // MOD-009-002: FIN
 
@@ -469,16 +473,18 @@ FECHA: 19/02/2026 13:36 (UTC-5)
   }
 
   function _actualizarTitulo() {
-    const titulos = { eval: 'Nueva Evaluación', tarea: 'Nueva Tarea', lect: 'Nueva Lectura' };
+    const titulos = _modoEdicion
+      ? { eval: 'Editar Evaluación', tarea: 'Editar Tarea', lect: 'Editar Lectura' }
+      : { eval: 'Nueva Evaluación',  tarea: 'Nueva Tarea',  lect: 'Nueva Lectura'  };
     const el = document.getElementById('mdTitulo');
-    if (el) el.textContent = titulos[_tipoActivo] || 'Nuevo Deber';
+    if (el) el.textContent = titulos[_tipoActivo] || (_modoEdicion ? 'Editar Deber' : 'Nuevo Deber');
   }
 
   function _preFecha() {
     if (!_fechaActual) return;
-    if (_tipoActivo === 'eval') _val('md-eval-fecha', _fechaActual);
+    if (_tipoActivo === 'eval')  _val('md-eval-fecha',        _fechaActual);
     if (_tipoActivo === 'tarea') _val('md-tarea-fechaentrega', _fechaActual);
-    if (_tipoActivo === 'lect') _val('md-lect-fechaeval', _fechaActual);
+    if (_tipoActivo === 'lect')  _val('md-lect-fechaeval',     _fechaActual);
   }
 // MOD-009-004: FIN
 
@@ -514,10 +520,60 @@ FECHA: 19/02/2026 13:36 (UTC-5)
         sel.appendChild(opt);
       });
     });
+
+    if (_modoEdicion && _datoEdicion) {
+      _poblarCamposEdicion(_datoEdicion);
+    }
   }
 // MOD-009-006: FIN
 
-// MOD-009-007: VALIDACIÓN DE CAMPOS [INICIO]
+// MOD-009-007: POBLAR CAMPOS EN MODO EDICIÓN [INICIO]
+  function _poblarCamposEdicion(d) {
+    if (_tipoActivo === 'eval') {
+      _val('md-eval-curso',  d.curso  || '');
+      _val('md-eval-nombre', d.nombre || '');
+      _val('md-eval-fecha',  d.fecha  || '');
+      _val('md-eval-nota',   d.nota   || '');
+      _val('md-eval-peso',   d.peso   || '');
+      const sel = document.getElementById('md-eval-curso');
+      if (sel && d.curso) sel.value = d.curso;
+
+    } else if (_tipoActivo === 'tarea') {
+      _val('md-tarea-curso',        d.curso  || '');
+      _val('md-tarea-nombre',       d.nombre || '');
+      _val('md-tarea-fechaentrega', d.fecha  || '');
+      _val('md-tarea-nota',         d.nota   || '');
+      _val('md-tarea-peso',         d.peso   || '');
+      const sel = document.getElementById('md-tarea-curso');
+      if (sel && d.curso) sel.value = d.curso;
+
+    } else if (_tipoActivo === 'lect') {
+      _val('md-lect-curso',       d.curso       || '');
+      _val('md-lect-titulo',      d.nombre      || '');
+      _val('md-lect-cantpag',     d.cantPag     || '');
+      _val('md-lect-pagactual',   d.pagActual   || '0');
+      _val('md-lect-fechainicio', d.fechaInicio || '');
+      _val('md-lect-fechafin',    d.fechaFin    || '');
+      _val('md-lect-fechaeval',   d.fechaEval   || '');
+      _val('md-lect-nota',        d.nota        || '');
+      _val('md-lect-peso',        d.peso        || '');
+      const sel = document.getElementById('md-lect-curso');
+      if (sel && d.curso) sel.value = d.curso;
+    }
+
+    // Cambiar texto del botón a "Actualizar"
+    ['mdFormEval', 'mdFormTarea', 'mdFormLect'].forEach(function(formId) {
+      const form = document.getElementById(formId);
+      if (!form || !form.classList.contains('active')) return;
+      const btn = form.querySelector('.md-btn-primario');
+      if (btn) btn.textContent = 'Actualizar';
+    });
+
+    console.log('[ModalDeberModule] Campos de edición poblados para tipo:', _tipoActivo);
+  }
+// MOD-009-007: FIN
+
+// MOD-009-008: VALIDACIÓN DE CAMPOS [INICIO]
   function _validarFecha(f) {
     return /^\d{2}\/\d{2}\/\d{4}$/.test(f);
   }
@@ -530,7 +586,7 @@ FECHA: 19/02/2026 13:36 (UTC-5)
   function _mostrarAlerta(tipo, msg) {
     const el = document.getElementById('mdAlerta');
     if (!el) return;
-    el.className  = 'md-alerta active ' + tipo;
+    el.className   = 'md-alerta active ' + tipo;
     el.textContent = msg;
   }
 
@@ -538,15 +594,15 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     const el = document.getElementById('mdAlerta');
     if (el) { el.className = 'md-alerta'; el.textContent = ''; }
   }
-// MOD-009-007: FIN
+// MOD-009-008: FIN
 
-// MOD-009-008: SUBMIT EVALUACIÓN [INICIO]
+// MOD-009-009: SUBMIT EVALUACIÓN [INICIO]
   function submitEval() {
-    const curso   = _get('md-eval-curso');
-    const nombre  = _get('md-eval-nombre');
-    const fecha   = _get('md-eval-fecha');
-    const nota    = _get('md-eval-nota');
-    const peso    = _get('md-eval-peso');
+    const curso  = _get('md-eval-curso');
+    const nombre = _get('md-eval-nombre');
+    const fecha  = _get('md-eval-fecha');
+    const nota   = _get('md-eval-nota');
+    const peso   = _get('md-eval-peso');
 
     if (!curso || !nombre || !fecha) {
       _mostrarAlerta('error', 'Completa los campos obligatorios: Curso, Nombre y Fecha.');
@@ -559,33 +615,54 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormEval');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la evaluación.');
-          _desbloquearBtn('mdFormEval');
-          return;
-        }
-        _onGuardadoExitoso('Evaluación guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error eval:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormEval');
-      })
-      .studentAgregarEvaluacion({
-        codeAlum: currentUser.codeAlum,
-        curso:    curso,
-        nomEval:  nombre,
-        fechaEval: fecha,
-        nota:     nota,
-        peso:     peso,
-        sem:      ''
-      });
-  }
-// MOD-009-008: FIN
+    const payload = {
+      codeAlum:  currentUser.codeAlum,
+      curso:     curso,
+      nomEval:   nombre,
+      fechaEval: fecha,
+      nota:      nota,
+      peso:      peso,
+      sem:       ''
+    };
 
-// MOD-009-009: SUBMIT TAREA [INICIO]
+    if (_modoEdicion && _rowNumber) {
+      payload.rowNumber = _rowNumber;
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la evaluación.');
+            _desbloquearBtn('mdFormEval');
+            return;
+          }
+          _onGuardadoExitoso('Evaluación actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error eval actualizar:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormEval');
+        })
+        .studentActualizarEvaluacion(payload);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la evaluación.');
+            _desbloquearBtn('mdFormEval');
+            return;
+          }
+          _onGuardadoExitoso('Evaluación guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error eval:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormEval');
+        })
+        .studentAgregarEvaluacion(payload);
+    }
+  }
+// MOD-009-009: FIN
+
+// MOD-009-010: SUBMIT TAREA [INICIO]
   function submitTarea() {
     const curso        = _get('md-tarea-curso');
     const nombre       = _get('md-tarea-nombre');
@@ -609,34 +686,55 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormTarea');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la tarea.');
-          _desbloquearBtn('mdFormTarea');
-          return;
-        }
-        _onGuardadoExitoso('Tarea guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error tarea:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormTarea');
-      })
-      .studentAgregarTarea({
-        codeAlum:     currentUser.codeAlum,
-        curso:        curso,
-        tarea:        nombre,
-        fechaEntrega: fechaEntrega,
-        fechaAccion:  fechaRealiz,
-        nota:         nota,
-        peso:         peso,
-        sem:          ''
-      });
-  }
-// MOD-009-009: FIN
+    const payload = {
+      codeAlum:     currentUser.codeAlum,
+      curso:        curso,
+      tarea:        nombre,
+      fechaEntrega: fechaEntrega,
+      fechaAccion:  fechaRealiz,
+      nota:         nota,
+      peso:         peso,
+      sem:          ''
+    };
 
-// MOD-009-010: SUBMIT LECTURA [INICIO]
+    if (_modoEdicion && _rowNumber) {
+      payload.rowNumber = _rowNumber;
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la tarea.');
+            _desbloquearBtn('mdFormTarea');
+            return;
+          }
+          _onGuardadoExitoso('Tarea actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error tarea actualizar:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormTarea');
+        })
+        .studentActualizarTarea(payload);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la tarea.');
+            _desbloquearBtn('mdFormTarea');
+            return;
+          }
+          _onGuardadoExitoso('Tarea guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error tarea:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormTarea');
+        })
+        .studentAgregarTarea(payload);
+    }
+  }
+// MOD-009-010: FIN
+
+// MOD-009-011: SUBMIT LECTURA [INICIO]
   function submitLect() {
     const curso       = _get('md-lect-curso');
     const titulo      = _get('md-lect-titulo');
@@ -671,54 +769,78 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     _bloquearBtn('mdFormLect');
 
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (!response || response.success !== true) {
-          _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la lectura.');
-          _desbloquearBtn('mdFormLect');
-          return;
-        }
-        _onGuardadoExitoso('Lectura guardada exitosamente.');
-      })
-      .withFailureHandler(function(e) {
-        console.error('[ModalDeberModule] Error lectura:', e);
-        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
-        _desbloquearBtn('mdFormLect');
-      })
-      .studentAgregarLectura({
-        codeAlum:    currentUser.codeAlum,
-        curso:       curso,
-        lectura:     titulo,
-        cantPag:     cantPag,
-        pagActual:   pagActual,
-        fechaInicio: fechaInicio,
-        fechaFin:    fechaFin,
-        fechaEval:   fechaEval,
-        nota:        nota,
-        peso:        peso,
-        sem:         ''
-      });
-  }
-// MOD-009-010: FIN
+    const payload = {
+      codeAlum:    currentUser.codeAlum,
+      curso:       curso,
+      lectura:     titulo,
+      cantPag:     cantPag,
+      pagActual:   pagActual,
+      fechaInicio: fechaInicio,
+      fechaFin:    fechaFin,
+      fechaEval:   fechaEval,
+      nota:        nota,
+      peso:        peso,
+      sem:         ''
+    };
 
-// MOD-009-011: RETORNO AL ORIGEN [INICIO]
+    if (_modoEdicion && _rowNumber) {
+      payload.rowNumber = _rowNumber;
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo actualizar la lectura.');
+            _desbloquearBtn('mdFormLect');
+            return;
+          }
+          _onGuardadoExitoso('Lectura actualizada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error lectura actualizar:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormLect');
+        })
+        .studentActualizarLectura(payload);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo guardar la lectura.');
+            _desbloquearBtn('mdFormLect');
+            return;
+          }
+          _onGuardadoExitoso('Lectura guardada exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error lectura:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormLect');
+        })
+        .studentAgregarLectura(payload);
+    }
+  }
+// MOD-009-011: FIN
+
+// MOD-009-012: RETORNO AL ORIGEN [INICIO]
   function _onGuardadoExitoso(mensaje) {
     if (window.pbeFlags) {
       window.pbeFlags.deberes    = true;
       window.pbeFlags.horariosem = true;
       window.pbeFlags.calendario = true;
+      window.pbeFlags.notas      = true;
     }
 
     cerrar();
+
+    if (_origen === 'notas' && window.NotasModule && typeof window.NotasModule.recargar === 'function') {
+      window.NotasModule.recargar();
+    }
 
     if (_origen === 'horariosem') {
       if (window.PlanningModule && typeof window.PlanningModule.switchTab === 'function') {
         window.PlanningModule.switchTab('horariosem');
       }
       setTimeout(function() {
-        if (typeof window.hsRefrescar === 'function') {
-          window.hsRefrescar();
-        }
+        if (typeof window.hsRefrescar === 'function') window.hsRefrescar();
       }, 300);
     }
 
@@ -739,9 +861,9 @@ FECHA: 19/02/2026 13:36 (UTC-5)
 
     console.log('[ModalDeberModule] Guardado exitoso. Retornando a origen:', _origen);
   }
-// MOD-009-011: FIN
+// MOD-009-012: FIN
 
-// MOD-009-012: HELPERS, EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
+// MOD-009-013: HELPERS, EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
   function _capitalizar(str) {
     if (str === 'lect') return 'Lect';
     if (str === 'eval') return 'Eval';
@@ -767,25 +889,25 @@ FECHA: 19/02/2026 13:36 (UTC-5)
     const btn = form.querySelector('.md-btn-primario');
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Guardar';
+      btn.textContent = _modoEdicion ? 'Actualizar' : 'Guardar';
     }
   }
 
   window.ModalDeberModule = {
-    _loaded:      true,
-    abrir:        abrir,
-    cerrar:       cerrar,
+    _loaded:       true,
+    abrir:         abrir,
+    cerrar:        cerrar,
     cerrarSiFondo: cerrarSiFondo,
-    cambiarTipo:  cambiarTipo,
-    submitEval:   submitEval,
-    submitTarea:  submitTarea,
-    submitLect:   submitLect
+    cambiarTipo:   cambiarTipo,
+    submitEval:    submitEval,
+    submitTarea:   submitTarea,
+    submitLect:    submitLect
   };
 
-  console.log('%c📋 ModalDeberModule V01.07 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
+  console.log('%c📋 ModalDeberModule V01.09 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
 
 })();
-// MOD-009-012: FIN
+// MOD-009-013: FIN
 
 </script>
 <!-- MOD-009: FIN -->
