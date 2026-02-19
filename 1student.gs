@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.28
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.30
+FECHA: 19/02/2026 13:27 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -16,8 +16,7 @@ var Student = (function() {
 // MOD-003: CURSOS [INICIO]
 function obtenerCursos(params) {
   try {
-    var codeAlum = params.codeAlum;
-    return DB.obtenerPorAlumno('Cursos', codeAlum);
+    return DB.obtenerPorAlumno('Cursos', params.codeAlum);
   } catch(error) {
     Logger.log('Error en Student.obtenerCursos(): ' + error.toString());
     return { success: false, error: 'Error al obtener cursos' };
@@ -27,18 +26,13 @@ function obtenerCursos(params) {
 function agregarCurso(params) {
   try {
     var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
-    
     if (existentes.success) {
       for (var i = 0; i < existentes.data.length; i++) {
         if (existentes.data[i].Curso === params.curso) {
-          return {
-            success: false,
-            error: 'El curso ' + params.curso + ' ya existe. Usa otro nombre corto'
-          };
+          return { success: false, error: 'El curso ' + params.curso + ' ya existe. Usa otro nombre corto' };
         }
       }
     }
-    
     var curso = {
       FechaReg: Utils.fechaHoy(),
       CodeAlum: params.codeAlum,
@@ -46,7 +40,6 @@ function agregarCurso(params) {
       Completo: params.completo,
       Color: params.color || '#FF5733'
     };
-    
     return DB.agregar('Cursos', curso);
   } catch(error) {
     Logger.log('Error en Student.agregarCurso(): ' + error.toString());
@@ -56,68 +49,56 @@ function agregarCurso(params) {
 
 function actualizarCurso(params) {
   try {
-    // ✅ FIX V01.26: Si viene rowNumber, actualizar directamente
-    if (params.rowNumber) {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var sheet = ss.getSheetByName('Cursos');
-      
-      if (!sheet) {
-        return { success: false, error: 'Hoja no encontrada: Cursos' };
-      }
-      
-      var data = sheet.getDataRange().getValues();
-      var headers = data[0];
-      
-      // Leer registro actual de la fila específica
-      var rowIndex = params.rowNumber - 1;
-      if (rowIndex < 1 || rowIndex >= data.length) {
-        return { success: false, error: 'Número de fila inválido' };
-      }
-      
-      var curso = {};
-      for (var i = 0; i < headers.length; i++) {
-        curso[headers[i]] = data[rowIndex][i];
-      }
-      curso._rowNumber = params.rowNumber;
-      
-      // Validar que no exista otro curso con el mismo nombre (solo si se cambió)
-      if (params.curso && params.curso !== curso.Curso) {
-        var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
-        if (existentes.success) {
-          for (var j = 0; j < existentes.data.length; j++) {
-            // Ignorar el curso que estamos editando
-            if (existentes.data[j]._rowNumber !== params.rowNumber && 
-                existentes.data[j].Curso === params.curso) {
-              return {
-                success: false,
-                error: 'El curso ' + params.curso + ' ya existe. Usa otro nombre corto'
-              };
-            }
-          }
-        }
-      }
-      
-      // Actualizar campos
-      curso.Curso = params.curso || curso.Curso;
-      curso.Completo = params.completo || curso.Completo;
-      curso.Color = params.color || curso.Color;
-      
-      return DB.actualizar('Cursos', curso);
+    if (!params.rowNumber) {
+      return { success: false, error: 'Falta rowNumber' };
     }
-    
-    // ❌ FALLBACK: Código viejo (compatibilidad)
-    // NOTA: Este código tiene el bug de actualizar siempre el primer curso
-    var result = DB.buscar('Cursos', 'CodeAlum', params.codeAlum);
-    if (!result.success) {
+
+    var existentes = DB.obtenerPorAlumno('Cursos', params.codeAlum);
+    if (!existentes.success) {
+      return { success: false, error: 'No se pudieron obtener los cursos' };
+    }
+
+    var cursoActual = null;
+    for (var i = 0; i < existentes.data.length; i++) {
+      if (existentes.data[i]._rowNumber === params.rowNumber) {
+        cursoActual = existentes.data[i];
+        break;
+      }
+    }
+
+    if (!cursoActual) {
       return { success: false, error: 'Curso no encontrado' };
     }
-    
-    var curso = result.data;
-    curso.Curso = params.curso || curso.Curso;
-    curso.Completo = params.completo || curso.Completo;
-    curso.Color = params.color || curso.Color;
-    
-    return DB.actualizar('Cursos', curso);
+
+    // Validar unicidad si el nombre corto cambió
+    var nombreViejo = cursoActual.Curso;
+    var nombreNuevo = params.curso || nombreViejo;
+
+    if (nombreNuevo !== nombreViejo) {
+      for (var j = 0; j < existentes.data.length; j++) {
+        if (existentes.data[j]._rowNumber !== params.rowNumber &&
+            existentes.data[j].Curso === nombreNuevo) {
+          return { success: false, error: 'El curso ' + nombreNuevo + ' ya existe. Usa otro nombre corto' };
+        }
+      }
+    }
+
+    // Actualizar en hoja Cursos
+    cursoActual.Curso = nombreNuevo;
+    cursoActual.Completo = params.completo || cursoActual.Completo;
+    cursoActual.Color = params.color || cursoActual.Color;
+
+    var result = DB.actualizar('Cursos', cursoActual);
+    if (!result.success) {
+      return result;
+    }
+
+    // Propagar nombre si cambió
+    if (nombreNuevo !== nombreViejo) {
+      DB.propagarNombreCurso(params.codeAlum, nombreViejo, nombreNuevo);
+    }
+
+    return { success: true, message: 'Curso actualizado' };
   } catch(error) {
     Logger.log('Error en Student.actualizarCurso(): ' + error.toString());
     return { success: false, error: 'Error al actualizar curso' };
@@ -1601,7 +1582,195 @@ function convertirISOaDDMMAAAA(fechaISO) {
 }
 // MOD-014: FIN
 
-// MOD-015: EXPORTACIÓN [INICIO]
+// MOD-015: OBTENER NOTAS GRID [INICIO]
+function obtenerNotasGrid(params) {
+  try {
+    var codeAlum = params.codeAlum;
+
+    // Obtener FechaInicio de clases desde hoja Fechas
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetFechas = ss.getSheetByName('Fechas');
+    if (!sheetFechas) {
+      return { success: false, error: 'Hoja no encontrada: Fechas' };
+    }
+
+    var dataFechas = sheetFechas.getDataRange().getValues();
+    var headersFechas = dataFechas[0];
+    var codeAlumIdxF = headersFechas.indexOf('CodeAlum');
+    var fechaInicioIdxF = headersFechas.indexOf('FechaInicio');
+
+    var fechaInicioClases = null;
+    for (var f = 1; f < dataFechas.length; f++) {
+      if (dataFechas[f][codeAlumIdxF] === codeAlum) {
+        fechaInicioClases = dataFechas[f][fechaInicioIdxF];
+        break;
+      }
+    }
+
+    if (!fechaInicioClases) {
+      return { success: false, error: 'No hay fecha de inicio configurada' };
+    }
+
+    // Calcular lunes de la Semana 1
+    var fechaBase = (fechaInicioClases instanceof Date)
+      ? new Date(fechaInicioClases)
+      : parsearFechaISO(fechaInicioClases);
+    fechaBase.setHours(0, 0, 0, 0);
+    var diaSemana = fechaBase.getDay(); // 0=dom, 1=lun...
+    var diasHastaLunes = diaSemana === 0 ? 6 : diaSemana - 1;
+    var lunesSem1 = new Date(fechaBase);
+    lunesSem1.setDate(lunesSem1.getDate() - diasHastaLunes);
+
+    // Obtener cursos del alumno
+    var cursosResult = DB.obtenerPorAlumno('Cursos', codeAlum);
+    if (!cursosResult.success || !cursosResult.data.length) {
+      return { success: true, data: [] };
+    }
+
+    // Obtener deberes con peso de las 3 hojas
+    var evalResult    = DB.obtenerPorAlumno('Eval',    codeAlum);
+    var tareasResult  = DB.obtenerPorAlumno('Tareas',  codeAlum);
+    var lecturasResult = DB.obtenerPorAlumno('Lecturas', codeAlum);
+
+    var todosDeberes = [];
+
+    if (evalResult.success) {
+      evalResult.data.forEach(function(item) {
+        if (item.Peso && item.Peso !== '') {
+          todosDeberes.push({
+            tipo:      'eval',
+            rowNumber: item._rowNumber,
+            curso:     item.Curso,
+            nombre:    item.NomEval,
+            fecha:     _formatearFecha(item.FechaEval),
+            fechaObj:  _parsearFechaGrid(item.FechaEval),
+            nota:      item.Nota !== undefined ? item.Nota : '',
+            peso:      item.Peso,
+            fechaEval: _formatearFecha(item.FechaEval)
+          });
+        }
+      });
+    }
+
+    if (tareasResult.success) {
+      tareasResult.data.forEach(function(item) {
+        if (item.Peso && item.Peso !== '') {
+          todosDeberes.push({
+            tipo:      'tarea',
+            rowNumber: item._rowNumber,
+            curso:     item.Curso,
+            nombre:    item.Tarea,
+            fecha:     _formatearFecha(item.FechaEntrega),
+            fechaObj:  _parsearFechaGrid(item.FechaEntrega),
+            nota:      item.Nota !== undefined ? item.Nota : '',
+            peso:      item.Peso,
+            fechaEntrega: _formatearFecha(item.FechaEntrega),
+            fechaAccion:  _formatearFecha(item.FechaAccion)
+          });
+        }
+      });
+    }
+
+    if (lecturasResult.success) {
+      lecturasResult.data.forEach(function(item) {
+        if (item.Peso && item.Peso !== '') {
+          todosDeberes.push({
+            tipo:      'lect',
+            rowNumber: item._rowNumber,
+            curso:     item.Curso,
+            nombre:    item.Lectura,
+            fecha:     _formatearFecha(item.FechaEval),
+            fechaObj:  _parsearFechaGrid(item.FechaEval),
+            nota:      item.Nota !== undefined ? item.Nota : '',
+            peso:      item.Peso,
+            fechaInicio: _formatearFecha(item.FechaInicio),
+            fechaFin:    _formatearFecha(item.FechaFin),
+            fechaEval:   _formatearFecha(item.FechaEval),
+            cantPag:     item.CantPag  || '',
+            pagActual:   item.PagActual || ''
+          });
+        }
+      });
+    }
+
+    // Construir resultado agrupado por curso
+    var resultado = [];
+
+    cursosResult.data.forEach(function(curso) {
+      var deberesDelCurso = todosDeberes.filter(function(d) {
+        return d.curso === curso.Curso;
+      });
+
+      // Calcular semana para cada deber
+      deberesDelCurso.forEach(function(d) {
+        d.semana = _calcularSemana(d.fechaObj, lunesSem1);
+      });
+
+      // Ordenar por fecha
+      deberesDelCurso.sort(function(a, b) {
+        if (!a.fechaObj) return 1;
+        if (!b.fechaObj) return -1;
+        return a.fechaObj - b.fechaObj;
+      });
+
+      // Limpiar fechaObj antes de retornar (no serializable)
+      deberesDelCurso.forEach(function(d) {
+        delete d.fechaObj;
+      });
+
+      resultado.push({
+        curso:    curso.Curso,
+        completo: curso.Completo,
+        color:    curso.Color || '#667eea',
+        deberes:  deberesDelCurso
+      });
+    });
+
+    return { success: true, data: resultado };
+
+  } catch(error) {
+    Logger.log('Error en Student.obtenerNotasGrid(): ' + error.toString());
+    return { success: false, error: 'Error al obtener notas grid' };
+  }
+}
+
+// Helper: calcular número de semana dado una fecha y el lunes base
+function _calcularSemana(fechaObj, lunesSem1) {
+  if (!fechaObj || isNaN(fechaObj.getTime())) return null;
+  var diff = fechaObj - lunesSem1;
+  if (diff < 0) return null;
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 7)) + 1;
+}
+
+// Helper: parsear fecha DD/MM/AAAA o Date a objeto Date
+function _parsearFechaGrid(valor) {
+  if (!valor) return null;
+  if (valor instanceof Date) {
+    var d = new Date(valor);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  var str = String(valor).trim();
+  var match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+  }
+  return null;
+}
+
+// Helper: formatear fecha a DD/MM/AAAA
+function _formatearFecha(valor) {
+  if (!valor) return '';
+  if (valor instanceof Date) {
+    var dia = String(valor.getDate()).padStart(2, '0');
+    var mes = String(valor.getMonth() + 1).padStart(2, '0');
+    return dia + '/' + mes + '/' + valor.getFullYear();
+  }
+  return String(valor);
+}
+// MOD-015: FIN
+
+// MOD-016: EXPORTACIÓN [INICIO]
 return {
   obtenerCursos: obtenerCursos,
   agregarCurso: agregarCurso,
@@ -1641,45 +1810,37 @@ return {
   obtenerNotasPorCurso: obtenerNotasPorCurso,
   obtenerResumenNotas: obtenerResumenNotas,
   obtenerTodosDeberes: obtenerTodosDeberes,
-  obtenerDeberesPorTipo: obtenerDeberesPorTipo
+  obtenerDeberesPorTipo: obtenerDeberesPorTipo,
+  obtenerNotasGrid: obtenerNotasGrid
 };
-// MOD-015: FIN
+// MOD-016: FIN
 
+// MOD-017: CIERRE [INICIO]
 })();
+// MOD-017: FIN
 
 // MOD-099: NOTAS [INICIO]
 /*
-CAMBIOS V01.23:
-- Fix: actualizarCurso() usa rowNumber para actualizar fila correcta
-- Fix: Validación de unicidad mejorada al cambiar nombre corto
-- Fix: Evita actualizar el primer curso en lugar del curso seleccionado
+DESCRIPCIÓN:
+Lógica de negocio para gestión académica del alumno.
+Única capa entre frontend y DB.
 
-MÓDULOS:
-MOD-001: Encabezado
-MOD-002: Inicialización
-MOD-003: Cursos (4 funciones) - FIX V01.26 actualizarCurso
-MOD-004: Repasos (4 funciones)
-MOD-005: Evaluaciones (4 funciones)
-MOD-006: Tareas (4 funciones)
-MOD-007: Lecturas (4 funciones)
-MOD-008: HorarioClases (4 funciones)
-MOD-009: HorarioSem (4 funciones)
-MOD-010: Config Semanas (4 funciones)
-MOD-011: Gestión Semanas (3 funciones)
-MOD-012: Notas (2 funciones)
-MOD-013: Deberes (2 funciones)
-MOD-014: Helpers (2 funciones)
-MOD-015: Exportación
-MOD-016: Notas
+CRÍTICO:
+- actualizarCurso() propaga cambio de nombre a Repasos, Eval, Tareas,
+  Lecturas y HorarioClases vía DB.propagarNombreCurso()
+- Student NUNCA accede a SpreadsheetApp directamente, solo vía DB
+- obtenerNotasGrid() accede a SpreadsheetApp solo para leer hoja Fechas
+  (FechaInicio no está en DB). Todo lo demás va por DB.
 
-TOTAL FUNCIONES: 38
+DEPENDENCIAS:
+- DB    → 1db.gs
+- Utils → 1utils.gs
 
-HOJA SEMANAS:
-FechaReg | CodeAlum | FechaInicio | FechaFin | Semana
-Formato fechas: DD/MM/AAAA
-
-HOJA HORARIO SEMANAL:
-FechaReg | CodeAlum | Actividad | HoraInicio | HoraFin | FechaHS | TipoAct | Color | Sem
-Formato FechaHS: DD/MM/AAAA (guardado) → ISO (lectura)
+CAMBIOS V01.29 → V01.30:
+- Agregado MOD-015: obtenerNotasGrid()
+  Retorna deberes con peso agrupados por curso, con semana calculada
+  al vuelo desde FechaInicio de hoja Fechas
+- MOD-015 (Exportación) renombrado a MOD-016
+- MOD-016 (Cierre) renombrado a MOD-017
 */
 // MOD-099: FIN
