@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.07
-FECHA: 17/02/2026 11:34 (UTC-5)
+VERSIÓN: 01.08
+FECHA: 19/02/2026 13:36 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -359,11 +359,14 @@ FECHA: 17/02/2026 11:34 (UTC-5)
     return;
   }
 
-  let _tipoActivo = 'eval';
-  let _fechaActual = '';
-  let _origen      = '';
-  let _cursosCache = [];
+  let _tipoActivo   = 'eval';
+  let _fechaActual  = '';
+  let _origen       = '';
+  let _cursosCache  = [];
   let _cursosListos = false;
+  let _modoEdicion  = false;
+  let _rowNumber    = null;
+  let _cursoEdicion = '';
 // MOD-009-001: FIN
 
 // MOD-009-002: ABRIR MODAL [INICIO]
