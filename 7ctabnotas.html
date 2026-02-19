@@ -3,461 +3,541 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 7ctabnotas.html
-VERSIÓN: 01.21
-FECHA: 11/02/2026 14:41 (UTC-5)
+VERSIÓN: 01.22
+FECHA: 19/02/2026 11:10 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
 
-<!-- MOD-002: ESTILOS [INICIO] -->
+<!-- MOD-002: CSS — VARIABLES Y CONTENEDOR PRINCIPAL [INICIO] -->
 <style>
 
-// MOD-002-001: CONTENEDOR PRINCIPAL [INICIO]
-/* CONTENEDOR PRINCIPAL */
-.notas-container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+:root {
+  --nt-primary:     #667eea;
+  --nt-border:      #e0e0e0;
+  --nt-header-bg:   #f5f5f5;
+  --nt-total-bg:    #2c2c2c;
+  --nt-total-color: #ffffff;
+  --nt-notafinal-bg:#fff9c4;
+  --nt-nota-bg:     #e8f5e9;
+  --nt-peso-bg:     #e3f2fd;
+  --nt-radius:      10px;
 }
 
-.notas-header {
+.nt-container {
+  padding: 8px 0;
+}
+
+</style>
+<!-- MOD-002: FIN -->
+
+<!-- MOD-003: CSS — HEADER DE SECCIÓN Y BOTÓN AGREGAR [INICIO] -->
+<style>
+
+.nt-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
-.notas-header h2 {
+.nt-header h2 {
   margin: 0;
   font-size: 20px;
   color: #333;
 }
 
-.notas-stats {
-  display: flex;
-  gap: 16px;
+.nt-btn-agregar {
+  padding: 9px 20px;
+  background: var(--nt-primary);
+  color: white;
+  border: none;
+  border-radius: 7px;
   font-size: 14px;
-  color: #666;
-}
-
-.stat-item strong {
-  color: #333;
-}
-// MOD-002-001: FIN
-
-// MOD-002-002: GRID DE CURSOS [INICIO]
-/* GRID DE CURSOS */
-.notas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-// MOD-002-002: FIN
-
-// MOD-002-003: TARJETA DE CURSO [INICIO]
-/* TARJETA DE CURSO */
-.curso-card {
-  background: #fff;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  transition: all 0.3s;
-}
-
-.curso-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.curso-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: var(--curso-color);
-}
-
-.curso-card-content {
-  padding: 20px 20px 20px 26px;
-}
-
-.curso-card-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.curso-info h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.curso-codigo {
-  font-size: 13px;
   font-weight: 600;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-  padding: 3px 10px;
-  border-radius: 6px;
-}
-// MOD-002-003: FIN
-
-// MOD-002-004: PROMEDIO BADGE [INICIO]
-/* PROMEDIO BADGE */
-.promedio-badge {
-  font-size: 28px;
-  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
 }
 
-.promedio-badge.aprobado-excelente {
-  color: #28a745;
+.nt-btn-agregar:hover {
+  background: #5568d3;
 }
-
-.promedio-badge.aprobado-justo {
-  color: #ffc107;
-}
-
-.promedio-badge.desaprobado {
-  color: #dc3545;
-}
-
-.promedio-badge.sin-notas {
-  color: #999;
-  font-size: 16px;
-}
-
-.promedio-label {
-  font-size: 11px;
-  color: #999;
-  text-transform: uppercase;
-}
-// MOD-002-004: FIN
-
-// MOD-002-005: ESTADO DEL CURSO [INICIO]
-/* ESTADO DEL CURSO */
-.curso-estado {
-  margin-top: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.estado-excelente {
-  background: #d4edda;
-  color: #155724;
-}
-
-.estado-aprobado {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.estado-desaprobado {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.estado-sin-notas {
-  background: #e9ecef;
-  color: #6c757d;
-}
-// MOD-002-005: FIN
-
-// MOD-002-006: DETALLE DEL CURSO [INICIO]
-/* DETALLE DEL CURSO */
-.curso-detalle {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.detalle-item {
-  text-align: center;
-  flex: 1;
-}
-
-.detalle-item-valor {
-  font-size: 20px;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.detalle-item-label {
-  font-size: 11px;
-  color: #999;
-}
-// MOD-002-006: FIN
-
-// MOD-002-007: LOADING [INICIO]
-/* LOADING */
-.loading-container {
-  text-align: center;
-  padding: 40px;
-  color: #667eea;
-}
-
-.spinner {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-// MOD-002-007: FIN
-
-// MOD-002-008: ESTADO VACÍO [INICIO]
-/* ESTADO VACÍO */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
-}
-// MOD-002-008: FIN
 
 </style>
-<!-- MOD-002: FIN -->
+<!-- MOD-003: FIN -->
 
-<!-- MOD-003: CONTENEDOR PRINCIPAL [INICIO] -->
-<div class="notas-container">
-  <div class="notas-header">
-    <h2>📊 Resumen de Notas</h2>
-    <div class="notas-stats">
-      <div class="stat-item">📚 <strong id="statCursos">0</strong> cursos</div>
-      <div class="stat-item">📝 <strong id="statNotas">0</strong> notas</div>
-      <div class="stat-item">📈 Promedio general: <strong id="statProm">--</strong></div>
-    </div>
+<!-- MOD-004: CSS — TABLA GRID DE NOTAS [INICIO] -->
+<style>
+
+.nt-curso-bloque {
+  margin-bottom: 32px;
+}
+
+.nt-curso-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.nt-curso-titulo h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+}
+
+.nt-curso-codigo {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nt-primary);
+  background: rgba(102, 126, 234, 0.1);
+  padding: 2px 10px;
+  border-radius: 6px;
+}
+
+.nt-tabla-wrapper {
+  overflow-x: auto;
+  border-radius: var(--nt-radius);
+  border: 1px solid var(--nt-border);
+}
+
+.nt-tabla {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 13px;
+}
+
+.nt-tabla th,
+.nt-tabla td {
+  padding: 8px 14px;
+  text-align: center;
+  border: 1px solid var(--nt-border);
+  white-space: nowrap;
+}
+
+.nt-tabla td.nt-label {
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  background: var(--nt-header-bg);
+  min-width: 110px;
+}
+
+.nt-tabla td.nt-celda-deber {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nt-tabla td.nt-celda-deber:hover {
+  filter: brightness(0.93);
+}
+
+</style>
+<!-- MOD-004: FIN -->
+
+<!-- MOD-005: CSS — COLORES DE FILAS, NOTA FINAL Y TOTAL [INICIO] -->
+<style>
+
+/* Fila Fecha */
+.nt-fila-fecha td { background: var(--nt-header-bg); color: #555; }
+
+/* Fila Semana */
+.nt-fila-semana td { background: var(--nt-header-bg); color: #777; font-size: 12px; }
+
+/* Fila Evaluación */
+.nt-fila-eval td { background: var(--nt-header-bg); font-weight: 600; }
+
+/* Fila Peso */
+.nt-fila-peso td { background: var(--nt-peso-bg); color: #1565c0; }
+
+/* Fila Nota */
+.nt-fila-nota td { background: var(--nt-nota-bg); color: #2e7d32; font-weight: 600; }
+
+/* Fila Nota Final */
+.nt-fila-notafinal td {
+  background: var(--nt-notafinal-bg);
+  font-weight: 700;
+}
+
+/* Columna Total */
+.nt-col-total {
+  background: var(--nt-total-bg) !important;
+  color: var(--nt-total-color) !important;
+  font-weight: 700;
+}
+
+/* Celda Total en Nota Final — amarillo destacado */
+.nt-fila-notafinal .nt-col-total {
+  background: #f9a825 !important;
+  color: #333 !important;
+  font-size: 15px;
+}
+
+</style>
+<!-- MOD-005: FIN -->
+
+<!-- MOD-006: CSS — LOADING, VACÍO Y RESPONSIVE [INICIO] -->
+<style>
+
+.nt-loading {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--nt-primary);
+}
+
+.nt-spinner {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: var(--nt-primary);
+  border-radius: 50%;
+  animation: ntSpin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes ntSpin { to { transform: rotate(360deg); } }
+
+.nt-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #aaa;
+  font-size: 15px;
+}
+
+.nt-sin-deberes {
+  font-size: 13px;
+  color: #aaa;
+  font-style: italic;
+  padding: 12px 0;
+}
+
+@media (max-width: 768px) {
+  .nt-header { flex-direction: column; align-items: flex-start; }
+  .nt-tabla th, .nt-tabla td { padding: 6px 10px; font-size: 12px; }
+  .nt-tabla td.nt-label { min-width: 90px; }
+}
+
+</style>
+<!-- MOD-006: FIN -->
+
+<!-- MOD-007: HTML — CONTENEDOR PRINCIPAL Y HEADER [INICIO] -->
+<div class="nt-container">
+  <div class="nt-header">
+    <h2>📊 Notas</h2>
+    <button class="nt-btn-agregar" onclick="window.NotasModule.abrirAgregar()">
+      + Agregar deber
+    </button>
   </div>
+<!-- MOD-007: FIN -->
 
-  <div id="notasGrid" class="notas-grid">
-    <div class="loading-container">
-      <div class="spinner"></div>
+<!-- MOD-008: HTML — ÁREA DE GRIDS [INICIO] -->
+  <div id="nt-grids">
+    <div class="nt-loading">
+      <div class="nt-spinner"></div>
       <p>Cargando notas...</p>
     </div>
   </div>
 </div>
-<!-- MOD-003: FIN -->
+<!-- MOD-008: FIN -->
 
-<!-- MOD-004: JAVASCRIPT [INICIO] -->
+<!-- MOD-009: JAVASCRIPT — MÓDULO COMPLETO [INICIO] -->
 <script>
 
-// MOD-004-001: ENCAPSULAMIENTO Y PROTECCIÓN [INICIO]
+// MOD-009-001: ENCAPSULAMIENTO, VARIABLES E INIT [INICIO]
 (function PBE_NOTAS_MODULE() {
   'use strict';
 
-  if (window.NotasModule) return;
+  if (window.NotasModule && window.NotasModule._loaded) return;
 
-  const NotasModule = {
-    data: []
-  };
-// MOD-004-001: FIN
+  let _data = [];
 
-// MOD-004-002: INICIALIZACIÓN [INICIO]
+  const NotasModule = {};
+
+  NotasModule._loaded = true;
+
   NotasModule.init = function() {
-    if (!window.currentUser?.codeAlum) {
-      showAlert('error', 'No se pudo identificar al usuario');
+    if (!window.currentUser || !window.currentUser.codeAlum) {
+      _mostrarVacio('No se pudo identificar al usuario.');
       return;
     }
-    this.cargar();
+    _cargar();
   };
-// MOD-004-002: FIN
+// MOD-009-001: FIN
 
-// MOD-004-003: CARGA DE DATOS [INICIO]
-  NotasModule.cargar = function() {
+// MOD-009-002: CARGA DE DATOS DESDE BACKEND [INICIO]
+  function _cargar() {
+    _mostrarLoading();
     google.script.run
-      .withSuccessHandler(r => {
-        if (r.success) {
-          this.data = r.data || [];
-          this.render();
-          this.stats();
+      .withSuccessHandler(function(r) {
+        if (r && r.success && Array.isArray(r.data)) {
+          _data = r.data;
+          _renderTodo();
         } else {
-          this.empty();
+          _mostrarVacio('No hay deberes con peso registrados.');
         }
       })
-      .withFailureHandler(() => this.empty())
-      .studentObtenerResumenNotas({ codeAlum: currentUser.codeAlum });
+      .withFailureHandler(function() {
+        _mostrarVacio('Error al cargar los datos.');
+      })
+      .studentObtenerNotasGrid({ codeAlum: currentUser.codeAlum });
+  }
+
+  NotasModule.recargar = function() {
+    _cargar();
   };
-// MOD-004-003: FIN
+// MOD-009-002: FIN
 
-// MOD-004-004: RENDERIZADO DE CURSOS [INICIO]
-  NotasModule.render = function() {
-    const cont = document.getElementById('notasGrid');
-    if (!this.data.length) return this.empty();
+// MOD-009-003: RENDER — LOOP POR CURSOS [INICIO]
+  function _renderTodo() {
+    const cont = document.getElementById('nt-grids');
+    if (!cont) return;
 
-    cont.innerHTML = this.data.map(c => {
-      const p = parseFloat(c.promedio) || 0;
-      return `
-        <div class="curso-card" style="--curso-color:${c.color || '#667eea'}">
-          <div class="curso-card-content">
-            <div class="curso-card-header">
-              <div class="curso-info">
-                <h3>${c.completo}</h3>
-                <span class="curso-codigo">${c.curso}</span>
-              </div>
-              <div>
-                <div class="promedio-badge ${this.cls(p)}">${p || 'S/N'}</div>
-                <div class="promedio-label">Promedio</div>
-              </div>
-            </div>
+    if (!_data.length) {
+      _mostrarVacio('No hay deberes con peso registrados.');
+      return;
+    }
 
-            <div class="curso-estado ${this.estadoCls(p)}">${this.estadoTxt(p)}</div>
-
-            <div class="curso-detalle">
-              <div class="detalle-item">
-                <div class="detalle-item-valor">${c.evaluaciones || 0}</div>
-                <div class="detalle-item-label">Evaluaciones</div>
-              </div>
-              <div class="detalle-item">
-                <div class="detalle-item-valor">${c.tareas || 0}</div>
-                <div class="detalle-item-label">Tareas</div>
-              </div>
-              <div class="detalle-item">
-                <div class="detalle-item-valor">${c.lecturas || 0}</div>
-                <div class="detalle-item-label">Lecturas</div>
-              </div>
-            </div>
-          </div>
-        </div>`;
+    cont.innerHTML = _data.map(function(curso) {
+      return _renderCurso(curso);
     }).join('');
-  };
-// MOD-004-004: FIN
+  }
+// MOD-009-003: FIN
 
-// MOD-004-005: ESTADÍSTICAS GLOBALES [INICIO]
-  NotasModule.stats = function() {
-    let notas = 0;
-    let sum = 0;
-    let con = 0;
+// MOD-009-004: RENDER — CONSTRUIR TABLA DE UN CURSO [INICIO]
+  function _renderCurso(curso) {
+    const deberes = curso.deberes || [];
+    const color   = curso.color || '#667eea';
 
-    this.data.forEach(c => {
-      const p = parseFloat(c.promedio) || 0;
-      notas += (c.evaluaciones || 0) + (c.tareas || 0) + (c.lecturas || 0);
-      if (p > 0) {
-        sum += p;
-        con++;
-      }
+    const tituloHtml = `
+      <div class="nt-curso-bloque">
+        <div class="nt-curso-titulo">
+          <div style="width:6px;height:28px;background:${color};border-radius:3px;flex-shrink:0"></div>
+          <h3>${curso.completo || curso.curso}</h3>
+          <span class="nt-curso-codigo">${curso.curso}</span>
+        </div>`;
+
+    if (!deberes.length) {
+      return tituloHtml + `
+        <p class="nt-sin-deberes">Sin deberes con peso registrados.</p>
+      </div>`;
+    }
+
+    const totales  = _calcularTotales(deberes);
+    const pesoTotal = totales.pesoTotal;
+    const ntTotal   = totales.ntTotal;
+
+    // Fila Fecha
+    let filaFecha  = '<tr class="nt-fila-fecha"><td class="nt-label">Fecha</td>';
+    // Fila Semana
+    let filaSemana = '<tr class="nt-fila-semana"><td class="nt-label">Semana</td>';
+    // Fila Evaluación
+    let filaEval   = '<tr class="nt-fila-eval"><td class="nt-label">Evaluación</td>';
+    // Fila Peso
+    let filaPeso   = '<tr class="nt-fila-peso"><td class="nt-label">Peso</td>';
+    // Fila Nota
+    let filaNota   = '<tr class="nt-fila-nota"><td class="nt-label">Nota</td>';
+    // Fila Nota Final
+    let filaFinal  = '<tr class="nt-fila-notafinal"><td class="nt-label">Nota Final</td>';
+
+    deberes.forEach(function(d) {
+      const nf = _calcularNotaFinal(d.nota, d.peso);
+      const nfTxt = nf !== null ? nf.toFixed(2) : '—';
+      const notaTxt = d.nota !== '' && d.nota !== null ? d.nota : '—';
+      const editData = encodeURIComponent(JSON.stringify({
+        tipo:      d.tipo,
+        rowNumber: d.rowNumber,
+        curso:     curso.curso,
+        nombre:    d.nombre,
+        fecha:     d.fecha,
+        nota:      d.nota,
+        peso:      d.peso,
+        fechaInicio: d.fechaInicio || '',
+        fechaFin:    d.fechaFin   || '',
+        fechaEval:   d.fechaEval  || '',
+        cantPag:     d.cantPag    || '',
+        pagActual:   d.pagActual  || ''
+      }));
+
+      filaFecha  += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">${d.fecha || '—'}</td>`;
+      filaSemana += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">Sem. ${d.semana || '—'}</td>`;
+      filaEval   += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">${d.nombre}</td>`;
+      filaPeso   += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">${d.peso}%</td>`;
+      filaNota   += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">${notaTxt}</td>`;
+      filaFinal  += `<td class="nt-celda-deber" onclick="window.NotasModule.abrirEditar('${editData}')">${nfTxt}</td>`;
     });
 
-    document.getElementById('statCursos').textContent = this.data.length;
-    document.getElementById('statNotas').textContent = notas;
-    document.getElementById('statProm').textContent = con ? (sum / con).toFixed(2) : '--';
-  };
-// MOD-004-005: FIN
+    // Columna Total
+    filaFecha  += `<td class="nt-col-total">Total</td></tr>`;
+    filaSemana += `<td class="nt-col-total">—</td></tr>`;
+    filaEval   += `<td class="nt-col-total">—</td></tr>`;
+    filaPeso   += `<td class="nt-col-total">${pesoTotal}%</td></tr>`;
+    filaNota   += `<td class="nt-col-total">—</td></tr>`;
+    filaFinal  += `<td class="nt-col-total">${ntTotal.toFixed(2)}</td></tr>`;
 
-// MOD-004-006: ESTADO VACÍO [INICIO]
-  NotasModule.empty = function() {
-    document.getElementById('notasGrid').innerHTML = `
-      <div class="empty-state">
-        <div style="font-size:48px">📊</div>
-        Sin calificaciones aún
+    return tituloHtml + `
+        <div class="nt-tabla-wrapper">
+          <table class="nt-tabla">
+            <tbody>
+              ${filaFecha}
+              ${filaSemana}
+              ${filaEval}
+              ${filaPeso}
+              ${filaNota}
+              ${filaFinal}
+            </tbody>
+          </table>
+        </div>
       </div>`;
+  }
+// MOD-009-004: FIN
+
+// MOD-009-005: CÁLCULO NOTA FINAL Y TOTALES [INICIO]
+  function _calcularNotaFinal(nota, peso) {
+    const n = parseFloat(nota);
+    const p = parseFloat(peso);
+    if (isNaN(n) || isNaN(p) || p === 0) return null;
+    return n * (p / 100);
+  }
+
+  function _calcularTotales(deberes) {
+    let pesoTotal = 0;
+    let ntTotal   = 0;
+    deberes.forEach(function(d) {
+      const p  = parseFloat(d.peso)  || 0;
+      const nf = _calcularNotaFinal(d.nota, d.peso);
+      pesoTotal += p;
+      if (nf !== null) ntTotal += nf;
+    });
+    return { pesoTotal: pesoTotal, ntTotal: ntTotal };
+  }
+// MOD-009-005: FIN
+
+// MOD-009-006: ABRIR MODAL AGREGAR NUEVO DEBER [INICIO]
+  NotasModule.abrirAgregar = function() {
+    if (!window.ModalDeberModule) {
+      console.error('[NotasModule] ModalDeberModule no disponible');
+      return;
+    }
+    window.ModalDeberModule.abrir({ tipo: 'eval', origen: 'notas' });
   };
-// MOD-004-006: FIN
+// MOD-009-006: FIN
 
-// MOD-004-007: HELPERS DE CLASIFICACIÓN [INICIO]
-  NotasModule.cls = p =>
-    p === 0 ? 'sin-notas' :
-    p >= 14 ? 'aprobado-excelente' :
-    p >= 11 ? 'aprobado-justo' :
-    'desaprobado';
+// MOD-009-007: ABRIR MODAL EDITAR DEBER EXISTENTE [INICIO]
+  NotasModule.abrirEditar = function(encodedData) {
+    if (!window.ModalDeberModule) {
+      console.error('[NotasModule] ModalDeberModule no disponible');
+      return;
+    }
+    try {
+      const d = JSON.parse(decodeURIComponent(encodedData));
+      window.ModalDeberModule.abrir({
+        tipo:        d.tipo,
+        origen:      'notas',
+        modoEdicion: true,
+        rowNumber:   d.rowNumber,
+        curso:       d.curso,
+        nombre:      d.nombre,
+        fecha:       d.fecha,
+        nota:        d.nota,
+        peso:        d.peso,
+        fechaInicio: d.fechaInicio,
+        fechaFin:    d.fechaFin,
+        fechaEval:   d.fechaEval,
+        cantPag:     d.cantPag,
+        pagActual:   d.pagActual
+      });
+    } catch(e) {
+      console.error('[NotasModule] Error al parsear datos de edición:', e);
+    }
+  };
+// MOD-009-007: FIN
 
-  NotasModule.estadoCls = p =>
-    p === 0 ? 'estado-sin-notas' :
-    p >= 14 ? 'estado-excelente' :
-    p >= 11 ? 'estado-aprobado' :
-    'estado-desaprobado';
+// MOD-009-008: RECARGA TRAS GUARDAR (NOTAS FLAG) [INICIO]
+  NotasModule.onGuardado = function() {
+    _cargar();
+  };
 
-  NotasModule.estadoTxt = p =>
-    p === 0 ? '📋 Sin calificaciones' :
-    p >= 14 ? '🎉 Excelente' :
-    p >= 11 ? '✅ Aprobado' :
-    '⚠️ Necesita mejorar';
-// MOD-004-007: FIN
+  window.addEventListener('pbeNotasFlag', function() {
+    _cargar();
+  });
+// MOD-009-008: FIN
 
-// MOD-004-008: EXPORT E INICIALIZACIÓN [INICIO]
-  console.log('%c📊 Sub-tab Notas V01.19 cargado', 'font-size: 11px; color: #667eea;');
+// MOD-009-009: ESTADOS LOADING Y VACÍO [INICIO]
+  function _mostrarLoading() {
+    const cont = document.getElementById('nt-grids');
+    if (!cont) return;
+    cont.innerHTML = `
+      <div class="nt-loading">
+        <div class="nt-spinner"></div>
+        <p>Cargando notas...</p>
+      </div>`;
+  }
 
+  function _mostrarVacio(msg) {
+    const cont = document.getElementById('nt-grids');
+    if (!cont) return;
+    cont.innerHTML = `<div class="nt-empty">📊 ${msg || 'Sin datos'}</div>`;
+  }
+// MOD-009-009: FIN
+
+// MOD-009-010: HELPER — PARSEAR FECHA DD/MM/AAAA [INICIO]
+  function _parsearFecha(str) {
+    if (!str) return null;
+    const p = str.split('/');
+    if (p.length !== 3) return null;
+    return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  }
+
+  NotasModule._parsearFecha = _parsearFecha;
+// MOD-009-010: FIN
+
+// MOD-009-011: EXPOSICIÓN GLOBAL E INIT [INICIO]
   window.NotasModule = NotasModule;
   NotasModule.init();
-// MOD-004-008: FIN
+
+  console.log('%c📊 NotasModule V01.22 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
 
 })();
+// MOD-009-011: FIN
 
 </script>
-<!-- MOD-004: FIN -->
+<!-- MOD-009: FIN -->
 
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Dashboard de resumen de notas por curso con visualización en tarjetas.
-Muestra rendimiento académico individual y estadísticas globales.
+Vista de notas por curso en formato grid/tabla.
+Cada curso muestra una tabla con columnas por deber (con peso) y columna Total.
 
-FUNCIONALIDAD:
-- Carga resumen de notas desde backend (studentObtenerResumenNotas)
-- Calcula promedio por curso automáticamente
-- Genera estadísticas globales (total cursos, notas, promedio general)
-- Clasifica cursos por rendimiento (Excelente/Aprobado/Desaprobado/Sin notas)
-- Renderizado responsive en grid adaptable
+FILAS DEL GRID:
+- Fecha, Semana, Evaluación, Peso, Nota, Nota Final
 
-ESTRUCTURA DE DATOS (cada curso):
-- curso: Código del curso
-- completo: Nombre completo
-- color: Color personalizado (hex)
-- promedio: Promedio calculado (0-20)
-- evaluaciones, tareas, lecturas: Contadores numéricos
+LÓGICA:
+- Solo deberes con peso son mostrados
+- Nota Final = Nota × (Peso / 100)
+- Total = Σ Notas Finales
+- Semana calculada en backend desde FechaInicio de hoja Fechas
 
-CLASIFICACIÓN DE NOTAS:
-- Excelente: ≥14 (verde, 🎉)
-- Aprobado: 11-13 (amarillo, ✅)
-- Desaprobado: <11 (rojo, ⚠️)
-- Sin Notas: 0 (gris, 📋)
-
-ARQUITECTURA TÉCNICA:
-- Módulo encapsulado en IIFE (NotasModule)
-- Protección anti-redeclaración al cambiar tabs
-- Inicialización automática con validación de usuario (currentUser.codeAlum)
-- Renderizado dinámico con template literals
-- Cálculo de estadísticas en tiempo real
-
-SUBMÓDULOS:
-MOD-004-S01: Encapsulamiento IIFE y protección
-MOD-004-S02: Inicialización y validación de usuario
-MOD-004-S03: Carga de datos desde backend
-MOD-004-S04: Renderizado de tarjetas de cursos
-MOD-004-S05: Cálculo de estadísticas globales
-MOD-004-S06: Estado vacío (sin calificaciones)
-MOD-004-S07: Helpers de clasificación (cls, estadoCls, estadoTxt)
-MOD-004-S08: Export global e init automático
+CRUD:
+- Botón "Agregar deber" → ModalDeberModule.abrir({ origen: 'notas' })
+- Clic en celda → ModalDeberModule.abrir({ modoEdicion: true, origen: 'notas' })
+- Tras guardar → NotasModule.onGuardado() recarga el grid
 
 DEPENDENCIAS:
-- currentUser.codeAlum: Identificador del estudiante (requerido)
-- showAlert(type, message): Función global de alertas (opcional)
-- Backend: studentObtenerResumenNotas({ codeAlum })
+- currentUser.codeAlum              → requerido
+- studentObtenerNotasGrid()         → 1code.gs wrapper
+- window.ModalDeberModule           → 2modaldeberes.html
+- window.pbeFlags                   → 3panelstudent.html
 
-INTEGRACIÓN:
-- Parent: Sistema de tabs con lazy-loading
-- Backend: Wrapper en code.gs → Student.gs (agregación de datos)
-
-CAMBIOS V01.19 → V01.20:
-- Remodulación según estándar CodeWorkShop v4.0
-- MOD-002 con 8 submódulos CSS (S01-S08)
-- MOD-004 con 8 submódulos JavaScript (S01-S08)
-- Notas consolidadas y optimizadas (15 líneas)
-- Delimitadores correctos (//) en <style> y <script>
-- Lógica funcional sin cambios
+PENDIENTE (otros archivos):
+- 1student.gs  → nueva función obtenerNotasGrid()
+- 1code.gs     → nuevo wrapper studentObtenerNotasGrid()
+- 2modaldeberes.html → agregar modoEdicion + origen 'notas'
+- 3panelstudent.html → agregar pbeFlags.notas
 -->
 <!-- MOD-099: FIN -->
