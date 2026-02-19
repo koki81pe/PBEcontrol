@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 3panelstudent.html
-VERSIÓN: 01.28
-FECHA: 15/02/2026 09:46 (UTC-5)
+VERSIÓN: 01.29
+FECHA: 19/02/2026 17:48 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -424,7 +424,7 @@ var currentUser = {
   }
 })();
 
-console.log('%c🎓 PBE Control - Panel Estudiante V01.21', 
+console.log('%c🎓 PBE Control - Panel Estudiante V01.29', 
             'font-size: 16px; font-weight: bold; color: #667eea;');
 console.log('%c✓ currentUser inicializado ANTES de cargar tabs', 
             'font-size: 12px; color: #28a745;');
@@ -673,7 +673,8 @@ window.pbeFlags = {
   horariosem:   false,  // Marca que HorarioSemanal necesita recarga
   calendario:   false,  // Marca que Calendario necesita recarga
   cursos:       false,  // Marca que selects de cursos necesitan recarga
-  horarioclase: false   // Reservado para uso futuro
+  horarioclase: false,  // Reservado para uso futuro
+  notas:        false   // Marca que Notas necesita recarga
 };
 // MOD-012-008: FIN
 
@@ -705,12 +706,13 @@ CRÍTICO:
 - Sin currentUser los sub-módulos no pueden identificar al alumno
 
 FLAGS DE ACTUALIZACIÓN EN CASCADA (MOD-012-008):
-- window.pbeFlags: objeto global con 5 flags booleanos
+- window.pbeFlags: objeto global con 6 flags booleanos
 - deberes:      marcado por Eval/Tareas/Lecturas/ModalDeber al guardar
 - horariosem:   marcado por Eval/Tareas/Lecturas/ModalDeber/HorarioClase al guardar
 - calendario:   marcado por Eval/Tareas/Lecturas/ModalDeber/HorarioSemanal al guardar
 - cursos:       marcado por CursosModule al guardar/eliminar curso
 - horarioclase: reservado
+- notas:        marcado por ModalDeber al guardar; leído por PlanningModule.switchTab()
 - Lectores: switchSubTabDeberes() y PlanningModule.switchTab()
   verifican flags al navegar y recargan si están en true
 
