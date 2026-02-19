@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4ctabplanning.html
-VERSIÓN: 01.22
-FECHA: 16/02/2026 10:48 (UTC-5)
+VERSIÓN: 01.23
+FECHA: 18/02/2026 12:58 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -117,6 +117,15 @@ window.PlanningModule = (function () {
           window.hsRecargarCursos();
         }
       }
+      if (window.pbeFlags.horarioclase) {
+        window.pbeFlags.horarioclase = false;
+        if (name === 'horarioclase' && typeof window.hcRecargarHorario === 'function') {
+          window.hcRecargarHorario();
+        }
+        if (name === 'horariosem' && typeof window.hsRefrescar === 'function') {
+          window.hsRefrescar();
+        }
+      }
       if (name === 'horariosem' && window.pbeFlags.horariosem) {
         window.pbeFlags.horariosem = false;
         if (typeof window.hsRefrescar === 'function') window.hsRefrescar();
@@ -130,7 +139,6 @@ window.PlanningModule = (function () {
     }
   }
 
-  // Helpers reutilizados por sub-tabs
   function obtenerDiasSemanaActual() {
     const hoy = new Date();
     const lunes = new Date(hoy);
@@ -162,7 +170,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.22 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.23 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
@@ -183,14 +191,16 @@ DESCRIPCIÓN:
 Contenedor de sub-tabs de Planning, encapsulado en PlanningModule.
 
 CRÍTICO:
-- switchTab() verifica pbeFlags.cursos, pbeFlags.horariosem y pbeFlags.calendario
-- pbeFlags.cursos recarga cursos en horarioclase o horariosem según subtab activo
+- switchTab() verifica pbeFlags.cursos, pbeFlags.horariosem, pbeFlags.horarioclase y pbeFlags.calendario
+- pbeFlags.cursos recarga dropdown de cursos en horarioclase o horariosem
+- pbeFlags.horarioclase recarga clasesData en horarioclase o horariosem (nombres y colores)
 - pbeFlags.horariosem llama hsRefrescar() al navegar a horariosem
 - pbeFlags.calendario llama CalendarioModule.reload() al navegar a calendario
 
 DEPENDENCIAS:
 - window.pbeFlags              → 3panelstudent.html MOD-012-008
 - window.hcRecargarCursos      → 7ctabhorarioclase.html MOD-005-017
+- window.hcRecargarHorario     → 7ctabhorarioclase.html MOD-005-017
 - window.hsRecargarCursos      → 7ctabhorariosem.html MOD-006-025
 - window.hsRefrescar           → 7ctabhorariosem.html MOD-006-025
 - window.CalendarioModule.reload → 7ctabcalendario.html MOD-004-012
