@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 4ctabplanning.html
-VERSIÓN: 01.23
-FECHA: 18/02/2026 12:58 (UTC-5)
+VERSIÓN: 01.24
+FECHA: 19/02/2026 17:39 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -136,6 +136,13 @@ window.PlanningModule = (function () {
           window.CalendarioModule.reload();
         }
       }
+      if (name === 'notas') {
+        window.pbeFlags.notas = false;
+        if (window.NotasModule && typeof window.NotasModule.recargar === 'function') {
+          console.log('[Planning] 🔄 Recargando Notas al entrar al subtab');
+          window.NotasModule.recargar();
+        }
+      }
     }
   }
 
@@ -170,7 +177,7 @@ window.PlanningModule = (function () {
     return peso ? (total / peso).toFixed(2) : 0;
   }
 
-  console.log('%c📅 Planning V01.23 cargado', 'color:#667eea;font-weight:bold;');
+  console.log('%c📅 Planning V01.24 cargado', 'color:#667eea;font-weight:bold;');
 
   return {
     switchTab,
@@ -191,11 +198,13 @@ DESCRIPCIÓN:
 Contenedor de sub-tabs de Planning, encapsulado en PlanningModule.
 
 CRÍTICO:
-- switchTab() verifica pbeFlags.cursos, pbeFlags.horariosem, pbeFlags.horarioclase y pbeFlags.calendario
+- switchTab() verifica pbeFlags.cursos, pbeFlags.horariosem, pbeFlags.horarioclase,
+  pbeFlags.calendario y pbeFlags.notas
 - pbeFlags.cursos recarga dropdown de cursos en horarioclase o horariosem
 - pbeFlags.horarioclase recarga clasesData en horarioclase o horariosem (nombres y colores)
 - pbeFlags.horariosem llama hsRefrescar() al navegar a horariosem
 - pbeFlags.calendario llama CalendarioModule.reload() al navegar a calendario
+- pbeFlags.notas llama NotasModule.recargar() SIEMPRE al navegar a notas
 
 DEPENDENCIAS:
 - window.pbeFlags              → 3panelstudent.html MOD-012-008
@@ -204,5 +213,6 @@ DEPENDENCIAS:
 - window.hsRecargarCursos      → 7ctabhorariosem.html MOD-006-025
 - window.hsRefrescar           → 7ctabhorariosem.html MOD-006-025
 - window.CalendarioModule.reload → 7ctabcalendario.html MOD-004-012
+- window.NotasModule.recargar  → 7ctabnotas.html MOD-009-002
 -->
 <!-- MOD-099: FIN -->
