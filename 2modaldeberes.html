@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 2modaldeberes.html
-VERSIÓN: 01.09
-FECHA: 19/02/2026 17:34 (UTC-5)
+VERSIÓN: 01.10
+FECHA: 20/02/2026 08:34 (UTC-5)
 *****************************************
 -->
 <!-- MOD-001: FIN -->
@@ -193,6 +193,19 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 }
 /* MOD-002-006: FIN */
 
+/* MOD-002-007: BOTÓN ELIMINAR [INICIO] */
+.md-btn-eliminar {
+  background: #fdecea;
+  color: #c0392b;
+  border: 2px solid #e74c3c;
+  margin-right: auto;
+}
+.md-btn-eliminar:hover {
+  background: #e74c3c;
+  color: white;
+}
+/* MOD-002-007: FIN */
+
 </style>
 <!-- MOD-002: FIN -->
 
@@ -244,6 +257,7 @@ FECHA: 19/02/2026 17:34 (UTC-5)
         </div>
       </div>
       <div class="md-acciones">
+        <button class="md-btn md-btn-eliminar" id="mdBtnEliminarEval" onclick="window.ModalDeberModule.eliminarDeber()" style="display:none">🗑️ Eliminar</button>
         <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
         <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitEval()">Guardar</button>
       </div>
@@ -284,6 +298,7 @@ FECHA: 19/02/2026 17:34 (UTC-5)
         </div>
       </div>
       <div class="md-acciones">
+        <button class="md-btn md-btn-eliminar" id="mdBtnEliminarTarea" onclick="window.ModalDeberModule.eliminarDeber()" style="display:none">🗑️ Eliminar</button>
         <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
         <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitTarea()">Guardar</button>
       </div>
@@ -338,13 +353,11 @@ FECHA: 19/02/2026 17:34 (UTC-5)
         </div>
       </div>
       <div class="md-acciones">
+        <button class="md-btn md-btn-eliminar" id="mdBtnEliminarLect" onclick="window.ModalDeberModule.eliminarDeber()" style="display:none">🗑️ Eliminar</button>
         <button class="md-btn md-btn-secundario" onclick="window.ModalDeberModule.cerrar()">Cancelar</button>
         <button class="md-btn md-btn-primario"   onclick="window.ModalDeberModule.submitLect()">Guardar</button>
       </div>
     </div>
-
-  </div>
-</div>
 <!-- MOD-008: FIN -->
 
 <!-- MOD-009: JAVASCRIPT — MODALDEBEREMODULE [INICIO] -->
@@ -360,6 +373,7 @@ FECHA: 19/02/2026 17:34 (UTC-5)
   }
 
   let _tipoActivo   = 'eval';
+  let _tipoOriginal = '';
   let _fechaActual  = '';
   let _origen       = '';
   let _cursosCache  = [];
@@ -373,12 +387,13 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 // MOD-009-002: ABRIR MODAL [INICIO]
   function abrir(params) {
     params = params || {};
-    _tipoActivo  = params.tipo   || 'eval';
-    _fechaActual = params.fecha  || '';
-    _origen      = params.origen || '';
-    _modoEdicion = params.modoEdicion === true;
-    _rowNumber   = params.rowNumber   || null;
-    _datoEdicion = _modoEdicion ? params : null;
+    _tipoActivo   = params.tipo   || 'eval';
+    _tipoOriginal = _tipoActivo;
+    _fechaActual  = params.fecha  || '';
+    _origen       = params.origen || '';
+    _modoEdicion  = params.modoEdicion === true;
+    _rowNumber    = params.rowNumber   || null;
+    _datoEdicion  = _modoEdicion ? params : null;
 
     _cursosListos = false;
     _cursosCache  = [];
@@ -387,6 +402,7 @@ FECHA: 19/02/2026 17:34 (UTC-5)
     _actualizarTitulo();
     cambiarTipo(_tipoActivo);
     _preFecha();
+    _mostrarBtnEliminar();
 
     _cargarCursos();
 
@@ -457,6 +473,10 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 
 // MOD-009-004: CAMBIAR TIPO ACTIVO [INICIO]
   function cambiarTipo(tipo) {
+    if (_modoEdicion && tipo !== _tipoActivo) {
+      _migrarCamposComunes(tipo);
+    }
+
     _tipoActivo = tipo;
 
     ['eval', 'tarea', 'lect'].forEach(function(t) {
@@ -615,6 +635,32 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 
     _bloquearBtn('mdFormEval');
 
+    if (_modoEdicion && _rowNumber && _tipoOriginal !== 'eval') {
+      const payload = {
+        codeAlum:    currentUser.codeAlum,
+        tipoOrigen:  _tipoOriginal,
+        rowNumber:   _rowNumber,
+        tipoDestino: 'eval',
+        datos: { curso: curso, nombre: nombre, fecha: fecha, nota: nota, peso: peso }
+      };
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo cambiar el tipo.');
+            _desbloquearBtn('mdFormEval');
+            return;
+          }
+          _onGuardadoExitoso('Deber cambiado a Evaluación exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error cambio tipo → eval:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormEval');
+        })
+        .studentCambiarTipoDeber(payload);
+      return;
+    }
+
     const payload = {
       codeAlum:  currentUser.codeAlum,
       curso:     curso,
@@ -685,6 +731,40 @@ FECHA: 19/02/2026 17:34 (UTC-5)
     }
 
     _bloquearBtn('mdFormTarea');
+
+    if (_modoEdicion && _rowNumber && _tipoOriginal !== 'tarea') {
+      const payload = {
+        codeAlum:    currentUser.codeAlum,
+        tipoOrigen:  _tipoOriginal,
+        rowNumber:   _rowNumber,
+        tipoDestino: 'tarea',
+        datos: {
+          curso:        curso,
+          nombre:       nombre,
+          fecha:        fechaEntrega,
+          nota:         nota,
+          peso:         peso,
+          fechaEntrega: fechaEntrega,
+          fechaAccion:  fechaRealiz
+        }
+      };
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo cambiar el tipo.');
+            _desbloquearBtn('mdFormTarea');
+            return;
+          }
+          _onGuardadoExitoso('Deber cambiado a Tarea exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error cambio tipo → tarea:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormTarea');
+        })
+        .studentCambiarTipoDeber(payload);
+      return;
+    }
 
     const payload = {
       codeAlum:     currentUser.codeAlum,
@@ -769,6 +849,43 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 
     _bloquearBtn('mdFormLect');
 
+    if (_modoEdicion && _rowNumber && _tipoOriginal !== 'lect') {
+      const payload = {
+        codeAlum:    currentUser.codeAlum,
+        tipoOrigen:  _tipoOriginal,
+        rowNumber:   _rowNumber,
+        tipoDestino: 'lect',
+        datos: {
+          curso:       curso,
+          nombre:      titulo,
+          fecha:       fechaEval || fechaInicio,
+          nota:        nota,
+          peso:        peso,
+          fechaInicio: fechaInicio,
+          fechaFin:    fechaFin,
+          fechaEval:   fechaEval,
+          cantPag:     cantPag,
+          pagActual:   pagActual
+        }
+      };
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.success !== true) {
+            _mostrarAlerta('error', (response && response.error) || 'No se pudo cambiar el tipo.');
+            _desbloquearBtn('mdFormLect');
+            return;
+          }
+          _onGuardadoExitoso('Deber cambiado a Lectura exitosamente.');
+        })
+        .withFailureHandler(function(e) {
+          console.error('[ModalDeberModule] Error cambio tipo → lect:', e);
+          _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+          _desbloquearBtn('mdFormLect');
+        })
+        .studentCambiarTipoDeber(payload);
+      return;
+    }
+
     const payload = {
       codeAlum:    currentUser.codeAlum,
       curso:       curso,
@@ -795,7 +912,7 @@ FECHA: 19/02/2026 17:34 (UTC-5)
           _onGuardadoExitoso('Lectura actualizada exitosamente.');
         })
         .withFailureHandler(function(e) {
-          console.error('[ModalDeberModule] Error lectura actualizar:', e);
+          console.error('[ModalDeberModule] Error lect actualizar:', e);
           _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
           _desbloquearBtn('mdFormLect');
         })
@@ -865,8 +982,8 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 
 // MOD-009-013: HELPERS, EXPOSICIÓN GLOBAL Y ARRANQUE [INICIO]
   function _capitalizar(str) {
-    if (str === 'lect') return 'Lect';
-    if (str === 'eval') return 'Eval';
+    if (str === 'lect')  return 'Lect';
+    if (str === 'eval')  return 'Eval';
     if (str === 'tarea') return 'Tarea';
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
@@ -893,6 +1010,15 @@ FECHA: 19/02/2026 17:34 (UTC-5)
     }
   }
 
+  function _mostrarBtnEliminar() {
+    const ids = ['mdBtnEliminarEval', 'mdBtnEliminarTarea', 'mdBtnEliminarLect'];
+    const visible = _modoEdicion && _origen === 'notas';
+    ids.forEach(function(id) {
+      const btn = document.getElementById(id);
+      if (btn) btn.style.display = visible ? 'inline-block' : 'none';
+    });
+  }
+
   window.ModalDeberModule = {
     _loaded:       true,
     abrir:         abrir,
@@ -901,13 +1027,113 @@ FECHA: 19/02/2026 17:34 (UTC-5)
     cambiarTipo:   cambiarTipo,
     submitEval:    submitEval,
     submitTarea:   submitTarea,
-    submitLect:    submitLect
+    submitLect:    submitLect,
+    eliminarDeber: eliminarDeber
   };
 
-  console.log('%c📋 ModalDeberModule V01.09 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
-
-})();
+  console.log('%c📋 ModalDeberModule V01.10 cargado', 'color:#667eea;font-weight:bold;font-size:11px');
 // MOD-009-013: FIN
+
+// MOD-009-014: ELIMINAR DEBER [INICIO]
+  function eliminarDeber() {
+    if (!_modoEdicion || !_rowNumber) return;
+
+    const tipoLabel = { eval: 'Evaluación', tarea: 'Tarea', lect: 'Lectura' };
+    const label = tipoLabel[_tipoOriginal] || 'deber';
+
+    if (!confirm('¿Estás seguro de que deseas eliminar este registro de ' + label + '? Esta acción no se puede deshacer.')) return;
+
+    const handlers = {
+      eval:  'studentEliminarEvaluacion',
+      tarea: 'studentEliminarTarea',
+      lect:  'studentEliminarLectura'
+    };
+
+    const fn = handlers[_tipoOriginal];
+    if (!fn) {
+      _mostrarAlerta('error', 'Tipo de deber no reconocido para eliminar.');
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (!response || response.success !== true) {
+          _mostrarAlerta('error', (response && response.error) || 'No se pudo eliminar el deber.');
+          return;
+        }
+        _onGuardadoExitoso(label + ' eliminada exitosamente.');
+      })
+      .withFailureHandler(function(e) {
+        console.error('[ModalDeberModule] Error eliminando deber:', e);
+        _mostrarAlerta('error', 'Error de conexión. Intenta nuevamente.');
+      })
+      [fn]({ rowNumber: _rowNumber });
+  }
+// MOD-009-014: FIN
+
+// MOD-009-015: MIGRAR CAMPOS COMUNES AL CAMBIAR TIPO [INICIO]
+  function _migrarCamposComunes(tipoDestino) {
+    let curso = '', nombre = '', fecha = '', nota = '', peso = '';
+
+    if (_tipoActivo === 'eval') {
+      curso  = _get('md-eval-curso');
+      nombre = _get('md-eval-nombre');
+      fecha  = _get('md-eval-fecha');
+      nota   = _get('md-eval-nota');
+      peso   = _get('md-eval-peso');
+    } else if (_tipoActivo === 'tarea') {
+      curso  = _get('md-tarea-curso');
+      nombre = _get('md-tarea-nombre');
+      fecha  = _get('md-tarea-fechaentrega');
+      nota   = _get('md-tarea-nota');
+      peso   = _get('md-tarea-peso');
+    } else if (_tipoActivo === 'lect') {
+      curso  = _get('md-lect-curso');
+      nombre = _get('md-lect-titulo');
+      fecha  = _get('md-lect-fechaeval') || _get('md-lect-fechainicio');
+      nota   = _get('md-lect-nota');
+      peso   = _get('md-lect-peso');
+    }
+
+    if (tipoDestino === 'eval') {
+      _val('md-eval-curso',  curso);
+      _val('md-eval-nombre', nombre);
+      _val('md-eval-fecha',  fecha);
+      _val('md-eval-nota',   nota);
+      _val('md-eval-peso',   peso);
+      setTimeout(function() {
+        const sel = document.getElementById('md-eval-curso');
+        if (sel && curso) sel.value = curso;
+      }, 50);
+    } else if (tipoDestino === 'tarea') {
+      _val('md-tarea-curso',        curso);
+      _val('md-tarea-nombre',       nombre);
+      _val('md-tarea-fechaentrega', fecha);
+      _val('md-tarea-nota',         nota);
+      _val('md-tarea-peso',         peso);
+      setTimeout(function() {
+        const sel = document.getElementById('md-tarea-curso');
+        if (sel && curso) sel.value = curso;
+      }, 50);
+    } else if (tipoDestino === 'lect') {
+      _val('md-lect-curso',     curso);
+      _val('md-lect-titulo',    nombre);
+      _val('md-lect-fechaeval', fecha);
+      _val('md-lect-nota',      nota);
+      _val('md-lect-peso',      peso);
+      setTimeout(function() {
+        const sel = document.getElementById('md-lect-curso');
+        if (sel && curso) sel.value = curso;
+      }, 50);
+    }
+
+    console.log('[ModalDeberModule] Campos comunes migrados de', _tipoActivo, '→', tipoDestino);
+  }
+// MOD-009-015: FIN
+
+// MOD-009-016: CIERRE IIFE [INICIO]
+})();
+// MOD-009-016: FIN
 
 </script>
 <!-- MOD-009: FIN -->
@@ -915,23 +1141,20 @@ FECHA: 19/02/2026 17:34 (UTC-5)
 <!-- MOD-099: NOTAS [INICIO] -->
 <!--
 DESCRIPCIÓN:
-Modal libre para registro de deberes (Evaluación, Tarea, Lectura)
-invocable desde cualquier subtab sin navegar fuera del origen.
+Modal global para registro y edición de deberes (Evaluación, Tarea, Lectura).
+Desde origen 'notas': permite cambiar tipo (delete+insert cross-sheet) y eliminar.
 
 CRÍTICO:
-- Cursos se recargan siempre al abrir (sin caché entre aperturas)
-- _onGuardadoExitoso() marca pbeFlags antes de cerrar y retornar
+- _tipoOriginal guarda el tipo al abrir; si difiere de _tipoActivo al submit → studentCambiarTipoDeber
+- Botón Eliminar visible solo cuando _modoEdicion=true y _origen='notas'
+- _migrarCamposComunes() traslada curso/nombre/fecha/nota/peso al cambiar tipo
+- studentCambiarTipoDeber debe implementarse en 1student.gs + 1code.gs
 
 DEPENDENCIAS:
-- currentUser.codeAlum          → requerido
-- window.pbeFlags               → 3panelstudent.html MOD-012-008
-- window.PlanningModule.switchTab() → retorno al origen
-- window.hsRefrescar / CalendarioModule.reload → recarga inmediata
-
-USO:
-  ModalDeberModule.abrir({ tipo, fecha, origen })
-  tipo:   'eval' | 'tarea' | 'lect'
-  fecha:  'DD/MM/AAAA'
-  origen: 'horariosem' | 'calendario' | ''
+- currentUser.codeAlum              → requerido
+- window.pbeFlags                   → 3panelstudent.html
+- window.NotasModule.recargar()     → recarga grid tras guardar/eliminar
+- studentEliminarEvaluacion/Tarea/Lectura → ya existentes en 1code.gs
+- studentCambiarTipoDeber           → PENDIENTE en 1student.gs y 1code.gs
 -->
 <!-- MOD-099: FIN -->
