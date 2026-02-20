@@ -3,8 +3,8 @@
 *****************************************
 PROYECTO: PBE Control
 ARCHIVO: 1student.gs
-VERSIÓN: 01.30
-FECHA: 19/02/2026 13:27 (UTC-5)
+VERSIÓN: 01.31
+FECHA: 20/02/2026 08:40 (UTC-5)
 *****************************************
 */
 // MOD-001: FIN
@@ -1770,7 +1770,90 @@ function _formatearFecha(valor) {
 }
 // MOD-015: FIN
 
-// MOD-016: EXPORTACIÓN [INICIO]
+// MOD-016: CAMBIAR TIPO DE DEBER [INICIO]
+function cambiarTipoDeber(params) {
+  try {
+    var codeAlum    = params.codeAlum;
+    var tipoOrigen  = params.tipoOrigen;
+    var rowNumber   = params.rowNumber;
+    var tipoDestino = params.tipoDestino;
+    var datos       = params.datos;
+
+    if (!codeAlum || !tipoOrigen || !rowNumber || !tipoDestino || !datos) {
+      return { success: false, error: 'Parámetros incompletos para cambiar tipo de deber' };
+    }
+
+    var hojas = { eval: 'Eval', tarea: 'Tareas', lect: 'Lecturas' };
+    var hojaOrigen = hojas[tipoOrigen];
+    if (!hojaOrigen) {
+      return { success: false, error: 'Tipo de origen no reconocido: ' + tipoOrigen };
+    }
+
+    // Paso 1: Eliminar de la hoja origen
+    var elimResult = DB.eliminar(hojaOrigen, rowNumber);
+    if (!elimResult.success) {
+      return { success: false, error: 'No se pudo eliminar el deber original: ' + (elimResult.error || '') };
+    }
+
+    // Paso 2: Construir nuevo registro según tipoDestino
+    var nuevoRegistro = null;
+
+    if (tipoDestino === 'eval') {
+      nuevoRegistro = {
+        FechaReg: Utils.fechaHoy(),
+        CodeAlum: codeAlum,
+        Curso:    datos.curso    || '',
+        NomEval:  datos.nombre   || '',
+        FechaEval: datos.fecha   || '',
+        Nota:     datos.nota     || '',
+        Peso:     datos.peso     || '',
+        Sem:      ''
+      };
+      return DB.agregar('Eval', nuevoRegistro);
+
+    } else if (tipoDestino === 'tarea') {
+      nuevoRegistro = {
+        FechaReg:     Utils.fechaHoy(),
+        CodeAlum:     codeAlum,
+        Curso:        datos.curso        || '',
+        Tarea:        datos.nombre       || '',
+        FechaEntrega: datos.fechaEntrega || datos.fecha || '',
+        FechaAccion:  datos.fechaAccion  || '',
+        Nota:         datos.nota         || '',
+        Peso:         datos.peso         || '',
+        Sem:          ''
+      };
+      return DB.agregar('Tareas', nuevoRegistro);
+
+    } else if (tipoDestino === 'lect') {
+      nuevoRegistro = {
+        FechaReg:    Utils.fechaHoy(),
+        CodeAlum:    codeAlum,
+        Curso:       datos.curso       || '',
+        Lectura:     datos.nombre      || '',
+        CantPag:     datos.cantPag     || '',
+        PagActual:   datos.pagActual   || '0',
+        FechaInicio: datos.fechaInicio || '',
+        FechaFin:    datos.fechaFin    || '',
+        FechaEval:   datos.fechaEval   || '',
+        Nota:        datos.nota        || '',
+        Peso:        datos.peso        || '',
+        Sem:         ''
+      };
+      return DB.agregar('Lecturas', nuevoRegistro);
+
+    } else {
+      return { success: false, error: 'Tipo de destino no reconocido: ' + tipoDestino };
+    }
+
+  } catch(error) {
+    Logger.log('Error en Student.cambiarTipoDeber(): ' + error.toString());
+    return { success: false, error: 'Error al cambiar tipo de deber' };
+  }
+}
+// MOD-016: FIN
+
+// MOD-017: EXPORTAR FUNCIONES PÚBLICAS [INICIO]
 return {
   obtenerCursos: obtenerCursos,
   agregarCurso: agregarCurso,
@@ -1811,13 +1894,14 @@ return {
   obtenerResumenNotas: obtenerResumenNotas,
   obtenerTodosDeberes: obtenerTodosDeberes,
   obtenerDeberesPorTipo: obtenerDeberesPorTipo,
-  obtenerNotasGrid: obtenerNotasGrid
+  obtenerNotasGrid: obtenerNotasGrid,
+  cambiarTipoDeber: cambiarTipoDeber
 };
-// MOD-016: FIN
-
-// MOD-017: CIERRE [INICIO]
-})();
 // MOD-017: FIN
+
+// MOD-018: CIERRE [INICIO]
+})();
+// MOD-018: FIN
 
 // MOD-099: NOTAS [INICIO]
 /*
@@ -1826,21 +1910,12 @@ Lógica de negocio para gestión académica del alumno.
 Única capa entre frontend y DB.
 
 CRÍTICO:
-- actualizarCurso() propaga cambio de nombre a Repasos, Eval, Tareas,
-  Lecturas y HorarioClases vía DB.propagarNombreCurso()
 - Student NUNCA accede a SpreadsheetApp directamente, solo vía DB
 - obtenerNotasGrid() accede a SpreadsheetApp solo para leer hoja Fechas
-  (FechaInicio no está en DB). Todo lo demás va por DB.
+- cambiarTipoDeber() hace delete en hoja origen + insert en hoja destino
 
 DEPENDENCIAS:
 - DB    → 1db.gs
 - Utils → 1utils.gs
-
-CAMBIOS V01.29 → V01.30:
-- Agregado MOD-015: obtenerNotasGrid()
-  Retorna deberes con peso agrupados por curso, con semana calculada
-  al vuelo desde FechaInicio de hoja Fechas
-- MOD-015 (Exportación) renombrado a MOD-016
-- MOD-016 (Cierre) renombrado a MOD-017
 */
 // MOD-099: FIN
