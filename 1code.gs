@@ -3,8 +3,8 @@
 ******************************************
 PROYECTO: PBE Control
 ARCHIVO: 1code.gs
-VERSIÓN: 01.31
-FECHA: 19/02/2026 13:33 (UTC-5)
+VERSIÓN: 01.32
+FECHA: 20/02/2026 08:46 (UTC-5)
 ******************************************
 */
 // MOD-001: FIN
@@ -396,7 +396,14 @@ function studentObtenerDeberesPorTipo(params) {
 }
 // MOD-016: FIN
 
-// MOD-017: WRAPPERS ADMIN [INICIO]
+// MOD-017: WRAPPER CAMBIAR TIPO DEBER [INICIO]
+function studentCambiarTipoDeber(params) {
+  var result = Student.cambiarTipoDeber(params);
+  return cleanDataForSerialization(result);
+}
+// MOD-017: FIN
+
+// MOD-018: WRAPPERS ADMIN [INICIO]
 function adminCrearAlumno(params) { 
   return Admin.crearAlumno(params); 
 }
@@ -408,53 +415,21 @@ function adminBuscarAlumno(params) {
 function adminEliminarAlumno(params) { 
   return Admin.eliminarAlumno(params); 
 }
-// MOD-017: FIN
+// MOD-018: FIN
 
 // MOD-099: NOTAS [INICIO]
 /*
-CAMBIOS V01.28 CLAUDE+ fix mod coment:
-- Se corrigió etiquetado de comentarios para identificar los MOD el 17/01/2026
-✅ Agregado MOD-014: Gestión Semanas (3 wrappers)
-  - studentObtenerSemanas()
-  - studentCrearSemana()
-  - studentEliminarSemana()
-✅ Soporte completo para hoja Semanas
-✅ Total: 38 wrappers Student + 3 Admin = 41 wrappers
+DESCRIPCIÓN:
+Wrappers GAS que exponen funciones Student y Admin al frontend via google.script.run.
+Aplica cleanDataForSerialization() en todos los wrappers Student.
 
-MÓDULOS:
-MOD-001: Encabezado
-MOD-002: Router Principal (1 función)
-MOD-003: Include dinámico (1 función)
-MOD-004: Autenticación (1 función)
-MOD-005: Limpieza de datos (5 funciones)
-MOD-006: Wrappers Cursos (4)
-MOD-007: Wrappers Repasos (4)
-MOD-008: Wrappers Evaluaciones (4)
-MOD-009: Wrappers Tareas (4)
-MOD-010: Wrappers Lecturas (4)
-MOD-011: Wrappers HorarioClases (4)
-MOD-012: Wrappers HorarioSem (4)
-MOD-013: Wrappers Config Semanas (4)
-MOD-014: Wrappers Gestión Semanas (3) ← NUEVO V01.28
-MOD-015: Wrappers Notas (3)
-MOD-016: Wrappers Deberes (2)
-MOD-017: Wrappers Admin (3)
-MOD-018: Notas
+CRÍTICO:
+- MOD-005: isTimeValue() procesa times ANTES de fechas
+- MOD-014: studentObtenerSemanas() recibe codeAlum directo, no params completo
+- MOD-017: studentCambiarTipoDeber() → delete hoja origen + insert hoja destino
 
-TOTAL FUNCIONES: 50
-- Router y utilidades: 8
-- Wrappers Student: 38
-- Wrappers Admin: 3
-
-LIMPIEZA AUTOMÁTICA:
-Todos los wrappers Student aplican cleanDataForSerialization():
-1. Detecta time objects (años 1899/1900)
-2. Formatea times como "HH:MM"
-3. Formatea fechas como "DD/MM/AAAA"
-4. Convierte null/undefined a string vacío
-
-ADVERTENCIAS CRÍTICAS:
-● MOD-005: isTimeValue() procesa times ANTES de fechas
-● MOD-014: obtenerSemanas() recibe codeAlum directo, no params completo
+DEPENDENCIAS:
+- Student → 1student.gs
+- Admin   → 1admin.gs
 */
 // MOD-099: FIN
